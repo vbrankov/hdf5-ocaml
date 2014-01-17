@@ -1,0 +1,4 @@
+h5p_stubs.o: h5p_stubs.c
+h5p.cmi :
+h5p.cmo : h5p.cmi
+h5p.cmx : h5p.cmi
