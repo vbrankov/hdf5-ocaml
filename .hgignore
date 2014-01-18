@@ -1,0 +1,8 @@
+syntax: glob
+
+*.a
+*.cm*
+*.exe
+*.o
+*.so
+*.swp
