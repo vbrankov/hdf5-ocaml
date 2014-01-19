@@ -1,20 +1,45 @@
 #include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/callback.h>
+#include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include <caml/mlvalues.h>
 #include <caml/threads.h>
 #include "hdf5.h"
 
-value caml_h5p_create(value caml_cls_id)
+static struct custom_operations h5p_ops = {
+  "hdf5.h5p",
+  custom_finalize_default,
+  custom_compare_default,
+  custom_compare_ext_default,
+  custom_hash_default,
+  custom_serialize_default,
+  custom_deserialize_default
+};
+
+#define H5P_val(v) *((hid_t*) Data_custom_val(v))
+
+static value alloc_h5p(hid_t id)
 {
-  CAMLparam1(caml_cls_id);
+  value v = caml_alloc_custom(&h5p_ops, sizeof(hid_t), 0, 1);
+  H5P_val(v) = id;
+  return v;
+}
 
-  CAMLlocal1(caml_v);
-  hid_t cls_id, v;
+value caml_h5p_close(value cls_id_v)
+{
+  CAMLparam1(cls_id_v);
+  CAMLreturn(Val_int(H5Pclose(H5P_val(cls_id_v))));
+}
 
-  switch (Int_val(caml_cls_id))
+value caml_h5p_create(value cls_id_v)
+{
+  CAMLparam1(cls_id_v);
+
+  hid_t cls_id;
+
+  switch (Int_val(cls_id_v))
   {
     case  0: cls_id = H5P_OBJECT_CREATE; break;
     case  1: cls_id = H5P_FILE_CREATE; break;
@@ -35,8 +60,5 @@ value caml_h5p_create(value caml_cls_id)
     default: caml_failwith("unrecognized cls_id");
   }
 
-  v = H5Pcreate(cls_id);
-  caml_v = caml_copy_nativeint((long) v);
-  
-  CAMLreturn(caml_v);
+  CAMLreturn(alloc_h5p(H5Pcreate(cls_id)));
 }

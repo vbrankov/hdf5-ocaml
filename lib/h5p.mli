@@ -20,4 +20,5 @@ module Cls_id : sig
   | LINK_ACCESS
 end
 
+val close : t -> int
 val create : Cls_id.t -> t
