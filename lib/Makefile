@@ -21,7 +21,7 @@ $(LIBNAME).cmxa: $(LIBNAME).cmx $(SRC_C:.c=.o)
 	$(MKLIB) -L/usr/local/hdf5/lib -lhdf5 $^ -o $(LIBNAME)
 
 depend:
-	gcc -MM $(CFLAGS) *.c > .depend
+	gcc -I /usr/local/hdf5/include -MM *.c > .depend
 	$(CAMLDEP) *.mli *.ml >> .depend
 
 include .depend

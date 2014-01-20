@@ -1,12 +1,8 @@
-#include <caml/alloc.h>
-#include <caml/bigarray.h>
-#include <caml/callback.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
-#include <caml/mlvalues.h>
-#include <caml/threads.h>
 #include "hdf5.h"
+#include "h5p_stubs.h"
 
 static struct custom_operations h5p_ops = {
   "hdf5.h5p",
@@ -17,8 +13,6 @@ static struct custom_operations h5p_ops = {
   custom_serialize_default,
   custom_deserialize_default
 };
-
-#define H5P_val(v) *((hid_t*) Data_custom_val(v))
 
 static value alloc_h5p(hid_t id)
 {
