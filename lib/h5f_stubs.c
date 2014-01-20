@@ -67,3 +67,16 @@ value caml_h5f_create(value name_v, value fcpl_id_v, value fapl_id_v, value flag
 
   CAMLreturn(alloc_h5f(H5Fcreate(name, flags, fcpl_id, fapl_id)));
 }
+
+value caml_h5f_open(value name_v, value fapl_id_v, value flags_v)
+{
+  CAMLparam3(name_v, fapl_id_v, flags_v);
+
+  const char* name = String_val(name_v);
+  unsigned flags = acc_val(flags_v);
+  hid_t fapl_id = H5P_opt_val(fapl_id_v);
+
+  CAMLreturn(alloc_h5f(H5Fopen(name, flags, fapl_id)));
+}
+
+
