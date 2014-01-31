@@ -22,3 +22,4 @@ end
 
 val close : t -> int
 val create : Cls_id.t -> t
+val set_userblock : t -> int -> unit

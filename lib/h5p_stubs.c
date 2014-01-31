@@ -56,3 +56,13 @@ value caml_h5p_create(value cls_id_v)
 
   CAMLreturn(alloc_h5p(H5Pcreate(cls_id)));
 }
+
+value caml_h5p_set_userblock(value plist_v, value size_v)
+{
+  CAMLparam2(plist_v, size_v);
+
+  hid_t plist = H5P_val(plist_v);
+  hsize_t size = Int_val(size_v);
+
+  CAMLreturn(Val_int(H5Pset_userblock(plist, size)));
+}
