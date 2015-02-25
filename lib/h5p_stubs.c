@@ -2,6 +2,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
+#include "h5i_stubs.h"
 #include "h5p_stubs.h"
 
 static struct custom_operations h5p_ops = {
@@ -16,15 +17,17 @@ static struct custom_operations h5p_ops = {
 
 static value alloc_h5p(hid_t id)
 {
+  raise_if_fail(id);
   value v = caml_alloc_custom(&h5p_ops, sizeof(hid_t), 0, 1);
   H5P_val(v) = id;
   return v;
 }
 
-value caml_h5p_close(value cls_id_v)
+void caml_h5p_close(value cls_id_v)
 {
   CAMLparam1(cls_id_v);
-  CAMLreturn(Val_int(H5Pclose(H5P_val(cls_id_v))));
+  raise_if_fail(H5Pclose(H5P_val(cls_id_v)));
+  CAMLreturn0;
 }
 
 value caml_h5p_create(value cls_id_v)
@@ -57,12 +60,13 @@ value caml_h5p_create(value cls_id_v)
   CAMLreturn(alloc_h5p(H5Pcreate(cls_id)));
 }
 
-value caml_h5p_set_userblock(value plist_v, value size_v)
+void caml_h5p_set_userblock(value plist_v, value size_v)
 {
   CAMLparam2(plist_v, size_v);
 
   hid_t plist = H5P_val(plist_v);
   hsize_t size = Int_val(size_v);
 
-  CAMLreturn(Val_int(H5Pset_userblock(plist, size)));
+  raise_if_fail(H5Pset_userblock(plist, size));
+  CAMLreturn0;
 }

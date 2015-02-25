@@ -20,6 +20,6 @@ module Cls_id = struct
   | LINK_ACCESS
 end
 
-external close : t -> int = "caml_h5p_close"
+external close : t -> unit = "caml_h5p_close"
 external create : Cls_id.t -> t = "caml_h5p_create"
 external set_userblock : t -> int -> unit = "caml_h5p_set_userblock"

@@ -20,6 +20,6 @@ module Cls_id : sig
   | LINK_ACCESS
 end
 
-val close : t -> int
-val create : Cls_id.t -> t
-val set_userblock : t -> int -> unit
+external close : t -> unit = "caml_h5p_close"
+external create : Cls_id.t -> t = "caml_h5p_create"
+external set_userblock : t -> int -> unit = "caml_h5p_set_userblock"

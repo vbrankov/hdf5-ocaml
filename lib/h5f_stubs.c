@@ -3,6 +3,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
+#include "h5i_stubs.h"
 #include "h5p_stubs.h"
 
 static struct custom_operations h5f_ops = {
@@ -19,6 +20,7 @@ static struct custom_operations h5f_ops = {
 
 static value alloc_h5f(hid_t id)
 {
+  raise_if_fail(id);
   value v = caml_alloc_custom(&h5f_ops, sizeof(hid_t), 0, 1);
   H5F_val(v) = id;
   return v;
@@ -51,10 +53,11 @@ unsigned acc_val(value v)
   return flags;
 }
 
-value caml_h5f_close(value cls_id_v)
+void caml_h5f_close(value cls_id_v)
 {
   CAMLparam1(cls_id_v);
-  CAMLreturn(Val_int(H5Fclose(H5F_val(cls_id_v))));
+  raise_if_fail(H5Fclose(H5F_val(cls_id_v)));
+  CAMLreturn0;
 }
 
 value caml_h5f_create(value name_v, value fcpl_id_v, value fapl_id_v, value flags_v)
@@ -78,5 +81,3 @@ value caml_h5f_open(value name_v, value fapl_id_v, value flags_v)
 
   CAMLreturn(alloc_h5f(H5Fopen(name, flags, fapl_id)));
 }
-
-

@@ -156,6 +156,6 @@ val native_uint_least64  : t
 val native_int_fast64 : t
 val native_uint_fast64 : t
 
-val copy : t -> t
-val create : H5T_class.t -> int -> t
-val set_order : t -> Order.t -> int
+external copy : t -> t = "caml_h5t_copy"
+external create : H5T_class.t -> int -> t = "caml_h5t_create"
+external set_order : t -> Order.t -> unit = "caml_h5t_set_order"

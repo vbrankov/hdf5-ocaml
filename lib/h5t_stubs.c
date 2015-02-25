@@ -4,6 +4,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
+#include "h5i_stubs.h"
 
 static struct custom_operations h5t_ops = {
   "hdf5.h5t",
@@ -19,6 +20,7 @@ static struct custom_operations h5t_ops = {
 
 static value alloc_h5t(hid_t id)
 {
+  raise_if_fail(id);
   value v = caml_alloc_custom(&h5t_ops, sizeof(hid_t), 0, 1);
   H5T_val(v) = id;
   return v;
@@ -118,9 +120,10 @@ value caml_h5t_create(value class_v, value size_v)
   CAMLreturn(alloc_h5t(H5Tcreate(class, size)));
 }
 
-value caml_h5t_set_order(value id_v, value order_v)
+void caml_h5t_set_order(value id_v, value order_v)
 {
   CAMLparam2(id_v, order_v);
 
-  CAMLreturn(Val_int(H5Tset_order(H5T_val(id_v), H5T_order_val(order_v))));
+  raise_if_fail(H5Tset_order(H5T_val(id_v), H5T_order_val(order_v)));
+  CAMLreturn0;
 }

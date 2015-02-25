@@ -58,4 +58,4 @@ let ieee_f32be, ieee_f32le, ieee_f64be, ieee_f64le, std_i8be, std_i8le, std_i16b
 
 external copy : t -> t = "caml_h5t_copy"
 external create : H5T_class.t -> int -> t = "caml_h5t_create"
-external set_order : t -> Order.t -> int = "caml_h5t_set_order"
+external set_order : t -> Order.t -> unit = "caml_h5t_set_order"
