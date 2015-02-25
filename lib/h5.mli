@@ -1,6 +1,7 @@
 module Hsize : sig
   type t
 
-  external of_int : int -> t = "%identity"
+  val of_int : int -> t
+  external to_int : t -> int = "%identity"
   val unlimited : t
 end

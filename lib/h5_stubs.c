@@ -1,18 +1,22 @@
 #include <stddef.h>
 #include <stdlib.h>
+#include <caml/fail.h>
 #include <caml/mlvalues.h>
 #include "hdf5.h"
 
 int hsize_t_array_val(value v, hsize_t **a)
 {
-  int i, length;
+  long i, length, e;
 
   length = Wosize_val(v);
   *a = calloc(length, sizeof(hsize_t));
   if (*a == NULL)
     return length;
   for (i = 0; i < length; i++)
-    (*a)[i] = Long_val(Field(v, i));
+  {
+    e = Long_val(Field(v, i));
+    (*a)[i] = e == -1 ? H5S_UNLIMITED : e;
+  }
   return length;
 }
 

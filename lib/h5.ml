@@ -1,7 +1,9 @@
 module Hsize = struct
   type t
 
-  external of_int : int -> t = "%identity"
-  external get_unlimited : unit -> t = "hdf5_h5_get_unlimited_stub"
-  let unlimited = get_unlimited ()
+  let of_int =
+    let negative = Invalid_argument "Hsize.of_int: negative value" in
+    fun i -> if i < 0 then raise negative
+  external to_int : t -> int = "%identity"
+  let unlimited = -1
 end
