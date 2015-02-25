@@ -1,15 +1,19 @@
-h5f_stubs.o: h5f_stubs.c h5p_stubs.h
-h5g_stubs.o: h5g_stubs.c h5p_stubs.h
+h5_stubs.o: h5_stubs.c
+h5f_stubs.o: h5f_stubs.c h5i_stubs.h h5p_stubs.h
+h5g_stubs.o: h5g_stubs.c h5i_stubs.h h5p_stubs.h
 h5i_stubs.o: h5i_stubs.c
-h5p_stubs.o: h5p_stubs.c h5p_stubs.h
-h5s_stubs.o: h5s_stubs.c h5p_stubs.h
-h5t_stubs.o: h5t_stubs.c
+h5p_stubs.o: h5p_stubs.c h5i_stubs.h h5p_stubs.h
+h5s_stubs.o: h5s_stubs.c h5_stubs.h h5i_stubs.h h5p_stubs.h
+h5t_stubs.o: h5t_stubs.c h5i_stubs.h
+h5.cmi :
 h5f.cmi : h5p.cmi
 h5g.cmi : h5p.cmi h5f.cmi
 h5i.cmi :
 h5p.cmi :
-h5s.cmi :
+h5s.cmi : h5.cmi
 h5t.cmi :
+h5.cmo : h5.cmi
+h5.cmx : h5.cmi
 h5f.cmo : h5p.cmi h5f.cmi
 h5f.cmx : h5p.cmx h5f.cmi
 h5g.cmo : h5p.cmi h5f.cmi h5g.cmi
@@ -18,7 +22,7 @@ h5i.cmo : h5i.cmi
 h5i.cmx : h5i.cmi
 h5p.cmo : h5p.cmi
 h5p.cmx : h5p.cmi
-h5s.cmo : h5s.cmi
-h5s.cmx : h5s.cmi
+h5s.cmo : h5.cmi h5s.cmi
+h5s.cmx : h5.cmx h5s.cmi
 h5t.cmo : h5t.cmi
 h5t.cmx : h5t.cmi

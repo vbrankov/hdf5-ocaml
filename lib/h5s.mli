@@ -1,3 +1,5 @@
+open H5
+
 type t
 
 module Class : sig
@@ -8,5 +10,7 @@ module Class : sig
   | NULL
 end
 
-val close : t -> int
-val create : Class.t -> t
+external close : t -> unit = "hdf5_h5s_close"
+external create : Class.t -> t = "hdf5_h5s_create"
+external create_simple : ?maximum_dims:int array -> current_dims:Hsize.t array -> unit
+  -> t = "hdf5_h5s_create_simple"

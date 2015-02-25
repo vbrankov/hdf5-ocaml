@@ -1,3 +1,5 @@
+open H5
+
 type t
 
 module Class = struct
@@ -8,5 +10,7 @@ module Class = struct
   | NULL
 end
 
-external close : t -> int = "caml_h5s_close"
+external close : t -> unit = "caml_h5s_close"
 external create : Class.t -> t = "caml_h5s_create"
+external create_simple : ?maximum_dims:int array -> current_dims:Hsize.t array -> unit
+  -> t = "caml_h5s_create_simple"

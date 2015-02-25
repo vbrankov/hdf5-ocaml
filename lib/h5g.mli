@@ -6,6 +6,7 @@ module Loc : sig
   | `Group of t ]
 end
 
-val close : t -> int
-val create : Loc.t -> ?lcpl:H5p.t -> ?gcpl:H5p.t -> ?gapl:H5p.t -> string -> t
-val open_ : Loc.t -> ?gapl:H5p.t -> string -> t
+external close : t -> unit = "caml_h5p_close"
+external create : Loc.t -> ?lcpl:H5p.t -> ?gcpl:H5p.t -> ?gapl:H5p.t -> string -> t
+  = "caml_h5g_create"
+external open_ : Loc.t -> ?gapl:H5p.t -> string -> t = "caml_h5g_open"
