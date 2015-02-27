@@ -15,7 +15,7 @@ int hsize_t_array_val(value v, hsize_t **a)
   for (i = 0; i < length; i++)
   {
     e = Long_val(Field(v, i));
-    (*a)[i] = e == -1 ? H5S_UNLIMITED : e;
+    (*a)[i] = e <= -1 ? H5S_UNLIMITED : (hsize_t) e;
   }
   return length;
 }
@@ -26,10 +26,4 @@ int hsize_t_array_opt_val(value v, hsize_t **a)
     return hsize_t_array_val(Field(v, 0), a);
   (*a) = NULL;
   return 0;
-}
-
-value hdf5_h5_get_unlimited_stub(value unit_v)
-{
-  CAMLparam1(unit_v);
-  CAMLreturn(
 }

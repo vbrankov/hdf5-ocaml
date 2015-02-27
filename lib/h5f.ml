@@ -11,7 +11,7 @@ module Acc = struct
   | DEFAULT
 end
 
-external close : t -> unit = "caml_h5f_close"
-external create : string -> ?fcpl_id:H5p.t -> ?fapl_id:H5p.t -> Acc.t list -> t
-  = "caml_h5f_create"
-external open_ : string -> ?fapl_id:H5p.t -> Acc.t list -> t = "caml_h5f_open"
+external close : t -> unit = "hdf5_h5f_close"
+external create : string -> ?fcpl:H5p.t -> ?fapl:H5p.t -> Acc.t list -> t
+  = "hdf5_h5f_create"
+external open_ : string -> ?fapl:H5p.t -> Acc.t list -> t = "hdf5_h5f_open"

@@ -23,7 +23,6 @@ module Order = struct
   | LE
   | BE
   | VAX
-  | MIXED
   | NONE
 end
 
@@ -33,7 +32,7 @@ t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * 
 t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t
 * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t *
 t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t)
-= "caml_h5t_datatypes"
+= "hdf5_h5t_datatypes"
 
 let ieee_f32be, ieee_f32le, ieee_f64be, ieee_f64le, std_i8be, std_i8le, std_i16be,
   std_i16le, std_i32be, std_i32le, std_i64be, std_i64le, std_u8be, std_u8le, std_u16be,
@@ -56,6 +55,6 @@ let ieee_f32be, ieee_f32le, ieee_f64be, ieee_f64le, std_i8be, std_i8le, std_i16b
   native_int64, native_uint64, native_int_least64, native_uint_least64 ,
   native_int_fast64, native_uint_fast64 = datatypes ()
 
-external copy : t -> t = "caml_h5t_copy"
-external create : H5T_class.t -> int -> t = "caml_h5t_create"
-external set_order : t -> Order.t -> unit = "caml_h5t_set_order"
+external copy : t -> t = "hdf5_h5t_copy"
+external create : H5T_class.t -> int -> t = "hdf5_h5t_create"
+external set_order : t -> Order.t -> unit = "hdf5_h5t_set_order"

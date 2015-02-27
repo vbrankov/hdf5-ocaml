@@ -10,7 +10,7 @@ module Class = struct
   | NULL
 end
 
-external close : t -> unit = "caml_h5s_close"
-external create : Class.t -> t = "caml_h5s_create"
+external close : t -> unit = "hdf5_h5s_close"
+external create : Class.t -> t = "hdf5_h5s_create"
 external create_simple : ?maximum_dims:int array -> current_dims:Hsize.t array -> unit
-  -> t = "caml_h5s_create_simple"
+  -> t = "hdf5_h5s_create_simple"

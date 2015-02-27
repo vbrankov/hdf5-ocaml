@@ -23,7 +23,6 @@ module Order : sig
   | LE
   | BE
   | VAX
-  | MIXED
   | NONE
 end
 
@@ -156,6 +155,6 @@ val native_uint_least64  : t
 val native_int_fast64 : t
 val native_uint_fast64 : t
 
-external copy : t -> t = "caml_h5t_copy"
-external create : H5T_class.t -> int -> t = "caml_h5t_create"
-external set_order : t -> Order.t -> unit = "caml_h5t_set_order"
+external copy : t -> t = "hdf5_h5t_copy"
+external create : H5T_class.t -> int -> t = "hdf5_h5t_create"
+external set_order : t -> Order.t -> unit = "hdf5_h5t_set_order"

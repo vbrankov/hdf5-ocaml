@@ -5,6 +5,7 @@
 #include <caml/memory.h>
 #include "hdf5.h"
 #include "h5i_stubs.h"
+#include "h5t_stubs.h"
 
 static struct custom_operations h5t_ops = {
   "hdf5.h5t",
@@ -15,8 +16,6 @@ static struct custom_operations h5t_ops = {
   custom_serialize_default,
   custom_deserialize_default
 };
-
-#define H5T_val(v) *((hid_t*) Data_custom_val(v))
 
 static value alloc_h5t(hid_t id)
 {
@@ -55,15 +54,15 @@ H5T_order_t H5T_order_val(value order)
     case  1: return H5T_ORDER_LE;
     case  2: return H5T_ORDER_BE;
     case  3: return H5T_ORDER_VAX;
-    case  4: return H5T_ORDER_MIXED;
-    case  5: return H5T_ORDER_NONE;
+    case  4: return H5T_ORDER_NONE;
     default: caml_failwith("unrecognized H5T_order_t");
   }
 }
 
-value caml_h5t_datatypes(value unit_v)
+value hdf5_h5t_datatypes(value unit_v)
 {
   CAMLparam1(unit_v);
+  int i;
 
   CAMLlocal1(v);
   hid_t datatypes[] = { H5T_IEEE_F32BE, H5T_IEEE_F32LE, H5T_IEEE_F64BE,
@@ -97,20 +96,20 @@ value caml_h5t_datatypes(value unit_v)
   int len = sizeof(datatypes) / sizeof(hid_t);
 
   v = caml_alloc_tuple(len);
-  for (int i = 0; i < len; i++)
+  for (i = 0; i < len; i++)
     Store_field(v, i, alloc_h5t(datatypes[i]));
   
   CAMLreturn(v);
 }
 
-value caml_h5t_copy(value id_v)
+value hdf5_h5t_copy(value id_v)
 {
   CAMLparam1(id_v);
 
   CAMLreturn(alloc_h5t(H5Tcopy(H5T_val(id_v))));
 }
 
-value caml_h5t_create(value class_v, value size_v)
+value hdf5_h5t_create(value class_v, value size_v)
 {
   CAMLparam2(class_v, size_v);
 
@@ -120,7 +119,7 @@ value caml_h5t_create(value class_v, value size_v)
   CAMLreturn(alloc_h5t(H5Tcreate(class, size)));
 }
 
-void caml_h5t_set_order(value id_v, value order_v)
+void hdf5_h5t_set_order(value id_v, value order_v)
 {
   CAMLparam2(id_v, order_v);
 

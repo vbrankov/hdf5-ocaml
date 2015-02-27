@@ -23,14 +23,14 @@ static value alloc_h5p(hid_t id)
   return v;
 }
 
-void caml_h5p_close(value cls_id_v)
+void hdf5_h5p_close(value cls_id_v)
 {
   CAMLparam1(cls_id_v);
   raise_if_fail(H5Pclose(H5P_val(cls_id_v)));
   CAMLreturn0;
 }
 
-value caml_h5p_create(value cls_id_v)
+value hdf5_h5p_create(value cls_id_v)
 {
   CAMLparam1(cls_id_v);
 
@@ -60,7 +60,7 @@ value caml_h5p_create(value cls_id_v)
   CAMLreturn(alloc_h5p(H5Pcreate(cls_id)));
 }
 
-void caml_h5p_set_userblock(value plist_v, value size_v)
+void hdf5_h5p_set_userblock(value plist_v, value size_v)
 {
   CAMLparam2(plist_v, size_v);
 

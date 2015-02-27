@@ -32,7 +32,7 @@ static hid_t loc_val(value v)
   return H5G_val(Field(v, 1));
 }
 
-void caml_h5g_close(value group_v)
+void hdf5_h5g_close(value group_v)
 {
   CAMLparam1(group_v);
 
@@ -41,7 +41,7 @@ void caml_h5g_close(value group_v)
   CAMLreturn0;
 }
 
-value caml_h5g_create(value loc_v, value lcpl_v, value gcpl_v, value gapl_v, value name_v)
+value hdf5_h5g_create(value loc_v, value lcpl_v, value gcpl_v, value gapl_v, value name_v)
 {
   CAMLparam5(loc_v, lcpl_v, gcpl_v, gapl_v, name_v);
 
@@ -54,7 +54,7 @@ value caml_h5g_create(value loc_v, value lcpl_v, value gcpl_v, value gapl_v, val
   CAMLreturn(alloc_h5g(H5Gcreate2(loc_id, name, lcpl_id, gcpl_id, gapl_id)));
 }
 
-value caml_h5g_open(value loc_v, value gapl_v, value name_v)
+value hdf5_h5g_open(value loc_v, value gapl_v, value name_v)
 {
   CAMLparam3(loc_v, gapl_v, name_v);
 

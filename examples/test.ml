@@ -12,7 +12,7 @@ let () =
   H5t.set_order datatype H5t.Order.LE
 
 let () =
-  let file = H5f.create "SamleFile.h5" [ H5f.Acc.TRUNC ] in
+  let file = H5f.create "SampleFile.h5" [ H5f.Acc.TRUNC ] in
   H5f.close file;
   let dataspace = H5s.create_simple
     ~current_dims:[| H5.Hsize.of_int 2; H5.Hsize.of_int 3 |] () in

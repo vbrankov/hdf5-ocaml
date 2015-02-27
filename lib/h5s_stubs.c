@@ -7,6 +7,7 @@
 #include "h5_stubs.h"
 #include "h5i_stubs.h"
 #include "h5p_stubs.h"
+#include "h5s_stubs.h"
 
 static struct custom_operations h5s_ops = {
   "hdf5.h5s",
@@ -17,8 +18,6 @@ static struct custom_operations h5s_ops = {
   custom_serialize_default,
   custom_deserialize_default
 };
-
-#define H5S_val(v) *((hid_t*) Data_custom_val(v))
 
 static value alloc_h5s(hid_t id)
 {
@@ -40,7 +39,7 @@ H5S_class_t H5S_class_val(value class)
   }
 }
 
-void caml_h5s_close(value space_v)
+void hdf5_h5s_close(value space_v)
 {
   CAMLparam1(space_v);
 
@@ -48,14 +47,14 @@ void caml_h5s_close(value space_v)
   CAMLreturn0;
 }
 
-value caml_h5s_create(value type_v)
+value hdf5_h5s_create(value type_v)
 {
   CAMLparam1(type_v);
 
   CAMLreturn(alloc_h5s(H5Screate(H5S_class_val(type_v))));
 }
 
-value caml_h5s_create_simple(value maximum_dims_v, value current_dims_v, value unit_v)
+value hdf5_h5s_create_simple(value maximum_dims_v, value current_dims_v, value unit_v)
 {
   CAMLparam3(maximum_dims_v, current_dims_v, unit_v);
   int rank, maximum_dims_length;

@@ -53,14 +53,14 @@ unsigned acc_val(value v)
   return flags;
 }
 
-void caml_h5f_close(value cls_id_v)
+void hdf5_h5f_close(value cls_id_v)
 {
   CAMLparam1(cls_id_v);
   raise_if_fail(H5Fclose(H5F_val(cls_id_v)));
   CAMLreturn0;
 }
 
-value caml_h5f_create(value name_v, value fcpl_id_v, value fapl_id_v, value flags_v)
+value hdf5_h5f_create(value name_v, value fcpl_id_v, value fapl_id_v, value flags_v)
 {
   CAMLparam4(name_v, fcpl_id_v, fapl_id_v, flags_v);
 
@@ -71,7 +71,7 @@ value caml_h5f_create(value name_v, value fcpl_id_v, value fapl_id_v, value flag
   CAMLreturn(alloc_h5f(H5Fcreate(name, flags, fcpl_id, fapl_id)));
 }
 
-value caml_h5f_open(value name_v, value fapl_id_v, value flags_v)
+value hdf5_h5f_open(value name_v, value fapl_id_v, value flags_v)
 {
   CAMLparam3(name_v, fapl_id_v, flags_v);
 
