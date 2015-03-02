@@ -7,6 +7,7 @@
 #include "h5g_stubs.h"
 #include "h5i_stubs.h"
 #include "h5p_stubs.h"
+#include "loc_stubs.h"
 
 static struct custom_operations h5g_ops = {
   "hdf5.h5g",

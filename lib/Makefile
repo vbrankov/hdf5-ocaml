@@ -1,6 +1,6 @@
-CAMLDEP=ocamldep
-CAMLOPT=ocamlopt
-MKLIB=ocamlmklib
+CAMLDEP=ocamldep.opt
+CAMLC=ocamlc.opt
+CAMLOPT=ocamlopt.opt
 
 CFLAGS=-I /usr/local/hdf5/include -ccopt "-Wall -pedantic -Wextra -Wunused -Werror \
   -Wno-long-long -std=c99 -DCAML_NAME_SPACE -fPIC"
@@ -14,11 +14,11 @@ SRC_C=$(wildcard *.c)
 
 all: $(LIBNAME).cmxa
 
-$(LIBNAME).cmx: $(SRC:.mli=.cmx)
-	$(CAMLOPT) $^ -pack -o $(LIBNAME).cmx
+$(LIBNAME).cmx: $(SRC:.mli=.cmx) $(SRC_C:.c=.o)
+	$(CAMLOPT) -pack -o $(LIBNAME).cmx $^
 
-$(LIBNAME).cmxa: $(LIBNAME).cmx $(SRC_C:.c=.o)
-	$(MKLIB) -L/usr/local/hdf5/lib -lhdf5 $^ -o $(LIBNAME)
+$(LIBNAME).cmxa: $(LIBNAME).cmx
+	$(CAMLOPT) $^ -a -o $(LIBNAME).cmxa
 
 depend:
 	gcc -I /usr/local/hdf5/include -MM *.c > .depend
@@ -30,10 +30,10 @@ clean::
 	rm -f *.cm* *.a *.lib *.o *.so *.omc
 
 .mli.cmi:
-	$(CAMLOPT) -c $(COMPFLAGS) $<
+	$(CAMLC) $(COMPFLAGS) $<
 
-.ml.cmx:
-	$(CAMLOPT) -for-pack $(FOR_PACK_NAME) -c $(COMPFLAGS) $<
+.ml.cmx: $(SRC:.mli=.cmi)
+	$(CAMLOPT) -c -for-pack $(FOR_PACK_NAME) $(COMPFLAGS) $<
 
 .c.o:
 	$(CAMLOPT) $(CFLAGS) -c $<

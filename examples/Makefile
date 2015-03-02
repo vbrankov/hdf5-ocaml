@@ -1,5 +1,5 @@
-CAMLDEP=ocamldep
-CAMLOPT=ocamlopt
+CAMLDEP=ocamldep.opt
+CAMLOPT=ocamlopt.opt
 
 COMPFLAGS=-I ../lib
 LINKFLAGS=$(COMPFLAGS) hdf5_caml.cmxa

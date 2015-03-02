@@ -1,11 +1,15 @@
+#include <assert.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
 #include "h5a_stubs.h"
+#include "h5d_stubs.h"
+#include "h5i_stubs.h"
 #include "h5g_stubs.h"
 #include "h5p_stubs.h"
 #include "h5t_stubs.h"
+#include "loc_stubs.h"
 
 static struct custom_operations h5a_ops = {
   "hdf5.h5a",
@@ -41,6 +45,12 @@ value hdf5_h5a_create(value loc_id_v, value attr_name_v, value type_id_v, value 
   aapl_id = H5P_opt_val(aapl_id_v);
   space_id = H5D_val(space_id_v);
 
-  CAMLreturn(alloc_h5a(h5Acreate2(
+  CAMLreturn(alloc_h5a(H5Acreate2(
     loc_id, attr_name, type_id, space_id, acpl_id, aapl_id)));
+}
+
+value hdf5_h5a_create_bytecode(value *argv, int argn)
+{
+  assert(argn == 6);
+  return hdf5_h5a_create(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }

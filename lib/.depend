@@ -1,28 +1,41 @@
-h5_stubs.o: h5_stubs.c
+h5a_stubs.o: h5a_stubs.c h5a_stubs.h h5d_stubs.h h5i_stubs.h h5g_stubs.h \
+ h5p_stubs.h h5t_stubs.h loc_stubs.h
+h5d_stubs.o: h5d_stubs.c h5d_stubs.h h5g_stubs.h h5i_stubs.h h5p_stubs.h \
+ h5s_stubs.h h5t_stubs.h loc_stubs.h
 h5f_stubs.o: h5f_stubs.c h5i_stubs.h h5p_stubs.h
-h5g_stubs.o: h5g_stubs.c h5i_stubs.h h5p_stubs.h
+h5g_stubs.o: h5g_stubs.c h5g_stubs.h h5i_stubs.h h5p_stubs.h loc_stubs.h
 h5i_stubs.o: h5i_stubs.c
 h5p_stubs.o: h5p_stubs.c h5i_stubs.h h5p_stubs.h
-h5s_stubs.o: h5s_stubs.c h5_stubs.h h5i_stubs.h h5p_stubs.h
-h5t_stubs.o: h5t_stubs.c h5i_stubs.h
-h5.cmi :
-h5f.cmi : h5p.cmi
-h5g.cmi : h5p.cmi h5f.cmi
+h5s_stubs.o: h5s_stubs.c h5_stubs.h h5i_stubs.h h5p_stubs.h h5s_stubs.h
+h5_stubs.o: h5_stubs.c
+h5t_stubs.o: h5t_stubs.c h5i_stubs.h h5t_stubs.h
+h5a.cmi : loc.cmi h5t.cmi h5p.cmi h5d.cmi
+h5d.cmi : loc.cmi h5t.cmi h5s.cmi h5p.cmi
+h5f.cmi : loc.cmi h5p.cmi
+h5g.cmi : loc.cmi h5p.cmi
 h5i.cmi :
+h5.cmi :
 h5p.cmi :
 h5s.cmi : h5.cmi
 h5t.cmi :
-h5.cmo : h5.cmi
-h5.cmx : h5.cmi
-h5f.cmo : h5p.cmi h5f.cmi
-h5f.cmx : h5p.cmx h5f.cmi
-h5g.cmo : h5p.cmi h5f.cmi h5g.cmi
-h5g.cmx : h5p.cmx h5f.cmx h5g.cmi
+loc.cmi :
+h5a.cmo : loc.cmi h5t.cmi h5p.cmi h5d.cmi h5a.cmi
+h5a.cmx : loc.cmx h5t.cmx h5p.cmx h5d.cmx h5a.cmi
+h5d.cmo : loc.cmi h5t.cmi h5s.cmi h5p.cmi h5d.cmi
+h5d.cmx : loc.cmx h5t.cmx h5s.cmx h5p.cmx h5d.cmi
+h5f.cmo : loc.cmi h5p.cmi h5f.cmi
+h5f.cmx : loc.cmx h5p.cmx h5f.cmi
+h5g.cmo : loc.cmi h5p.cmi h5g.cmi
+h5g.cmx : loc.cmx h5p.cmx h5g.cmi
 h5i.cmo : h5i.cmi
 h5i.cmx : h5i.cmi
+h5.cmo : h5.cmi
+h5.cmx : h5.cmi
 h5p.cmo : h5p.cmi
 h5p.cmx : h5p.cmi
 h5s.cmo : h5.cmi h5s.cmi
 h5s.cmx : h5.cmx h5s.cmi
 h5t.cmo : h5t.cmi
 h5t.cmx : h5t.cmi
+loc.cmo : loc.cmi
+loc.cmx : loc.cmi
