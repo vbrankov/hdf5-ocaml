@@ -7,16 +7,10 @@ TARGETS=test.exe
 
 .SUFFIXES: .exe .ml .mli .cmi .cmx
 
-all: depend $(TARGETS)
+all: $(TARGETS)
 
-.cmx.exe:
+.ml.exe:
 	$(CAMLOPT) $(LINKFLAGS) -o $@ $<
-
-.mli.cmi:
-	$(CAMLOPT) -c $(COMPFLAGS) $<
-
-.ml.cmx:
-	$(CAMLOPT) -c $(COMPFLAGS) $<
 
 clean::
 	rm -f *.cm* *.exe *.o

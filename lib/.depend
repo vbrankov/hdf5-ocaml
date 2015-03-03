@@ -39,3 +39,5 @@ h5t.cmo : h5t.cmi
 h5t.cmx : h5t.cmi
 loc.cmo : loc.cmi
 loc.cmx : loc.cmi
+SRC_MLI=h5i.mli h5.mli h5p.mli h5s.mli h5t.mli loc.mli h5g.mli h5f.mli h5d.mli h5a.mli 
+SRC_ML=h5i.ml h5.ml h5p.ml h5s.ml h5t.ml loc.ml h5g.ml h5f.ml h5d.ml h5a.ml 
