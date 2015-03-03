@@ -2,8 +2,9 @@ CAMLDEP=ocamldep.opt
 CAMLOPT=ocamlopt.opt
 
 COMPFLAGS=-I ../lib
-LINKFLAGS=$(COMPFLAGS) hdf5_caml.cmxa
-TARGETS=test.exe
+LINKFLAGS=$(COMPFLAGS) bigarray.cmxa hdf5_caml.cmxa
+SRC=$(wildcard *.ml)
+TARGETS=$(SRC:.ml=.exe)
 
 .SUFFIXES: .exe .ml .mli .cmi .cmx
 

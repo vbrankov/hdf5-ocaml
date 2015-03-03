@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include <caml/alloc.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
@@ -19,7 +20,7 @@ static struct custom_operations h5s_ops = {
   custom_deserialize_default
 };
 
-static value alloc_h5s(hid_t id)
+value alloc_h5s(hid_t id)
 {
   raise_if_fail(id);
   value v = caml_alloc_custom(&h5s_ops, sizeof(hid_t), 0, 1);
@@ -39,12 +40,24 @@ H5S_class_t H5S_class_val(value class)
   }
 }
 
-void hdf5_h5s_close(value space_v)
+H5S_seloper_t H5S_seloper_val(value class)
 {
-  CAMLparam1(space_v);
+  switch (Int_val(class))
+  {
+    case 0: return H5S_SELECT_SET;
+    case 1: return H5S_SELECT_OR;
+    case 2: return H5S_SELECT_AND;
+    case 3: return H5S_SELECT_XOR;
+    case 4: return H5S_SELECT_NOTB;
+    case 5: return H5S_SELECT_NOTA;
+    default: caml_failwith("unrecognized H5S_seloper_t");
+  }
+}
 
-  raise_if_fail(H5Sclose(H5S_val(space_v)));
-  CAMLreturn0;
+value hdf5_h5s_get_all()
+{
+  CAMLparam0();
+  CAMLreturn(alloc_h5s(H5S_ALL));
 }
 
 value hdf5_h5s_create(value type_v)
@@ -52,6 +65,14 @@ value hdf5_h5s_create(value type_v)
   CAMLparam1(type_v);
 
   CAMLreturn(alloc_h5s(H5Screate(H5S_class_val(type_v))));
+}
+
+void hdf5_h5s_close(value space_v)
+{
+  CAMLparam1(space_v);
+
+  raise_if_fail(H5Sclose(H5S_val(space_v)));
+  CAMLreturn0;
 }
 
 value hdf5_h5s_create_simple(value maximum_dims_v, value current_dims_v, value unit_v)
@@ -82,4 +103,97 @@ value hdf5_h5s_create_simple(value maximum_dims_v, value current_dims_v, value u
   free(maximum_dims);
 
   CAMLreturn(alloc_h5s(id));
+}
+
+value hdf5_h5s_get_simple_extent_dims(value space_id_v)
+{
+  CAMLparam1(space_id_v);
+
+  CAMLlocal3(dims_v, maxdims_v, ret);
+  hid_t space_id = H5S_val(space_id_v);
+  hsize_t *dims, *maxdims;
+
+  int ndims = H5Sget_simple_extent_ndims(space_id);
+  if (ndims < 0)
+    fail();
+  dims = calloc(ndims, sizeof(hsize_t));
+  if (dims == NULL)
+    caml_raise_out_of_memory();
+  maxdims = calloc(ndims, sizeof(hsize_t));
+  if (maxdims == NULL)
+  {
+    free(dims);
+    caml_raise_out_of_memory();
+  }
+  if (ndims != H5Sget_simple_extent_dims(space_id, dims, maxdims))
+  {
+    free(dims);
+    free(maxdims);
+    fail();
+  }
+  dims_v = val_hsize_t_array(ndims, dims);
+  maxdims_v = val_hsize_t_array(ndims, maxdims);
+  ret = caml_alloc_tuple(2);
+  Store_field(ret, 0, dims_v);
+  Store_field(ret, 1, maxdims_v);
+  CAMLreturn(ret);
+}
+
+void hdf5_h5s_select_hyperslab(value space_id_v, value op_v, value start_v,
+  value stride_v, value count_v, value block_v, value unit_v)
+{
+  CAMLparam5(space_id_v, op_v, start_v, stride_v, count_v);
+  CAMLxparam2(block_v, unit_v);
+
+  hid_t space_id = H5S_val(space_id_v);
+  int ndims;
+  hsize_t *start, *stride, *count, *block;
+  herr_t err;
+  
+  ndims = H5Sget_simple_extent_ndims(space_id);
+  if (ndims != hsize_t_array_val(start_v, &start))
+  {
+    free(start);
+    caml_invalid_argument(
+      "H5s.select_hyperslab: start not the size as the rank of the dataspace");
+  }
+  if (ndims != hsize_t_array_opt_val(stride_v, &stride) && stride != NULL)
+  {
+    free(start);
+    free(stride);
+    caml_invalid_argument(
+      "H5s.select_hyperslab: stride not the size as the rank of the dataspace");
+  }
+  if (ndims != hsize_t_array_val(count_v, &count))
+  {
+    free(start);
+    free(stride);
+    free(count);
+    caml_invalid_argument(
+      "H5s.select_hyperslab: count not the size as the rank of the dataspace");
+  }
+  if (ndims != hsize_t_array_opt_val(block_v, &block) && block != NULL)
+  {
+    free(start);
+    free(stride);
+    free(count);
+    free(block);
+    caml_invalid_argument(
+      "H5s.select_hyperslab: block not the size as the rank of the dataspace");
+  }
+  err = H5Sselect_hyperslab(space_id, H5S_seloper_val(op_v), start, stride, count,
+    block);
+  free(start);
+  free(stride);
+  free(count);
+  free(block);
+  raise_if_fail(err);
+  CAMLreturn0;
+}
+
+void hdf5_h5s_select_hyperslab_bytecode(value *argv, int argn)
+{
+  assert(argn == 7);
+  hdf5_h5s_select_hyperslab(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5],
+    argv[6]);
 }

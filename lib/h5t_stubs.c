@@ -17,7 +17,7 @@ static struct custom_operations h5t_ops = {
   custom_deserialize_default
 };
 
-static value alloc_h5t(hid_t id)
+value alloc_h5t(hid_t id)
 {
   raise_if_fail(id);
   value v = caml_alloc_custom(&h5t_ops, sizeof(hid_t), 0, 1);
@@ -46,6 +46,27 @@ H5T_class_t H5T_class_val(value class)
   }
 }
 
+value Val_h5t_class(H5T_class_t class)
+{
+  switch (class)
+  {
+    case H5T_NO_CLASS:  return Val_int( 0);
+    case H5T_INTEGER:   return Val_int( 1);
+    case H5T_FLOAT:     return Val_int( 2);
+    case H5T_TIME:      return Val_int( 3);
+    case H5T_STRING:    return Val_int( 4);
+    case H5T_BITFIELD:  return Val_int( 5);
+    case H5T_OPAQUE:    return Val_int( 6);
+    case H5T_COMPOUND:  return Val_int( 7);
+    case H5T_REFERENCE: return Val_int( 8);
+    case H5T_ENUM:      return Val_int( 9);
+    case H5T_VLEN:      return Val_int(10);
+    case H5T_ARRAY:     return Val_int(11);
+    case H5T_NCLASSES:  return Val_int(12);
+    default: caml_failwith("unrecognized H5T_class_t");
+  }
+}
+
 H5T_order_t H5T_order_val(value order)
 {
   switch (Int_val(order))
@@ -55,6 +76,19 @@ H5T_order_t H5T_order_val(value order)
     case  2: return H5T_ORDER_BE;
     case  3: return H5T_ORDER_VAX;
     case  4: return H5T_ORDER_NONE;
+    default: caml_failwith("unrecognized H5T_order_t");
+  }
+}
+
+value Val_h5t_order(H5T_order_t order)
+{
+  switch (order)
+  {
+    case H5T_ORDER_ERROR: return Val_int(0);
+    case H5T_ORDER_LE:    return Val_int(1);
+    case H5T_ORDER_BE:    return Val_int(2);
+    case H5T_ORDER_VAX:   return Val_int(3);
+    case H5T_ORDER_NONE:  return Val_int(4);
     default: caml_failwith("unrecognized H5T_order_t");
   }
 }
@@ -102,13 +136,6 @@ value hdf5_h5t_datatypes(value unit_v)
   CAMLreturn(v);
 }
 
-value hdf5_h5t_copy(value id_v)
-{
-  CAMLparam1(id_v);
-
-  CAMLreturn(alloc_h5t(H5Tcopy(H5T_val(id_v))));
-}
-
 value hdf5_h5t_create(value class_v, value size_v)
 {
   CAMLparam2(class_v, size_v);
@@ -117,6 +144,38 @@ value hdf5_h5t_create(value class_v, value size_v)
   size_t size = Int_val(size_v);
 
   CAMLreturn(alloc_h5t(H5Tcreate(class, size)));
+}
+
+value hdf5_h5t_copy(value id_v)
+{
+  CAMLparam1(id_v);
+
+  CAMLreturn(alloc_h5t(H5Tcopy(H5T_val(id_v))));
+}
+
+value hdf5_h5t_get_class(value dtype_id_v)
+{
+  CAMLparam1(dtype_id_v);
+  CAMLreturn(Val_h5t_class(H5Tget_class(H5T_val(dtype_id_v))));
+}
+
+value hdf5_h5t_get_size(value dtype_id_v)
+{
+  CAMLparam1(dtype_id_v);
+  CAMLreturn(Val_int(H5Tget_size(H5T_val(dtype_id_v))));
+}
+
+void hdf5_h5t_close(value dtype_id_v)
+{
+  CAMLparam1(dtype_id_v);
+  raise_if_fail(H5Tclose(H5T_val(dtype_id_v)));
+  CAMLreturn0;
+}
+
+value hdf5_h5t_get_order(value dtype_id_v)
+{
+  CAMLparam1(dtype_id_v);
+  CAMLreturn(Val_h5t_order(H5Tget_order(H5T_val(dtype_id_v))));
 }
 
 void hdf5_h5t_set_order(value id_v, value order_v)

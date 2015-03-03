@@ -1,6 +1,6 @@
 type t
 
-module H5T_class = struct
+module Class = struct
   type t =
   | NO_CLASS
   | INTEGER
@@ -55,6 +55,10 @@ let ieee_f32be, ieee_f32le, ieee_f64be, ieee_f64le, std_i8be, std_i8le, std_i16b
   native_int64, native_uint64, native_int_least64, native_uint_least64 ,
   native_int_fast64, native_uint_fast64 = datatypes ()
 
+external create : Class.t -> int -> t = "hdf5_h5t_create"
 external copy : t -> t = "hdf5_h5t_copy"
-external create : H5T_class.t -> int -> t = "hdf5_h5t_create"
+external get_class : t -> Class.t = "hdf5_h5t_get_class"
+external get_size : t -> int = "hdf5_h5t_get_size"
+external close : t -> unit = "hdf5_h5t_close"
+external get_order : t -> Order.t = "hdf5_h5t_get_order"
 external set_order : t -> Order.t -> unit = "hdf5_h5t_set_order"

@@ -1,6 +1,6 @@
 type t
 
-module H5T_class : sig
+module Class : sig
   type t =
   | NO_CLASS
   | INTEGER
@@ -155,6 +155,10 @@ val native_uint_least64  : t
 val native_int_fast64 : t
 val native_uint_fast64 : t
 
+external create : Class.t -> int -> t = "hdf5_h5t_create"
 external copy : t -> t = "hdf5_h5t_copy"
-external create : H5T_class.t -> int -> t = "hdf5_h5t_create"
+external get_class : t -> Class.t = "hdf5_h5t_get_class"
+external get_size : t -> int = "hdf5_h5t_get_size"
+external close : t -> unit = "hdf5_h5t_close"
+external get_order : t -> Order.t = "hdf5_h5t_get_order"
 external set_order : t -> Order.t -> unit = "hdf5_h5t_set_order"

@@ -68,7 +68,8 @@ value hdf5_h5f_create(value name_v, value fcpl_id_v, value fapl_id_v, value flag
   unsigned flags = acc_val(flags_v);
   hid_t fcpl_id = H5P_opt_val(fcpl_id_v), fapl_id = H5P_opt_val(fapl_id_v);
 
-  CAMLreturn(alloc_h5f(H5Fcreate(name, flags, fcpl_id, fapl_id)));
+  hid_t id = H5Fcreate(name, flags, fcpl_id, fapl_id);
+  CAMLreturn(alloc_h5f(id));
 }
 
 value hdf5_h5f_open(value name_v, value fapl_id_v, value flags_v)
