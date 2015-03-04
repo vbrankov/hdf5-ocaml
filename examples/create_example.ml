@@ -5,13 +5,12 @@ let file = "SDS.h5"
 let datasetname = "IntArray"
 let nx = 5
 let ny = 6
-let rank = 2
 
 let () =
-  let data = Array2.create nativeint c_layout nx ny in
+  let data = Array2.create int32 c_layout nx ny in
   for j = 0 to nx - 1 do
     for i = 0 to ny - 1 do
-      data.{j, i} <- Nativeint.of_int (i + j)
+      data.{j, i} <- Int32.of_int (i + j)
     done
   done;
   let file = H5f.create file [ H5f.Acc.TRUNC ] in

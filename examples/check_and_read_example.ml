@@ -8,15 +8,13 @@ let ny_sub = 4
 let nx = 7
 let ny = 7
 let nz = 3
-let rank = 2
-let rank_out = 3
 
 let () =
-  let data_out = Array3.create nativeint c_layout nx ny nz in
+  let data_out = Array3.create int32 c_layout nx ny nz in
   for j = 0 to nx - 1 do
     for i = 0 to ny - 1 do
       for k = 0 to nz - 1 do
-        data_out.{j, i, k} <- Nativeint.zero
+        data_out.{j, i, k} <- Int32.zero
       done
     done
   done;
@@ -45,7 +43,7 @@ let () =
   H5d.read dataset H5t.native_int memspace dataspace (genarray_of_array3 data_out);
   for j = 0 to nx - 1 do
     for i = 0 to ny - 1 do
-      Printf.printf "%nd " data_out.{j, i, 0}
+      Printf.printf "%ld " data_out.{j, i, 0}
     done;
     Printf.printf "\n"
   done;

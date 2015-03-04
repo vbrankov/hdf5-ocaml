@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <stdio.h>
 #include <caml/alloc.h>
 #include <caml/custom.h>
 #include <caml/fail.h>

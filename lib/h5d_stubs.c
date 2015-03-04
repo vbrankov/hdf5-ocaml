@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <stdio.h>
 #include <caml/bigarray.h>
 #include <caml/custom.h>
 #include <caml/memory.h>
