@@ -74,9 +74,9 @@ void hdf5_h5s_close(value space_v)
   CAMLreturn0;
 }
 
-value hdf5_h5s_create_simple(value maximum_dims_v, value current_dims_v, value unit_v)
+value hdf5_h5s_create_simple(value maximum_dims_v, value current_dims_v)
 {
-  CAMLparam3(maximum_dims_v, current_dims_v, unit_v);
+  CAMLparam2(maximum_dims_v, current_dims_v);
   int rank, maximum_dims_length;
   hsize_t *current_dims, *maximum_dims;
   hid_t id;
@@ -136,6 +136,39 @@ value hdf5_h5s_get_simple_extent_dims(value space_id_v)
   Store_field(ret, 0, dims_v);
   Store_field(ret, 1, maxdims_v);
   CAMLreturn(ret);
+}
+
+void hdf5_h5s_select_elements(value space_id_v, value op_v, value coord_v)
+{
+  CAMLparam3(space_id_v, op_v, coord_v);
+
+  hid_t space_id = H5S_val(space_id_v);
+  int ndims, coord_len;
+  size_t num_elements;
+  hsize_t *coord;
+  herr_t err;
+
+  ndims = H5Sget_simple_extent_ndims(space_id);
+  coord_len = hsize_t_array_val(coord_v, &coord);
+  num_elements = coord_len / ndims;
+  if (num_elements * ndims != (size_t) coord_len)
+  {
+    free(coord);
+    caml_invalid_argument(
+      "H5s.select_elements: The number of coordinates not a multiply of the number of "
+      "dimensions");
+  }
+  err = H5Sselect_elements(space_id, H5S_seloper_val(op_v), num_elements, coord);
+  free(coord);
+  raise_if_fail(err);
+  CAMLreturn0;
+}
+
+void hdf5_h5s_select_none(value space_id_v)
+{
+  CAMLparam1(space_id_v);
+  raise_if_fail(H5Sselect_none(H5S_val(space_id_v)));
+  CAMLreturn0;
 }
 
 void hdf5_h5s_select_hyperslab(value space_id_v, value op_v, value start_v,

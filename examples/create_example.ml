@@ -1,24 +1,23 @@
 open Bigarray
 open Hdf5_caml
 
-let file = "SDS.h5"
-let datasetname = "IntArray"
-let nx = 5
-let ny = 6
+let _FILE        = "SDS.h5"
+let _DATASETNAME = "IntArray"
+let _NX          = 5
+let _NY          = 6
 
 let () =
-  let data = Array2.create int32 c_layout nx ny in
-  for j = 0 to nx - 1 do
-    for i = 0 to ny - 1 do
+  let data = Array2.create int32 c_layout _NX _NY in
+  for j = 0 to _NX - 1 do
+    for i = 0 to _NY - 1 do
       data.{j, i} <- Int32.of_int (i + j)
     done
   done;
-  let file = H5f.create file [ H5f.Acc.TRUNC ] in
-  let dataspace = H5s.create_simple
-    ~current_dims:[| H5.Hsize.of_int nx; H5.Hsize.of_int ny |] () in
+  let file = H5f.create _FILE [ H5f.Acc.TRUNC ] in
+  let dataspace = H5s.create_simple [| _NX; _NY |] in
   let datatype = H5t.copy H5t.native_int in
   H5t.set_order datatype H5t.Order.LE;
-  let dataset = H5d.create (H5f.to_loc file) datasetname datatype dataspace in
+  let dataset = H5d.create (H5f.to_loc file) _DATASETNAME datatype dataspace in
   H5d.write dataset H5t.native_int ~mem_space:H5s.all ~file_space:H5s.all
     (genarray_of_array2 data);
   H5t.close datatype;

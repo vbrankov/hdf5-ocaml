@@ -1,26 +1,26 @@
 open Bigarray
 open Hdf5_caml
 
-let file = "SDS.h5"
-let datasetname = "IntArray"
-let nx_sub = 3
-let ny_sub = 4
-let nx = 7
-let ny = 7
-let nz = 3
+let _FILE        = "SDS.h5"
+let _DATASETNAME = "IntArray"
+let _NX_SUB      = 3
+let _NY_SUB      = 4
+let _NX          = 7
+let _NY          = 7
+let _NZ          = 3
 
 let () =
-  let data_out = Array3.create int32 c_layout nx ny nz in
-  for j = 0 to nx - 1 do
-    for i = 0 to ny - 1 do
-      for k = 0 to nz - 1 do
+  let data_out = Array3.create int32 c_layout _NX _NY _NZ in
+  for j = 0 to _NX - 1 do
+    for i = 0 to _NY - 1 do
+      for k = 0 to _NZ - 1 do
         data_out.{j, i, k} <- Int32.zero
       done
     done
   done;
 
-  let file = H5f.open_ file [ H5f.Acc.RDONLY ] in
-  let dataset = H5d.open_ (H5f.to_loc file) datasetname in
+  let file = H5f.open_ _FILE [ H5f.Acc.RDONLY ] in
+  let dataset = H5d.open_ (H5f.to_loc file) _DATASETNAME in
   let datatype = H5d.get_type dataset in
   let class_ = H5t.get_class datatype in
   if class_ = H5t.Class.INTEGER then Printf.printf "Data set has INTEGER type\n";
@@ -33,16 +33,15 @@ let () =
   Printf.printf "rank %d, dimensions %d x %d\n" (Array.length status_n) status_n.(0)
     status_n.(1);
   H5s.select_hyperslab dataspace H5s.Select.SET
-    ~start:(H5.Hsize.of_int_array [| 1; 2 |])
-    ~count:(H5.Hsize.of_int_array [| nx_sub; ny_sub |]) ();
-  let memspace = H5s.create_simple
-    ~current_dims:(H5.Hsize.of_int_array [| nx; ny; nz |]) () in
+    ~start:[| 1; 2 |]
+    ~count:[| _NX_SUB; _NY_SUB |] ();
+  let memspace = H5s.create_simple [| _NX; _NY; _NZ |] in
   H5s.select_hyperslab memspace H5s.Select.SET
-    ~start:(H5.Hsize.of_int_array [| 3; 0; 0 |])
-    ~count:(H5.Hsize.of_int_array [| nx_sub; ny_sub; 1 |]) ();
+    ~start:[| 3; 0; 0 |]
+    ~count:[| _NX_SUB; _NY_SUB; 1 |] ();
   H5d.read dataset H5t.native_int memspace dataspace (genarray_of_array3 data_out);
-  for j = 0 to nx - 1 do
-    for i = 0 to ny - 1 do
+  for j = 0 to _NX - 1 do
+    for i = 0 to _NY - 1 do
       Printf.printf "%ld " data_out.{j, i, 0}
     done;
     Printf.printf "\n"

@@ -20,6 +20,6 @@ module Cls_id : sig
   | LINK_ACCESS
 end
 
-external close : t -> unit = "hdf5_h5p_close"
 external create : Cls_id.t -> t = "hdf5_h5p_create"
+external close : t -> unit = "hdf5_h5p_close"
 external set_userblock : t -> int -> unit = "hdf5_h5p_set_userblock"
