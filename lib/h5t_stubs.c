@@ -185,3 +185,12 @@ void hdf5_h5t_set_order(value id_v, value order_v)
   raise_if_fail(H5Tset_order(H5T_val(id_v), H5T_order_val(order_v)));
   CAMLreturn0;
 }
+
+void hdf5_h5t_insert(value dtype_id_v, value name_v, value offset_v, value field_id_v)
+{
+  CAMLparam4(dtype_id_v, name_v, offset_v, field_id_v);
+
+  raise_if_fail(H5Tinsert(H5T_val(dtype_id_v), String_val(name_v), Int_val(offset_v),
+    H5T_val(field_id_v)));
+  CAMLreturn0;
+}

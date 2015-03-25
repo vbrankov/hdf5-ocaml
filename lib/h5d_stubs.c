@@ -1,8 +1,10 @@
 #include <assert.h>
 #include <caml/bigarray.h>
 #include <caml/custom.h>
+#include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
+#include "h5_stubs.h"
 #include "h5d_stubs.h"
 #include "h5g_stubs.h"
 #include "h5i_stubs.h"
@@ -125,4 +127,20 @@ void hdf5_h5d_write_bytecode(value *argv, int argn)
 {
   assert(argn == 6);
   hdf5_h5d_write(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+}
+
+void hdf5_h5d_set_extent(value dset_id_v, value size_v)
+{
+  CAMLparam2(dset_id_v, size_v);
+  hsize_t *size;
+  herr_t err;
+
+  (void) hsize_t_array_val(size_v, &size);
+  if (size == NULL)
+    caml_raise_out_of_memory();
+  err = H5Dset_extent(H5D_val(dset_id_v), size);
+  free(size);
+  raise_if_fail(err);
+ 
+  CAMLreturn0;
 }

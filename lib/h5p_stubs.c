@@ -2,6 +2,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
+#include "h5_stubs.h"
 #include "h5i_stubs.h"
 #include "h5p_stubs.h"
 
@@ -63,10 +64,23 @@ void hdf5_h5p_close(value cls_id_v)
 void hdf5_h5p_set_userblock(value plist_v, value size_v)
 {
   CAMLparam2(plist_v, size_v);
+  raise_if_fail(H5Pset_userblock(H5P_val(plist_v), Int_val(size_v)));
+  CAMLreturn0;
+}
 
-  hid_t plist = H5P_val(plist_v);
-  hsize_t size = Int_val(size_v);
+void hdf5_h5p_set_chunk(value plist_v, value dim_v)
+{
+  CAMLparam2(plist_v, dim_v);
+  int ndims;
+  hsize_t *dim;
+  herr_t err;
 
-  raise_if_fail(H5Pset_userblock(plist, size));
+  ndims = hsize_t_array_val(dim_v, &dim);
+  if (dim == NULL)
+    caml_raise_out_of_memory();
+  err = H5Pset_chunk(H5P_val(plist_v), ndims, dim);
+  free(dim);
+  raise_if_fail(err);
+
   CAMLreturn0;
 }

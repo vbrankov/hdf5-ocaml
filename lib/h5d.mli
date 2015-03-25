@@ -12,3 +12,5 @@ external read : t -> H5t.t -> mem_space:H5s.t -> file_space:H5s.t -> ?xfer_plist
   -> _ Genarray.t -> unit = "hdf5_h5d_read_bytecode" "hdf5_h5d_read"
 external write : t -> H5t.t -> mem_space:H5s.t -> file_space:H5s.t -> ?xfer_plist:H5p.t
   -> _ Genarray.t -> unit = "hdf5_h5d_write_bytecode" "hdf5_h5d_write"
+external extend : t -> Hsize.t array -> unit = "hdf5_h5d_set_extent"
+external set_extent : t -> Hsize.t array -> unit = "hdf5_h5d_set_extent"

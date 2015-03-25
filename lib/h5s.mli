@@ -1,5 +1,3 @@
-open H5
-
 type t
 
 module Class : sig
