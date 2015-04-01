@@ -3,6 +3,7 @@
 #include <caml/memory.h>
 #include "hdf5.h"
 #include "h5_stubs.h"
+#include "h5d_stubs.h"
 #include "h5i_stubs.h"
 #include "h5p_stubs.h"
 
@@ -16,7 +17,7 @@ static struct custom_operations h5p_ops = {
   custom_deserialize_default
 };
 
-static value alloc_h5p(hid_t id)
+value alloc_h5p(hid_t id)
 {
   raise_if_fail(id);
   value v = caml_alloc_custom(&h5p_ops, sizeof(hid_t), 0, 1);
@@ -68,6 +69,12 @@ void hdf5_h5p_set_userblock(value plist_v, value size_v)
   CAMLreturn0;
 }
 
+value hdf5_h5p_get_layout(value plist_v)
+{
+  CAMLparam1(plist_v);
+  CAMLreturn(Val_h5d_layout(H5Pget_layout(H5P_val(plist_v))));
+}
+
 void hdf5_h5p_set_chunk(value plist_v, value dim_v)
 {
   CAMLparam2(plist_v, dim_v);
@@ -82,5 +89,29 @@ void hdf5_h5p_set_chunk(value plist_v, value dim_v)
   free(dim);
   raise_if_fail(err);
 
+  CAMLreturn0;
+}
+
+value hdf5_h5p_get_chunk(value plist_v)
+{
+  CAMLparam1(plist_v);
+  int max_ndims;
+  hsize_t *dims;
+  CAMLlocal1(v);
+
+  max_ndims = H5Pget_chunk(H5P_val(plist_v), 0, NULL);
+  dims = calloc(max_ndims, sizeof(hsize_t));
+  if (dims == NULL)
+    caml_raise_out_of_memory();
+  H5Pget_chunk(H5P_val(plist_v), max_ndims, dims);
+  v = val_hsize_t_array(max_ndims, dims);
+  free(dims);
+  CAMLreturn(v);
+}
+
+void hdf5_h5p_set_deflate(value plist_id_v, value level_v)
+{
+  CAMLparam2(plist_id_v, level_v);
+  raise_if_fail(H5Pset_deflate(H5P_val(plist_id_v), Int_val(level_v)));
   CAMLreturn0;
 }

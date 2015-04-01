@@ -31,6 +31,31 @@ static value alloc_h5d(hid_t id)
   return v;
 }
 
+H5D_layout_t H5D_layout_val(value layout)
+{
+  switch (Int_val(layout))
+  {
+    case  0: return H5D_COMPACT;
+    case  1: return H5D_CONTIGUOUS;
+    case  2: return H5D_CHUNKED;
+    case  3: return H5D_NLAYOUTS;
+    default: caml_failwith("unrecognized H5D_layout_t");
+  }
+}
+
+value Val_h5d_layout(H5D_layout_t layout)
+{
+  switch (layout)
+  {
+    case H5D_LAYOUT_ERROR: fail();
+    case H5D_COMPACT:      return Val_int(0);
+    case H5D_CONTIGUOUS:   return Val_int(1);
+    case H5D_CHUNKED:      return Val_int(2);
+    case H5D_NLAYOUTS:     return Val_int(3);
+    default: caml_failwith("unrecognized H5D_layout_t");
+  }
+}
+
 value hdf5_h5d_create(value loc_id_v, value name_v, value dtype_id_v, value lcpl_id_v,
     value dcpl_id_v, value dapl_id_v, value space_id_v)
 {
@@ -79,6 +104,12 @@ value hdf5_h5d_get_type(value dataset_id_v)
 {
   CAMLparam1(dataset_id_v);
   CAMLreturn(alloc_h5t(H5Dget_type(H5D_val(dataset_id_v))));
+}
+
+value hdf5_h5d_get_create_plist(value dataset_id_v)
+{
+  CAMLparam1(dataset_id_v);
+  CAMLreturn(alloc_h5p(H5Dget_create_plist(H5D_val(dataset_id_v))));
 }
 
 void hdf5_h5d_read(value dataset_id_v, value mem_type_id_v, value mem_space_id_v,

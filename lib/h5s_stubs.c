@@ -138,6 +138,127 @@ value hdf5_h5s_get_simple_extent_dims(value space_id_v)
   CAMLreturn(ret);
 }
 
+value hdf5_h5s_get_simple_extent_npoints(value space_id_v)
+{
+  CAMLparam1(space_id_v);
+  CAMLreturn(Val_int(H5Sget_simple_extent_npoints(H5S_val(space_id_v))));
+}
+
+void hdf5_h5s_set_extent_simple(value space_id_v, value maximum_size_v,
+  value current_size_v)
+{
+  CAMLparam3(space_id_v, maximum_size_v, current_size_v);
+  int rank, maximum_size_length;
+  hsize_t *current_size, *maximum_size;
+  herr_t err;
+
+  rank = hsize_t_array_val(current_size_v, &current_size);
+  if (current_size == NULL)
+    caml_raise_out_of_memory();
+  maximum_size_length = hsize_t_array_opt_val(maximum_size_v, &maximum_size);
+  if (maximum_size != NULL && rank != maximum_size_length)
+  {
+    free(current_size);
+    free(maximum_size);
+    caml_invalid_argument(
+      "H5s.set_extent_simple: current_size and maximum_size not of same length");
+  }
+  if (maximum_size == NULL && maximum_size_length != 0)
+  {
+    free(current_size);
+    caml_raise_out_of_memory();
+  }
+  err = H5Sset_extent_simple(H5S_val(space_id_v), rank, current_size, maximum_size);
+  free(current_size);
+  free(maximum_size);
+  raise_if_fail(err);
+  CAMLreturn0;
+}
+
+value hdf5_h5s_get_select_npoints(value space_id_v)
+{
+  CAMLparam1(space_id_v);
+  hssize_t v = H5Sget_select_npoints(H5S_val(space_id_v));
+  if (v < 0) fail();
+  CAMLreturn(Val_int(v));
+}
+
+value hdf5_h5s_get_select_hyper_blocklist(value startblock_opt_v, value numblocks_opt_v,
+  value space_id_v)
+{
+  CAMLparam3(startblock_opt_v, numblocks_opt_v, space_id_v);
+  CAMLlocal1(v);
+  hsize_t startblock = Int_opt_val(startblock_opt_v, 0), numblocks, *buf;
+  hssize_t nblocks;
+  herr_t err;
+  hid_t space_id = H5S_val(space_id_v);
+  int ndims = H5Sget_simple_extent_ndims(space_id);
+  if (Is_block(numblocks_opt_v))
+    numblocks = Int_val(Field(numblocks_opt_v, 0));
+  else
+  {
+    nblocks = H5Sget_select_hyper_nblocks(space_id);
+    if (nblocks < 0) fail();
+    numblocks = nblocks - startblock;
+  }
+  buf = calloc(numblocks * 2 * ndims, sizeof(hsize_t));
+  if (buf == NULL)
+    caml_raise_out_of_memory();
+  err = H5Sget_select_hyper_blocklist(space_id, startblock, numblocks, buf);
+  if (err < 0)
+  {
+    free(buf);
+    fail();
+  }
+  v = val_hsize_t_array(numblocks * 2 * ndims, buf);
+  free(buf);
+  CAMLreturn(v);
+}
+
+value hdf5_h5s_get_select_elem_pointlist(value startblock_opt_v, value numpoints_opt_v,
+  value space_id_v)
+{
+  CAMLparam3(startblock_opt_v, numpoints_opt_v, space_id_v);
+  CAMLlocal1(v);
+  hsize_t startblock = Int_opt_val(startblock_opt_v, 0), numpoints, *buf;
+  hssize_t npoints;
+  herr_t err;
+  hid_t space_id = H5S_val(space_id_v);
+  int ndims = H5Sget_simple_extent_ndims(space_id);
+  if (Is_block(numpoints_opt_v))
+    numpoints = Int_val(Field(numpoints_opt_v, 0));
+  else
+  {
+    npoints = H5Sget_select_elem_npoints(space_id);
+    if (npoints < 0) fail();
+    numpoints = npoints - startblock;
+  }
+  buf = calloc(numpoints * 2 * ndims, sizeof(hsize_t));
+  if (buf == NULL)
+    caml_raise_out_of_memory();
+  err = H5Sget_select_elem_pointlist(space_id, startblock, numpoints, buf);
+  if (err < 0)
+  {
+    free(buf);
+    fail();
+  }
+  v = val_hsize_t_array(numpoints * 2 * ndims, buf);
+  free(buf);
+  CAMLreturn(v);
+}
+
+value hdf5_h5s_get_select_bounds(value space_id_v)
+{
+  CAMLparam1(space_id_v);
+  CAMLlocal1(v);
+  hsize_t start, end;
+  raise_if_fail(H5Sget_select_bounds(H5S_val(space_id_v), &start, &end));
+  v = caml_alloc_tuple(2);
+  Store_field(v, 0, Val_int(start));
+  Store_field(v, 1, Val_int(end));
+  CAMLreturn(v);
+}
+
 void hdf5_h5s_select_elements(value space_id_v, value op_v, value coord_v)
 {
   CAMLparam3(space_id_v, op_v, coord_v);

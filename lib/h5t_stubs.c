@@ -5,7 +5,9 @@
 #include <caml/memory.h>
 #include "hdf5.h"
 #include "h5i_stubs.h"
+#include "h5p_stubs.h"
 #include "h5t_stubs.h"
+#include "loc_stubs.h"
 
 static struct custom_operations h5t_ops = {
   "hdf5.h5t",
@@ -93,6 +95,284 @@ value Val_h5t_order(H5T_order_t order)
   }
 }
 
+H5T_sign_t H5T_sign_val(value sign)
+{
+  switch (Int_val(sign))
+  {
+    case 0: return H5T_SGN_NONE;
+    case 1: return H5T_SGN_2;
+    case 2: return H5T_NSGN;
+    default: caml_failwith("unrecognized H5T_sign_t");
+  }
+}
+
+value Val_h5t_sign(H5T_sign_t sign)
+{
+  switch (sign)
+  {
+    case H5T_SGN_ERROR: fail();
+    case H5T_SGN_NONE:  return Val_int(0);
+    case H5T_SGN_2:     return Val_int(1);
+    case H5T_NSGN:      return Val_int(2);
+    default: caml_failwith("unrecognized H5T_sign_t");
+  }
+}
+
+H5T_norm_t H5T_norm_val(value norm)
+{
+  switch (Int_val(norm))
+  {
+    case 0: return H5T_NORM_IMPLIED;
+    case 1: return H5T_NORM_MSBSET;
+    case 2: return H5T_NORM_NONE;
+    default: caml_failwith("unrecognized H5T_norm_t");
+  }
+}
+
+value Val_h5t_norm(H5T_norm_t norm)
+{
+  switch (norm)
+  {
+    case H5T_NORM_ERROR:   fail();
+    case H5T_NORM_IMPLIED: return Val_int(0);
+    case H5T_NORM_MSBSET:  return Val_int(1);
+    case H5T_NORM_NONE:    return Val_int(2);
+    default: caml_failwith("unrecognized H5T_norm_t");
+  }
+}
+
+H5T_cset_t H5T_cset_val(value cset)
+{
+  switch (Int_val(cset))
+  {
+    case 0: return H5T_CSET_ASCII;
+    case 1: return H5T_CSET_UTF8;
+    default: caml_failwith("unrecognized H5T_cset_t");
+  }
+}
+
+value Val_h5t_cset(H5T_cset_t cset)
+{
+  switch (cset)
+  {
+    case H5T_CSET_ERROR: fail();
+    case H5T_CSET_ASCII: return Val_int(0);
+    case H5T_CSET_UTF8:  return Val_int(1);
+    default: caml_failwith("unrecognized H5T_cset_t");
+  }
+}
+
+H5T_str_t H5T_str_val(value str)
+{
+  switch (Int_val(str))
+  {
+    case 0: return H5T_STR_NULLTERM;
+    case 1: return H5T_STR_NULLPAD;
+    case 2: return H5T_STR_SPACEPAD;
+    default: caml_failwith("unrecognized H5T_str_t");
+  }
+}
+
+value Val_h5t_str(H5T_str_t str)
+{
+  switch (str)
+  {
+    case H5T_STR_ERROR:    fail();
+    case H5T_STR_NULLTERM: return Val_int(0);
+    case H5T_STR_NULLPAD:  return Val_int(1);
+    case H5T_STR_SPACEPAD: return Val_int(2);
+    default: caml_failwith("unrecognized H5T_str_t");
+  }
+}
+
+H5T_pad_t H5T_pad_val(value pad)
+{
+  switch (Int_val(pad))
+  {
+    case 0: return H5T_PAD_ZERO;
+    case 1: return H5T_PAD_ONE;
+    case 2: return H5T_PAD_BACKGROUND;
+    case 3: return H5T_NPAD;
+    default: caml_failwith("unrecognized H5T_pad_t");
+  }
+}
+
+value Val_h5t_pad(H5T_pad_t pad)
+{
+  switch (pad)
+  {
+    case H5T_PAD_ERROR:      fail();
+    case H5T_PAD_ZERO:       return Val_int(0);
+    case H5T_PAD_ONE:        return Val_int(1);
+    case H5T_PAD_BACKGROUND: return Val_int(2);
+    case H5T_NPAD:           return Val_int(3);
+    default: caml_failwith("unrecognized H5T_pad_t");
+  }
+}
+
+H5T_cmd_t H5T_cmd_val(value cmd)
+{
+  switch (Int_val(cmd))
+  {
+    case 0: return H5T_CONV_INIT;
+    case 1: return H5T_CONV_CONV;
+    case 2: return H5T_CONV_FREE;
+    default: caml_failwith("unrecognized H5T_cmd_t");
+  }
+}
+
+value Val_h5t_cmd(H5T_cmd_t cmd)
+{
+  switch (cmd)
+  {
+    case H5T_CONV_INIT: return Val_int(0);
+    case H5T_CONV_CONV: return Val_int(1);
+    case H5T_CONV_FREE: return Val_int(2);
+    default: caml_failwith("unrecognized H5T_cmd_t");
+  }
+}
+
+H5T_bkg_t H5T_bkg_val(value bkg)
+{
+  switch (Int_val(bkg))
+  {
+    case 0: return H5T_BKG_NO;
+    case 1: return H5T_BKG_TEMP;
+    case 2: return H5T_BKG_YES;
+    default: caml_failwith("unrecognized H5T_bkg_t");
+  }
+}
+
+value Val_h5t_bkg(H5T_bkg_t bkg)
+{
+  switch (bkg)
+  {
+    case H5T_BKG_NO:   return Val_int(0);
+    case H5T_BKG_TEMP: return Val_int(1);
+    case H5T_BKG_YES:  return Val_int(2);
+    default: caml_failwith("unrecognized H5T_bkg_t");
+  }
+}
+
+H5T_cdata_t H5T_cdata_val(value cdata_v)
+{
+  CAMLparam1(cdata_v);
+  H5T_cdata_t cdata = {
+    H5T_cmd_val(Field(cdata_v, 0)),
+    H5T_bkg_val(Field(cdata_v, 1)),
+    Int_val(Field(cdata_v, 2)),
+    (void*) Int64_val(Field(cdata_v, 3)) };
+  CAMLreturnT(H5T_cdata_t, cdata);
+}
+
+value Val_h5t_cdata(H5T_cdata_t cdata)
+{
+  CAMLparam0();
+  CAMLlocal1(cdata_v);
+  cdata_v = caml_alloc_tuple(4);
+  Store_field(cdata_v, 0, Val_h5t_cmd(cdata.command));
+  Store_field(cdata_v, 1, Val_h5t_bkg(cdata.need_bkg));
+  Store_field(cdata_v, 2, Val_int(cdata.recalc));
+  Store_field(cdata_v, 3, caml_copy_int64((int64_t) cdata.priv));
+  CAMLreturn(cdata_v);
+}
+
+H5T_pers_t H5T_pers_val(value pers)
+{
+  switch (Int_val(pers))
+  {
+    case 0: return H5T_PERS_DONTCARE;
+    case 1: return H5T_PERS_HARD;
+    case 2: return H5T_PERS_SOFT;
+    default: caml_failwith("unrecognized H5T_pers_t");
+  }
+}
+
+value Val_h5t_pers(H5T_pers_t pers)
+{
+  switch (pers)
+  {
+    case H5T_PERS_DONTCARE: return Val_int(0);
+    case H5T_PERS_HARD:     return Val_int(1);
+    case H5T_PERS_SOFT:     return Val_int(2);
+    default: caml_failwith("unrecognized H5T_pers_t");
+  }
+}
+
+H5T_direction_t H5T_direction_val(value direction)
+{
+  switch (Int_val(direction))
+  {
+    case 0: return H5T_DIR_DEFAULT;
+    case 1: return H5T_DIR_ASCEND;
+    case 2: return H5T_DIR_DESCEND;
+    default: caml_failwith("unrecognized H5T_direction_t");
+  }
+}
+
+value Val_h5t_direction(H5T_direction_t direction)
+{
+  switch (direction)
+  {
+    case H5T_DIR_DEFAULT: return Val_int(0);
+    case H5T_DIR_ASCEND:  return Val_int(1);
+    case H5T_DIR_DESCEND: return Val_int(2);
+    default: caml_failwith("unrecognized H5T_direction_t");
+  }
+}
+
+H5T_conv_except_t H5T_conv_except_val(value conv_except)
+{
+  switch (Int_val(conv_except))
+  {
+    case 0: return H5T_CONV_EXCEPT_RANGE_HI;
+    case 1: return H5T_CONV_EXCEPT_RANGE_LOW;
+    case 2: return H5T_CONV_EXCEPT_PRECISION;
+    case 3: return H5T_CONV_EXCEPT_TRUNCATE;
+    case 4: return H5T_CONV_EXCEPT_PINF;
+    case 5: return H5T_CONV_EXCEPT_NINF;
+    case 6: return H5T_CONV_EXCEPT_NAN;
+    default: caml_failwith("unrecognized H5T_conv_except_t");
+  }
+}
+
+value Val_h5t_conv_except(H5T_conv_except_t conv_except)
+{
+  switch (conv_except)
+  {
+    case H5T_CONV_EXCEPT_RANGE_HI:  return Val_int(0);
+    case H5T_CONV_EXCEPT_RANGE_LOW: return Val_int(1);
+    case H5T_CONV_EXCEPT_PRECISION: return Val_int(2);
+    case H5T_CONV_EXCEPT_TRUNCATE:  return Val_int(3);
+    case H5T_CONV_EXCEPT_PINF:      return Val_int(4);
+    case H5T_CONV_EXCEPT_NINF:      return Val_int(5);
+    case H5T_CONV_EXCEPT_NAN:       return Val_int(6);
+    default: caml_failwith("unrecognized H5T_conv_except_t");
+  }
+}
+
+H5T_conv_ret_t H5T_conv_ret_val(value conv_ret)
+{
+  switch (Int_val(conv_ret))
+  {
+    case 0: return H5T_CONV_ABORT;
+    case 1: return H5T_CONV_UNHANDLED;
+    case 2: return H5T_CONV_HANDLED;
+    default: caml_failwith("unrecognized H5T_conv_ret_t");
+  }
+}
+
+value Val_h5t_conv_ret(H5T_conv_ret_t conv_ret)
+{
+  switch (conv_ret)
+  {
+    case H5T_CONV_ABORT:     return Val_int(0);
+    case H5T_CONV_UNHANDLED: return Val_int(1);
+    case H5T_CONV_HANDLED:   return Val_int(2);
+    default: caml_failwith("unrecognized H5T_conv_ret_t");
+  }
+}
+
 value hdf5_h5t_datatypes(value unit_v)
 {
   CAMLparam1(unit_v);
@@ -146,6 +426,22 @@ value hdf5_h5t_create(value class_v, value size_v)
   CAMLreturn(alloc_h5t(H5Tcreate(class, size)));
 }
 
+void hdf5_h5t_commit(value loc_id_v, value name_v, value lcpl_id_v, value tcpl_id_v,
+  value tapl_id_v, value dtype_id_v)
+{
+  CAMLparam5(loc_id_v, name_v, lcpl_id_v, tcpl_id_v, tapl_id_v);
+  CAMLxparam1(dtype_id_v);
+  raise_if_fail(H5Tcommit2(Loc_val(loc_id_v), String_val(name_v), H5T_val(dtype_id_v),
+    H5P_opt_val(lcpl_id_v), H5P_opt_val(tcpl_id_v), H5P_opt_val(tapl_id_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5t_commit_bytecode(value *argv, int argn)
+{
+  assert(argn == 6);
+  hdf5_h5t_commit(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+}
+
 value hdf5_h5t_copy(value id_v)
 {
   CAMLparam1(id_v);
@@ -157,6 +453,13 @@ value hdf5_h5t_get_class(value dtype_id_v)
 {
   CAMLparam1(dtype_id_v);
   CAMLreturn(Val_h5t_class(H5Tget_class(H5T_val(dtype_id_v))));
+}
+
+void hdf5_h5t_set_size(value dtype_id_v, value size_v)
+{
+  CAMLparam1(dtype_id_v);
+  raise_if_fail(H5Tset_size(H5T_val(dtype_id_v), Int_val(size_v)));
+  CAMLreturn0;
 }
 
 value hdf5_h5t_get_size(value dtype_id_v)
@@ -184,6 +487,14 @@ void hdf5_h5t_set_order(value id_v, value order_v)
 
   raise_if_fail(H5Tset_order(H5T_val(id_v), H5T_order_val(order_v)));
   CAMLreturn0;
+}
+
+value hdf5_h5t_get_nmembers(value dtype_id_v)
+{
+  CAMLparam1(dtype_id_v);
+  int v = H5Tget_nmembers(H5T_val(dtype_id_v));
+  if (v < 0) fail();
+  CAMLreturn(Val_int(v));
 }
 
 void hdf5_h5t_insert(value dtype_id_v, value name_v, value offset_v, value field_id_v)

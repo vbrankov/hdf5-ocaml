@@ -26,6 +26,95 @@ module Order = struct
   | NONE
 end
 
+module Sign = struct
+  type t =
+  | NONE
+  | SIGN_2
+  | NSGN
+end
+
+module Norm = struct
+  type t =
+  | IMPLIED
+  | MSBSET
+  | NONE
+end
+
+module Cset = struct
+  type t =
+  | ASCII
+  | UTF8
+end
+
+module Str = struct
+  type t =
+  | NULLTERM
+  | NULLPAD
+  | SPACEPAD
+end
+
+module Pad = struct
+  type t =
+  | ZERO
+  | ONE
+  | BACKGROUND
+  | NPAD
+end
+
+module Cmd = struct
+  type t =
+  | INIT
+  | CONV
+  | FREE
+end
+
+module Bkg = struct
+  type t =
+  | NO
+  | TEMP
+  | YES
+end
+
+module Cdata = struct
+  type t = {
+    command  : Cmd.t;
+    need_bkg : Bkg.t;
+    recalc   : bool;
+    priv     : int64 }
+end
+
+module Pers = struct
+  type t =
+  | DONTCARE
+  | HARD
+  | SOFT
+end
+
+module Direction = struct
+  type t =
+  | DEFAULT
+  | ASCEND
+  | DESCEND
+end
+
+module Conv_except = struct
+  type t =
+  | RANGE_HI
+  | RANGE_LOW
+  | PRECISION
+  | TRUNCATE
+  | PINF
+  | NINF
+  | NAN
+end
+
+module Conv_ret = struct
+  type t =
+  | ABORT
+  | UNHANDLED
+  | HANDLED
+end
+
 external datatypes : unit -> (t * t * t * t * t * t * t * t * t * t * t * t * t * t * t *
 t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t
 * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t *
@@ -55,11 +144,18 @@ let ieee_f32be, ieee_f32le, ieee_f64be, ieee_f64le, std_i8be, std_i8le, std_i16b
   native_int64, native_uint64, native_int_least64, native_uint_least64 ,
   native_int_fast64, native_uint_fast64 = datatypes ()
 
+external to_loc : t -> Loc.t = "%identity"
+external of_loc : Loc.t -> t = "%identity"
+
 external create : Class.t -> int -> t = "hdf5_h5t_create"
+external commit : Loc.t -> string -> ?lcpl:H5p.t -> ?tcpl:H5p.t -> ?tapl:H5p.t -> t
+  -> unit = "hdf5_h5t_commit_bytecode" "hdf5_h5t_commit"
 external copy : t -> t = "hdf5_h5t_copy"
 external get_class : t -> Class.t = "hdf5_h5t_get_class"
+external set_size : t -> int -> unit = "hdf5_h5t_set_size"
 external get_size : t -> int = "hdf5_h5t_get_size"
 external close : t -> unit = "hdf5_h5t_close"
 external get_order : t -> Order.t = "hdf5_h5t_get_order"
 external set_order : t -> Order.t -> unit = "hdf5_h5t_set_order"
+external get_nmembers : t -> int = "hdf5_h5t_get_nmembers"
 external insert : t -> string -> int -> t -> unit = "hdf5_h5t_insert"

@@ -1,11 +1,8 @@
 open Bigarray
 open Hdf5_caml
 
-let _FILE = "SDSextendible.h5"
+let _FILE        = "SDSextendible.h5"
 let _DATASETNAME = "ExtendibleArray"
-let _RANK = 2
-let _NX = 10
-let _NY = 5
 
 let () =
   let data1 = Array2.of_array int32 c_layout
