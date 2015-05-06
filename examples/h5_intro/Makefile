@@ -1,2 +1,1 @@
-DIRS=h5_intro
 include ../Makefile.shared
