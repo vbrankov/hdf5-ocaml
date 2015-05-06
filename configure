@@ -1,0 +1,11 @@
+#!/bin/bash
+
+HDF5_H_LOC=$(locate serial/hdf5.h)
+if [[ !(-e $HDF5_H_LOC) ]]
+then
+  echo "HDF5 cannot be found"
+  exit 1
+fi
+HDF5_H_DIR=$(dirname $HDF5_H_LOC)
+
+echo "HDF5_H_DIR=${HDF5_H_DIR}" > Makefile.config

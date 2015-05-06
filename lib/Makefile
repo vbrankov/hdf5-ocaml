@@ -3,7 +3,9 @@ CAMLC=ocamlc.opt
 CAMLOPT=ocamlopt.opt
 MKLIB=ocamlmklib
 
-CFLAGS=-I /usr/local/hdf5/include -ccopt "-Wall -pedantic -Wextra -Wunused -Werror \
+include ../Makefile.config
+
+CFLAGS=-I $(HDF5_H_DIR) -ccopt "-Wall -pedantic -Wextra -Wunused -Werror \
   -Wno-long-long -std=c99 -DCAML_NAME_SPACE -fPIC"
 
 LIBNAME=hdf5_caml
