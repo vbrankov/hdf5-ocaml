@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HDF5_H_LOC=$(locate /hdf5.h)
+HDF5_H_LOC=$(locate -l 1 -b '\hdf5.h')
 if [[ !(-e $HDF5_H_LOC) ]]
 then
   echo "HDF5 cannot be found"
@@ -8,4 +8,19 @@ then
 fi
 HDF5_H_DIR=$(dirname $HDF5_H_LOC)
 
+HDF5_LIB_LOC=$(locate -l 1 -b '\libhdf5_serial.so')
+if [[ -e $HDF5_LIB_LOC ]]
+then
+  HDF5_LIB=hdf5_serial
+else
+  HDF5_LIB_LOC=$(locate -l 1 -b '\libhdf5.so')
+  if [[ !(-e $HDF5_LIB_LOC) ]]
+  then
+    echo "HDF5 library cannot be found"
+    exit 1
+  fi
+  HDF5_LIB=hdf5
+fi
+
 echo "HDF5_H_DIR=${HDF5_H_DIR}" > Makefile.config
+echo "HDF5_LIB=${HDF5_LIB}" >> Makefile.config

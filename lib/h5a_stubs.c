@@ -143,10 +143,9 @@ void hdf5_h5a_iterate(value obj_id_v, value idx_type_opt_v, value order_opt_v, v
 
   struct operator_data op = { op_v, op_data_v, &exception };
   hsize_t n = Is_block(n_v) ? Int_val(Field(Field(n_v, 0), 0)) : 0;
-  int ret;
   exception = Val_unit;
 
-  ret = H5Aiterate(Loc_val(obj_id_v), H5_index_opt_val(idx_type_opt_v),
+  (void) H5Aiterate(Loc_val(obj_id_v), H5_index_opt_val(idx_type_opt_v),
     H5_iter_order_opt_val(order_opt_v), Is_block(n_v) ? &n : NULL, hdf5_h5a_operator,
     &op);
   if (Is_block(n_v))

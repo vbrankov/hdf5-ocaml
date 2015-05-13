@@ -117,10 +117,9 @@ void hdf5_h5g_iterate(value loc_id_v, value name_v, value idx_v, value operator_
 
   struct operator_data operator_data = { operator_v, operator_data_v, &exception };
   int idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0;
-  int ret;
   exception = Val_unit;
 
-  ret = H5Giterate(Loc_val(loc_id_v), String_val(name_v),
+  (void) H5Giterate(Loc_val(loc_id_v), String_val(name_v),
         Is_block(idx_v) ? &idx : NULL, hdf5_h5g_operator, &operator_data);
   if (Is_block(idx_v))
     Store_field(Field(idx_v, 0), 0, Val_int(idx));
