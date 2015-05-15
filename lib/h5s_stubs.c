@@ -62,7 +62,6 @@ value hdf5_h5s_get_all()
 value hdf5_h5s_create(value type_v)
 {
   CAMLparam1(type_v);
-
   CAMLreturn(alloc_h5s(H5Screate(H5S_class_val(type_v))));
 }
 

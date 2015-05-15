@@ -22,5 +22,20 @@ else
   HDF5_LIB=hdf5
 fi
 
+HDF5_HL_LIB_LOC=$(locate -l 1 -b '\libhdf5_serial_hl.so')
+if [[ -e $HDF5_HL_LIB_LOC ]]
+then
+  HDF5_HL_LIB=hdf5_serial_hl
+else
+  HDF5_HL_LIB_LOC=$(locate -l 1 -b '\libhdf5_hl.so')
+  if [[ !(-e $HDF5_HL_LIB_LOC) ]]
+  then
+    echo "HDF5 HL library cannot be found"
+    exit 1
+  fi
+  HDF5_HL_LIB=hdf5_hl
+fi
+
 echo "HDF5_H_DIR=${HDF5_H_DIR}" > Makefile.config
 echo "HDF5_LIB=${HDF5_LIB}" >> Makefile.config
+echo "HDF5_HL_LIB=${HDF5_HL_LIB}" >> Makefile.config

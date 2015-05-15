@@ -23,10 +23,10 @@ $(LIBNAME).cmx: $(SRC_ML:.ml=.cmx)
 
 $(LIBNAME).cmxa: $(SRC_C:.c=.o) $(LIBNAME).cmx
 	$(MKLIB) -ocamlc $(CAMLC) -ocamlopt $(CAMLOPT) -o $(LIBNAME) -oc $(LIBNAME) \
-	  -l$(HDF5_LIB) $^
+	  -l$(HDF5_LIB) -l$(HDF5_HL_LIB) $^
 
 depend:
-	gcc -I /usr/local/hdf5/include -MM *.c > .depend
+	gcc -I $(HDF5_H_DIR) -MM *.c > .depend
 	$(CAMLDEP) *.mli *.ml >> .depend
 	echo -n SRC_ML= >> .depend
 	$(CAMLDEP) -sort *.ml >> .depend

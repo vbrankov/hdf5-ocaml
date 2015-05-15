@@ -1,26 +1,403 @@
-h5a_stubs.o: h5a_stubs.c h5_stubs.h h5a_stubs.h h5d_stubs.h h5i_stubs.h \
- h5g_stubs.h h5p_stubs.h h5s_stubs.h h5t_stubs.h loc_stubs.h
-h5d_stubs.o: h5d_stubs.c h5_stubs.h h5d_stubs.h h5g_stubs.h h5i_stubs.h \
- h5p_stubs.h h5s_stubs.h h5t_stubs.h loc_stubs.h
-h5f_stubs.o: h5f_stubs.c h5i_stubs.h h5p_stubs.h
-h5g_stubs.o: h5g_stubs.c h5_stubs.h h5g_stubs.h h5i_stubs.h h5l_stubs.h \
- h5p_stubs.h loc_stubs.h
-h5i_stubs.o: h5i_stubs.c
-h5l_stubs.o: h5l_stubs.c h5i_stubs.h h5l_stubs.h
-h5o_stubs.o: h5o_stubs.c h5_stubs.h h5i_stubs.h
-h5p_stubs.o: h5p_stubs.c h5_stubs.h h5d_stubs.h h5i_stubs.h h5p_stubs.h
-h5r_stubs.o: h5r_stubs.c h5i_stubs.h h5r_stubs.h h5s_stubs.h loc_stubs.h
-h5s_stubs.o: h5s_stubs.c h5_stubs.h h5i_stubs.h h5p_stubs.h h5s_stubs.h
-h5_stubs.o: h5_stubs.c h5i_stubs.h
-h5t_stubs.o: h5t_stubs.c h5i_stubs.h h5p_stubs.h h5t_stubs.h loc_stubs.h
-loc_stubs.o: loc_stubs.c h5i_stubs.h loc_stubs.h
+h5_stubs.o: h5_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5i_stubs.h
+h5a_stubs.o: h5a_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5_stubs.h h5a_stubs.h h5d_stubs.h \
+ h5i_stubs.h h5g_stubs.h h5p_stubs.h h5s_stubs.h h5t_stubs.h loc_stubs.h
+h5d_stubs.o: h5d_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5_stubs.h h5d_stubs.h h5g_stubs.h \
+ h5i_stubs.h h5p_stubs.h h5s_stubs.h h5t_stubs.h loc_stubs.h
+h5f_stubs.o: h5f_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5i_stubs.h h5p_stubs.h
+h5g_stubs.o: h5g_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5_stubs.h h5g_stubs.h h5i_stubs.h \
+ h5l_stubs.h h5p_stubs.h loc_stubs.h
+h5i_stubs.o: h5i_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h
+h5l_stubs.o: h5l_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5i_stubs.h h5l_stubs.h
+h5lt_stubs.o: h5lt_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h /usr/include/hdf5/serial/hdf5_hl.h \
+ /usr/include/hdf5/serial/H5DOpublic.h \
+ /usr/include/hdf5/serial/H5DSpublic.h \
+ /usr/include/hdf5/serial/H5LTpublic.h \
+ /usr/include/hdf5/serial/H5IMpublic.h \
+ /usr/include/hdf5/serial/H5TBpublic.h \
+ /usr/include/hdf5/serial/H5PTpublic.h h5_stubs.h h5i_stubs.h h5t_stubs.h \
+ loc_stubs.h
+h5o_stubs.o: h5o_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5_stubs.h h5i_stubs.h
+h5p_stubs.o: h5p_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5_stubs.h h5d_stubs.h h5i_stubs.h \
+ h5p_stubs.h
+h5r_stubs.o: h5r_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5i_stubs.h h5r_stubs.h \
+ h5s_stubs.h loc_stubs.h
+h5s_stubs.o: h5s_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5_stubs.h h5i_stubs.h h5p_stubs.h \
+ h5s_stubs.h
+h5t_stubs.o: h5t_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5i_stubs.h h5p_stubs.h \
+ h5t_stubs.h loc_stubs.h
+loc_stubs.o: loc_stubs.c /usr/include/hdf5/serial/hdf5.h \
+ /usr/include/hdf5/serial/H5public.h /usr/include/hdf5/serial/H5pubconf.h \
+ /usr/include/hdf5/serial/H5version.h \
+ /usr/include/hdf5/serial/H5api_adpt.h \
+ /usr/include/hdf5/serial/H5Apublic.h \
+ /usr/include/hdf5/serial/H5Ipublic.h \
+ /usr/include/hdf5/serial/H5Opublic.h \
+ /usr/include/hdf5/serial/H5Lpublic.h \
+ /usr/include/hdf5/serial/H5Tpublic.h \
+ /usr/include/hdf5/serial/H5ACpublic.h \
+ /usr/include/hdf5/serial/H5Cpublic.h \
+ /usr/include/hdf5/serial/H5Dpublic.h \
+ /usr/include/hdf5/serial/H5Epublic.h \
+ /usr/include/hdf5/serial/H5Epubgen.h \
+ /usr/include/hdf5/serial/H5Fpublic.h \
+ /usr/include/hdf5/serial/H5FDpublic.h \
+ /usr/include/hdf5/serial/H5Gpublic.h \
+ /usr/include/hdf5/serial/H5MMpublic.h \
+ /usr/include/hdf5/serial/H5Ppublic.h \
+ /usr/include/hdf5/serial/H5Zpublic.h \
+ /usr/include/hdf5/serial/H5Rpublic.h \
+ /usr/include/hdf5/serial/H5Spublic.h /usr/include/hdf5/serial/H5FDcore.h \
+ /usr/include/hdf5/serial/H5FDfamily.h /usr/include/hdf5/serial/H5FDlog.h \
+ /usr/include/hdf5/serial/H5FDmpi.h /usr/include/hdf5/serial/H5FDmpio.h \
+ /usr/include/hdf5/serial/H5FDmulti.h /usr/include/hdf5/serial/H5FDsec2.h \
+ /usr/include/hdf5/serial/H5FDstdio.h \
+ /usr/include/hdf5/serial/H5FDdirect.h h5i_stubs.h loc_stubs.h
+h5.cmi :
 h5a.cmi : loc.cmi h5t.cmi h5s.cmi h5p.cmi h5o.cmi h5.cmi
 h5d.cmi : loc.cmi hsize.cmi h5t.cmi h5s.cmi h5p.cmi
 h5f.cmi : loc.cmi h5p.cmi
 h5g.cmi : loc.cmi h5p.cmi h5l.cmi h5.cmi
 h5i.cmi :
 h5l.cmi :
-h5.cmi :
+h5lt.cmi : loc.cmi hsize.cmi h5t.cmi
 h5o.cmi : h5.cmi
 h5p.cmi : layout.cmi hsize.cmi
 h5r.cmi : loc.cmi h5s.cmi
@@ -29,6 +406,8 @@ h5t.cmi : loc.cmi h5p.cmi
 hsize.cmi :
 layout.cmi :
 loc.cmi :
+h5.cmo : h5.cmi
+h5.cmx : h5.cmi
 h5a.cmo : loc.cmi h5t.cmi h5s.cmi h5p.cmi h5o.cmi h5.cmi h5a.cmi
 h5a.cmx : loc.cmx h5t.cmx h5s.cmx h5p.cmx h5o.cmx h5.cmx h5a.cmi
 h5d.cmo : loc.cmi hsize.cmi h5t.cmi h5s.cmi h5p.cmi h5d.cmi
@@ -41,8 +420,8 @@ h5i.cmo : h5i.cmi
 h5i.cmx : h5i.cmi
 h5l.cmo : h5l.cmi
 h5l.cmx : h5l.cmi
-h5.cmo : h5.cmi
-h5.cmx : h5.cmi
+h5lt.cmo : loc.cmi hsize.cmi h5t.cmi h5lt.cmi
+h5lt.cmx : loc.cmx hsize.cmx h5t.cmx h5lt.cmi
 h5o.cmo : h5.cmi h5o.cmi
 h5o.cmx : h5.cmx h5o.cmi
 h5p.cmo : layout.cmi hsize.cmi h5p.cmi
@@ -59,4 +438,4 @@ layout.cmo : layout.cmi
 layout.cmx : layout.cmi
 loc.cmo : loc.cmi
 loc.cmx : loc.cmi
-SRC_ML=h5i.ml h5l.ml h5.ml h5o.ml hsize.ml layout.ml loc.ml h5s.ml h5r.ml h5p.ml h5g.ml h5f.ml h5t.ml h5d.ml h5a.ml 
+SRC_ML=h5.ml h5i.ml h5l.ml h5o.ml hsize.ml layout.ml loc.ml h5s.ml h5r.ml h5p.ml h5g.ml h5f.ml h5t.ml h5lt.ml h5d.ml h5a.ml 

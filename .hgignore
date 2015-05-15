@@ -6,4 +6,4 @@ syntax: glob
 *.o
 *.so
 *.swp
-Makefile.coni
+Makefile.config
