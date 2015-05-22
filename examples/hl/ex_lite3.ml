@@ -10,8 +10,8 @@ let () =
   let dset_id = H5d.create (H5f.to_loc file_id) "dset" H5t.native_int space_id in
   H5d.close dset_id;
   H5s.close space_id;
-  H5lt.set_attribute_int (H5f.to_loc file_id) "dset" "attr1" data;
-  H5lt.get_attribute_int (H5f.to_loc file_id) "dset" "attr1" data;
+  H5lt.set_attribute_int32 (H5f.to_loc file_id) "dset" "attr1" data;
+  H5lt.get_attribute_int32 (H5f.to_loc file_id) "dset" "attr1" data;
   for i = 0 to _ATTR_SIZE - 1 do
     Printf.printf "  %ld" data.{i}
   done;

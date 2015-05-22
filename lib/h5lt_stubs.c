@@ -9,29 +9,13 @@
 #include "h5t_stubs.h"
 #include "loc_stubs.h"
 
-void hdf5_h5lt_make_dataset(value loc_id_v, value dset_name_v, value dims_v,
-  value type_id_v, value buffer_v)
+void hdf5_h5lt_make_dataset(value loc_id_v, value dset_name_v, value type_id_v,
+  value buffer_v)
 {
-  CAMLparam5(loc_id_v, dset_name_v, dims_v, type_id_v, buffer_v);
-  int rank;
-  hsize_t *dims;
-  herr_t err;
-
-  rank = hsize_t_array_val(dims_v, &dims);
-  if (dims == NULL)
-    caml_raise_out_of_memory();
-  err = H5LTmake_dataset(Loc_val(loc_id_v), String_val(dset_name_v), rank, dims,
-    H5T_val(type_id_v), Caml_ba_data_val(buffer_v));
-  free(dims);
-  raise_if_fail(err);
-  CAMLreturn0;
-}
-
-void hdf5_h5lt_read_dataset_int(value loc_id_v, value dset_name_v, value buffer_v)
-{
-  CAMLparam3(loc_id_v, dset_name_v, buffer_v);
-  raise_if_fail(H5LTread_dataset_int(Loc_val(loc_id_v), String_val(dset_name_v),
-    Caml_ba_data_val(buffer_v)));
+  CAMLparam4(loc_id_v, dset_name_v, type_id_v, buffer_v);
+  struct caml_ba_array *buffer = Caml_ba_array_val(buffer_v);
+  raise_if_fail(H5LTmake_dataset(Loc_val(loc_id_v), String_val(dset_name_v),
+    buffer->num_dims, (const hsize_t*) buffer->dim, H5T_val(type_id_v), buffer->data));
   CAMLreturn0;
 }
 
@@ -64,21 +48,47 @@ value hdf5_h5lt_get_dataset_info(value loc_id_v, value dset_name_v)
   CAMLreturn(info);
 }
 
-void hdf5_h5lt_set_attribute_int(value loc_id_v, value obj_name_v, value attr_name_v,
-  value buffer_v)
-{
-  CAMLparam4(loc_id_v, obj_name_v, attr_name_v, buffer_v);
-  raise_if_fail(H5LTset_attribute_int(Loc_val(loc_id_v), String_val(obj_name_v),
-    String_val(attr_name_v), Caml_ba_data_val(buffer_v),
-    Caml_ba_array_val(buffer_v)->dim[0]));
-  CAMLreturn0;
+#define TYPE_FUNCTIONS(type)                                                             \
+void hdf5_h5lt_make_dataset_ ## type(value loc_id_v, value dset_name_v, value buffer_v)  \
+{                                                                                        \
+  CAMLparam3(loc_id_v, dset_name_v, buffer_v);                                           \
+  struct caml_ba_array *buffer = Caml_ba_array_val(buffer_v);                            \
+  raise_if_fail(H5LTmake_dataset_ ## type(Loc_val(loc_id_v), String_val(dset_name_v),    \
+    buffer->num_dims, (const hsize_t*) buffer->dim, buffer->data));                      \
+  CAMLreturn0;                                                                           \
+}                                                                                        \
+                                                                                         \
+void hdf5_h5lt_read_dataset_ ## type(value loc_id_v, value dset_name_v,                  \
+  value buffer_v)                                                                        \
+{                                                                                        \
+  CAMLparam3(loc_id_v, dset_name_v, buffer_v);                                           \
+  raise_if_fail(H5LTread_dataset_ ## type(Loc_val(loc_id_v), String_val(dset_name_v),    \
+    Caml_ba_data_val(buffer_v)));                                                        \
+  CAMLreturn0;                                                                           \
+}                                                                                        \
+                                                                                         \
+void hdf5_h5lt_set_attribute_ ## type(value loc_id_v, value obj_name_v,                  \
+  value attr_name_v, value buffer_v)                                                     \
+{                                                                                        \
+  CAMLparam4(loc_id_v, obj_name_v, attr_name_v, buffer_v);                               \
+  raise_if_fail(H5LTset_attribute_ ## type(Loc_val(loc_id_v), String_val(obj_name_v),    \
+    String_val(attr_name_v), Caml_ba_data_val(buffer_v),                                 \
+    Caml_ba_array_val(buffer_v)->dim[0]));                                               \
+  CAMLreturn0;                                                                           \
+}                                                                                        \
+                                                                                         \
+void hdf5_h5lt_get_attribute_ ## type(value loc_id_v, value obj_name_v,                  \
+  value attr_name_v, value data_v)                                                       \
+{                                                                                        \
+  CAMLparam4(loc_id_v, obj_name_v, attr_name_v, data_v);                                 \
+  raise_if_fail(H5LTget_attribute_ ## type(Loc_val(loc_id_v), String_val(obj_name_v),    \
+    String_val(attr_name_v), Caml_ba_data_val(data_v)));                                 \
+  CAMLreturn0;                                                                           \
 }
 
-void hdf5_h5lt_get_attribute_int(value loc_id_v, value obj_name_v, value attr_name_v,
-  value data_v)
-{
-  CAMLparam4(loc_id_v, obj_name_v, attr_name_v, data_v);
-  raise_if_fail(H5LTget_attribute_int(Loc_val(loc_id_v), String_val(obj_name_v),
-    String_val(attr_name_v), Caml_ba_data_val(data_v)));
-  CAMLreturn0;
-}
+TYPE_FUNCTIONS(char)
+TYPE_FUNCTIONS(short)
+TYPE_FUNCTIONS(int)
+TYPE_FUNCTIONS(long)
+TYPE_FUNCTIONS(float)
+TYPE_FUNCTIONS(double)

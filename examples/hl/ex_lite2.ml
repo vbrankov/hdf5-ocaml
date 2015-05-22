@@ -4,7 +4,7 @@ open Hdf5_caml
 let () =
   let data = Array1.create int32 c_layout 6 in
   let file_id = H5f.open_ "ex_lite1.h5" H5f.Acc.([ RDONLY ]) in
-  H5lt.read_dataset_int (H5f.to_loc file_id) "/dset" (genarray_of_array1 data);
+  H5lt.read_dataset_int32 (H5f.to_loc file_id) "/dset" (genarray_of_array1 data);
   let dataset_info = H5lt.get_dataset_info (H5f.to_loc file_id) "/dset" in
   let dims = dataset_info.H5lt.Dataset_info.dims in
 
