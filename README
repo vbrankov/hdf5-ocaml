@@ -1,0 +1,2 @@
+HDF5-OCaml is an OCaml wrapper for HDF5 library.  It currently implements
+basic functionality.
