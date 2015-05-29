@@ -2,7 +2,6 @@ type t
 
 module Class = struct
   type t =
-  | NO_CLASS
   | SCALAR
   | SIMPLE
   | NULL
@@ -28,6 +27,7 @@ external create_simple : ?maximum_dims:Hsize.t array -> Hsize.t array -> t
 external get_simple_extent_dims : t -> Hsize.t array * Hsize.t array
   = "hdf5_h5s_get_simple_extent_dims"
 external get_simple_extent_npoints : t -> int = "hdf5_h5s_get_simple_extent_npoints"
+external get_simple_extent_type : t -> Class.t = "hdf5_h5s_get_simple_extent_type"
 external set_extent_simple : t -> ?maximum_size:Hsize.t array -> Hsize.t array -> unit
   = "hdf5_h5s_set_extent_simple"
 external get_select_npoints : t -> int = "hdf5_h5s_get_select_npoints"

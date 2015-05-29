@@ -115,6 +115,9 @@ module Conv_ret = struct
   | HANDLED
 end
 
+external get_variable : unit -> int = "hdf5_h5t_get_variable"
+let variable = get_variable ()
+
 external datatypes : unit -> (t * t * t * t * t * t * t * t * t * t * t * t * t * t * t *
 t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t
 * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t *
@@ -151,11 +154,16 @@ external create : Class.t -> int -> t = "hdf5_h5t_create"
 external commit : Loc.t -> string -> ?lcpl:H5p.t -> ?tcpl:H5p.t -> ?tapl:H5p.t -> t
   -> unit = "hdf5_h5t_commit_bytecode" "hdf5_h5t_commit"
 external copy : t -> t = "hdf5_h5t_copy"
+external equal : t -> t -> bool = "hdf5_h5t_equal"
 external get_class : t -> Class.t = "hdf5_h5t_get_class"
 external set_size : t -> int -> unit = "hdf5_h5t_set_size"
 external get_size : t -> int = "hdf5_h5t_get_size"
+external get_native_type : t -> Direction.t -> t = "hdf5_h5t_get_native_type"
 external close : t -> unit = "hdf5_h5t_close"
 external get_order : t -> Order.t = "hdf5_h5t_get_order"
 external set_order : t -> Order.t -> unit = "hdf5_h5t_set_order"
+external get_strpad : t -> Str.t = "hdf5_h5t_get_strpad"
+external set_strpad : t -> Str.t -> unit = "hdf5_h5t_set_strpad"
 external get_nmembers : t -> int = "hdf5_h5t_get_nmembers"
+external is_variable_str : t -> bool = "hdf5_h5t_is_variable_str"
 external insert : t -> string -> int -> t -> unit = "hdf5_h5t_insert"

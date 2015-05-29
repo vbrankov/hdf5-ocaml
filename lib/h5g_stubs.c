@@ -89,8 +89,8 @@ value hdf5_h5g_get_comment(value loc_id_v, value name_v)
 }
 
 struct operator_data {
-  value callback;
-  value operator_data;
+  value *callback;
+  value *operator_data;
   value *exception;
 };
 
@@ -98,9 +98,12 @@ herr_t hdf5_h5g_operator(hid_t group, const char *name, void *op_data)
 {
   CAMLparam0();
   CAMLlocal1(ret);
+  CAMLlocalN(args, 3);
   struct operator_data *operator_data = op_data;
-  ret = caml_callback3_exn(operator_data->callback, alloc_h5g(group),
-    caml_copy_string(name), operator_data->operator_data);
+  args[0] = alloc_h5g(group);
+  args[1] = caml_copy_string(name);
+  args[2] = *operator_data->operator_data;
+  ret = caml_callbackN_exn(*operator_data->callback, 3, args);
   if (Is_exception_result(ret))
   {
     *(operator_data->exception) = Extract_exception(ret);
@@ -115,7 +118,7 @@ void hdf5_h5g_iterate(value loc_id_v, value name_v, value idx_v, value operator_
   CAMLparam5(loc_id_v, name_v, idx_v, operator_v, operator_data_v);
   CAMLlocal1(exception);
 
-  struct operator_data operator_data = { operator_v, operator_data_v, &exception };
+  struct operator_data operator_data = { &operator_v, &operator_data_v, &exception };
   int idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0;
   exception = Val_unit;
 

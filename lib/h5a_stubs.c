@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <caml/alloc.h>
 #include <caml/callback.h>
+#include <caml/custom.h>
 #include <caml/bigarray.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
@@ -88,16 +89,50 @@ value hdf5_h5a_open_idx(value loc_id_v, value idx_v)
 void hdf5_h5a_write(value attr_id_v, value mem_type_id_v, value buf_v)
 {
   CAMLparam3(attr_id_v, mem_type_id_v, buf_v);
-  raise_if_fail(H5Awrite(H5A_val(attr_id_v), H5T_val(mem_type_id_v),
-    Caml_ba_data_val(buf_v)));
+  const void* buf;
+  if (Is_long(buf_v))
+    caml_invalid_argument("H5a.write: immediate values not allowed");
+  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag && Custom_ops_val(buf_v) == caml_ba_ops)
+    buf = Caml_ba_data_val(buf_v);
+  else
+    buf = (const void*) buf_v;
+  raise_if_fail(H5Awrite(H5A_val(attr_id_v), H5T_val(mem_type_id_v), buf));
   CAMLreturn0;
 }
 
 void hdf5_h5a_read(value attr_id_v, value mem_type_id_v, value buf_v)
 {
   CAMLparam3(attr_id_v, mem_type_id_v, buf_v);
-  raise_if_fail(H5Aread(H5A_val(attr_id_v), H5T_val(mem_type_id_v),
-    Caml_ba_data_val(buf_v)));
+  void* buf;
+  if (Is_long(buf_v))
+    caml_invalid_argument("H5a.read: immediate values not allowed");
+  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag && Custom_ops_val(buf_v) == caml_ba_ops)
+    buf = Caml_ba_data_val(buf_v);
+  else
+    buf = (void*) buf_v;
+  raise_if_fail(H5Aread(H5A_val(attr_id_v), H5T_val(mem_type_id_v), buf));
+  CAMLreturn0;
+}
+
+void hdf5_h5a_read_vl(value attr_id_v, value mem_type_id_v, value buf_v)
+{
+  CAMLparam3(attr_id_v, mem_type_id_v, buf_v);
+  void* buf;
+  char* s;
+  mlsize_t i;
+  if (Is_long(buf_v))
+    caml_invalid_argument("H5a.read: immediate values not allowed");
+  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag && Custom_ops_val(buf_v) == caml_ba_ops)
+    caml_invalid_argument("H5a.read: bigarrays not allowed");
+  else
+    buf = (void*) buf_v;
+  raise_if_fail(H5Aread(H5A_val(attr_id_v), H5T_val(mem_type_id_v), buf));
+  for (i = 0; i < Wosize_val(buf_v); i++)
+  {
+    s = ((char**) buf)[i];
+    Store_field(buf_v, i, caml_copy_string(s));
+    free(s);
+  }
   CAMLreturn0;
 }
 
@@ -109,8 +144,8 @@ void hdf5_h5a_close(value attr_id_v)
 }
 
 struct operator_data {
-  value callback;
-  value operator_data;
+  value *callback;
+  value *operator_data;
   value *exception;
 };
 
@@ -119,13 +154,14 @@ herr_t hdf5_h5a_operator(hid_t location_id, const char *attr_name,
 {
   CAMLparam0();
   CAMLlocal1(ret);
+  CAMLlocalN(args, 4);
   struct operator_data *operator_data = op_data;
-  value args[4];
+
   args[0] = alloc_loc(location_id);
   args[1] = caml_copy_string(attr_name);
   args[2] = Val_h5a_info(*ainfo);
-  args[3] = operator_data->operator_data;
-  ret = caml_callbackN_exn(operator_data->callback, 4, args);
+  args[3] = *operator_data->operator_data;
+  ret = caml_callbackN_exn(*operator_data->callback, 4, args);
   if (Is_exception_result(ret))
   {
     *(operator_data->exception) = Extract_exception(ret);
@@ -141,7 +177,7 @@ void hdf5_h5a_iterate(value obj_id_v, value idx_type_opt_v, value order_opt_v, v
   CAMLxparam1(op_data_v);
   CAMLlocal1(exception);
 
-  struct operator_data op = { op_v, op_data_v, &exception };
+  struct operator_data op = { &op_v, &op_data_v, &exception };
   hsize_t n = Is_block(n_v) ? Int_val(Field(Field(n_v, 0), 0)) : 0;
   exception = Val_unit;
 

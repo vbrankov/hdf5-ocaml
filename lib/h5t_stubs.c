@@ -373,6 +373,12 @@ value Val_h5t_conv_ret(H5T_conv_ret_t conv_ret)
   }
 }
 
+value hdf5_h5t_get_variable(value unit_v)
+{
+  CAMLparam1(unit_v);
+  CAMLreturn(Val_int(H5T_VARIABLE));
+}
+
 value hdf5_h5t_datatypes(value unit_v)
 {
   CAMLparam1(unit_v);
@@ -419,11 +425,7 @@ value hdf5_h5t_datatypes(value unit_v)
 value hdf5_h5t_create(value class_v, value size_v)
 {
   CAMLparam2(class_v, size_v);
-
-  H5T_class_t class = H5T_class_val(class_v);
-  size_t size = Int_val(size_v);
-
-  CAMLreturn(alloc_h5t(H5Tcreate(class, size)));
+  CAMLreturn(alloc_h5t(H5Tcreate(H5T_class_val(class_v), Int_val(size_v))));
 }
 
 void hdf5_h5t_commit(value loc_id_v, value name_v, value lcpl_id_v, value tcpl_id_v,
@@ -445,8 +447,16 @@ void hdf5_h5t_commit_bytecode(value *argv, int argn)
 value hdf5_h5t_copy(value id_v)
 {
   CAMLparam1(id_v);
-
   CAMLreturn(alloc_h5t(H5Tcopy(H5T_val(id_v))));
+}
+
+value hdf5_h5t_equal(value dtype_id1_v, value dtype_id2_v)
+{
+  CAMLparam2(dtype_id1_v, dtype_id2_v);
+  htri_t ret;
+  ret = H5Tequal(H5T_val(dtype_id1_v), H5T_val(dtype_id2_v));
+  raise_if_fail(ret);
+  CAMLreturn(Val_bool(ret));
 }
 
 value hdf5_h5t_get_class(value dtype_id_v)
@@ -457,7 +467,7 @@ value hdf5_h5t_get_class(value dtype_id_v)
 
 void hdf5_h5t_set_size(value dtype_id_v, value size_v)
 {
-  CAMLparam1(dtype_id_v);
+  CAMLparam2(dtype_id_v, size_v);
   raise_if_fail(H5Tset_size(H5T_val(dtype_id_v), Int_val(size_v)));
   CAMLreturn0;
 }
@@ -466,6 +476,13 @@ value hdf5_h5t_get_size(value dtype_id_v)
 {
   CAMLparam1(dtype_id_v);
   CAMLreturn(Val_int(H5Tget_size(H5T_val(dtype_id_v))));
+}
+
+value hdf5_h5t_get_native_type(value dtype_id_v, value direction_v)
+{
+  CAMLparam2(dtype_id_v, direction_v);
+  CAMLreturn(alloc_h5t(H5Tget_native_type(H5T_val(dtype_id_v),
+    H5T_direction_val(direction_v))));
 }
 
 void hdf5_h5t_close(value dtype_id_v)
@@ -487,6 +504,25 @@ void hdf5_h5t_set_order(value id_v, value order_v)
 
   raise_if_fail(H5Tset_order(H5T_val(id_v), H5T_order_val(order_v)));
   CAMLreturn0;
+}
+
+value hdf5_h5t_get_strpad(value dtype_id_v)
+{
+  CAMLparam1(dtype_id_v);
+  CAMLreturn(Val_h5t_str(H5Tget_strpad(H5T_val(dtype_id_v))));
+}
+
+void hdf5_h5t_set_strpad(value id_v, value strpad_v)
+{
+  CAMLparam2(id_v, strpad_v);
+  raise_if_fail(H5Tset_strpad(H5T_val(id_v), H5T_str_val(strpad_v)));
+  CAMLreturn0;
+}
+
+value hdf5_h5t_is_variable_str(value dtype_id_v)
+{
+  CAMLparam1(dtype_id_v);
+  CAMLreturn(Val_bool(H5Tis_variable_str(H5T_val(dtype_id_v))));
 }
 
 value hdf5_h5t_get_nmembers(value dtype_id_v)

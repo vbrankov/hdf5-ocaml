@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
@@ -118,6 +119,13 @@ void hdf5_h5d_read(value dataset_id_v, value mem_type_id_v, value mem_space_id_v
   CAMLparam5(dataset_id_v, mem_type_id_v, mem_space_id_v, file_space_id_v,
     xfer_plist_id_v);
   CAMLxparam1(buf_v);
+  void* buf;
+  if (Is_long(buf_v))
+    caml_invalid_argument("H5d.read: immediate values not allowed");
+  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag && Custom_ops_val(buf_v) == caml_ba_ops)
+    buf = Caml_ba_data_val(buf_v);
+  else
+    buf = (void*) buf_v;
 
   raise_if_fail(H5Dread(
     H5D_val(dataset_id_v),
@@ -125,7 +133,7 @@ void hdf5_h5d_read(value dataset_id_v, value mem_type_id_v, value mem_space_id_v
     H5S_val(mem_space_id_v),
     H5S_val(file_space_id_v),
     H5P_opt_val(xfer_plist_id_v),
-    Caml_ba_data_val(buf_v)));
+    buf));
 
   CAMLreturn0;
 }
@@ -142,6 +150,13 @@ void hdf5_h5d_write(value dataset_id_v, value mem_type_id_v, value mem_space_id_
   CAMLparam5(dataset_id_v, mem_type_id_v, mem_space_id_v, file_space_id_v,
     xfer_plist_id_v);
   CAMLxparam1(buf_v);
+  const void* buf;
+  if (Is_long(buf_v))
+    caml_invalid_argument("H5d.write: immediate values not allowed");
+  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag && Custom_ops_val(buf_v) == caml_ba_ops)
+    buf = Caml_ba_data_val(buf_v);
+  else
+    buf = (const void*) buf_v;
 
   raise_if_fail(H5Dwrite(
     H5D_val(dataset_id_v),
@@ -149,7 +164,7 @@ void hdf5_h5d_write(value dataset_id_v, value mem_type_id_v, value mem_space_id_
     H5S_val(mem_space_id_v),
     H5S_val(file_space_id_v),
     H5P_opt_val(xfer_plist_id_v),
-    Caml_ba_data_val(buf_v)));
+    buf));
 
   CAMLreturn0;
 }

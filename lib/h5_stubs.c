@@ -1,6 +1,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <caml/alloc.h>
+#include <caml/bigarray.h>
+#include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include <caml/mlvalues.h>
@@ -143,4 +145,12 @@ value Val_h5_ih_info(H5_ih_info_t ih_info)
   Store_field(ih_info_v, 0, Val_int(ih_info.index_size));
   Store_field(ih_info_v, 1, Val_int(ih_info.heap_size));
   CAMLreturn(ih_info_v);
+}
+
+struct custom_operations *caml_ba_ops;
+
+void hdf5_h5_init()
+{
+  caml_ba_ops = Custom_ops_val(
+    caml_ba_alloc_dims(CAML_BA_FLOAT64 | CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, NULL, 1));
 }

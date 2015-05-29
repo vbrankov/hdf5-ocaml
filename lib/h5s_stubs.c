@@ -31,10 +31,21 @@ H5S_class_t H5S_class_val(value class)
 {
   switch (Int_val(class))
   {
-    case 0: return H5S_NO_CLASS;
-    case 1: return H5S_SCALAR;
-    case 2: return H5S_SIMPLE;
-    case 3: return H5S_NULL;
+    case 0: return H5S_SCALAR;
+    case 1: return H5S_SIMPLE;
+    case 2: return H5S_NULL;
+    default: caml_failwith("unrecognized H5S_class_t");
+  }
+}
+
+value Val_h5s_class(H5S_class_t class)
+{
+  switch (class)
+  {
+    case H5S_NO_CLASS: fail();
+    case H5S_SCALAR:   return Val_int(0);
+    case H5S_SIMPLE:   return Val_int(1);
+    case H5S_NULL:     return Val_int(2);
     default: caml_failwith("unrecognized H5S_class_t");
   }
 }
@@ -141,6 +152,12 @@ value hdf5_h5s_get_simple_extent_npoints(value space_id_v)
 {
   CAMLparam1(space_id_v);
   CAMLreturn(Val_int(H5Sget_simple_extent_npoints(H5S_val(space_id_v))));
+}
+
+value hdf5_h5s_get_simple_extent_type(value space_id_v)
+{
+  CAMLparam1(space_id_v);
+  CAMLreturn(Val_h5s_class(H5Sget_simple_extent_type(H5S_val(space_id_v))));
 }
 
 void hdf5_h5s_set_extent_simple(value space_id_v, value maximum_size_v,

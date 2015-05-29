@@ -1,3 +1,5 @@
+#include <caml/alloc.h>
+#include <caml/callback.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
@@ -114,4 +116,37 @@ void hdf5_h5p_set_deflate(value plist_id_v, value level_v)
   CAMLparam2(plist_id_v, level_v);
   raise_if_fail(H5Pset_deflate(H5P_val(plist_id_v), Int_val(level_v)));
   CAMLreturn0;
+}
+
+void *hdf5_h5p_alloc(size_t size, void *alloc_info)
+{
+  return (void*) caml_callback_exn((value) alloc_info, Val_int(size));
+}
+
+void hdf5_h5p_free(void *mem, void *free_info)
+{
+  caml_callback_exn(*((value*) free_info), *((value*) mem));
+}
+
+void hdf5_h5p_set_vlen_mem_manager(value plist_id_v, value alloc_v, value free_v)
+{
+  CAMLparam3(plist_id_v, alloc_v, free_v);
+  raise_if_fail(H5Pset_vlen_mem_manager(H5P_val(plist_id_v), hdf5_h5p_alloc,
+    (void*) &alloc_v, hdf5_h5p_free, (void*) &free_v));
+  CAMLreturn0;
+}
+
+value hdf5_h5p_get_vlen_mem_manager(value plist_id_v)
+{
+  CAMLparam1(plist_id_v);
+  H5MM_allocate_t alloc;
+  H5MM_free_t free;
+  void *alloc_info, *free_info;
+  CAMLlocal1(ret);
+  raise_if_fail(H5Pget_vlen_mem_manager(H5P_val(plist_id_v), &alloc, &alloc_info, &free,
+    &free_info));
+  ret = caml_alloc_tuple(2);
+  Store_field(ret, 0, (value) alloc_info);
+  Store_field(ret, 1, (value) free_info);
+  CAMLreturn(ret);
 }

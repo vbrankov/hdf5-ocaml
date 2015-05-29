@@ -10,15 +10,18 @@ TARGETS=$(SRC:.ml=.exe)
 
 all: $(TARGETS)
 
-.ml.exe:
+.ml.exe: ../../lib/hdf5_caml.cmxa
 	$(CAMLOPT) $(LINKFLAGS) -o $@ $<
 
 clean::
-	rm -f *.cm* *.exe *.o
+	rm -f *.cm* *.exe *.o *.h5 core.*
 
 depend:
 	$(CAMLDEP) *.mli *.ml > .depend
 
-.PHONY: all depend clean
+run: $(TARGETS:.ml=.exe)
+	@for i in $^; do ./$$i; done
+
+.PHONY: all depend clean run
 
 include .depend

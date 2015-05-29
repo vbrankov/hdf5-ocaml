@@ -1,5 +1,3 @@
-open Bigarray
-
 type t
 
 module Layout = struct
@@ -20,9 +18,9 @@ external close : t -> unit = "hdf5_h5d_close"
 external get_space : t -> H5s.t = "hdf5_h5d_get_space"
 external get_type : t -> H5t.t = "hdf5_h5d_get_type"
 external get_create_plist : t -> H5p.t = "hdf5_h5d_get_create_plist"
-external read : t -> H5t.t -> H5s.t -> H5s.t -> ?xfer_plist:H5p.t -> _ Genarray.t -> unit
+external read : t -> H5t.t -> H5s.t -> H5s.t -> ?xfer_plist:H5p.t -> _ -> unit
   = "hdf5_h5d_read_bytecode" "hdf5_h5d_read"
-external write : t -> H5t.t -> H5s.t -> H5s.t -> ?xfer_plist:H5p.t -> _ Genarray.t -> unit
+external write : t -> H5t.t -> H5s.t -> H5s.t -> ?xfer_plist:H5p.t -> _ -> unit
   = "hdf5_h5d_write_bytecode" "hdf5_h5d_write"
 external extend : t -> Hsize.t array -> unit = "hdf5_h5d_set_extent"
 external set_extent : t -> Hsize.t array -> unit = "hdf5_h5d_set_extent"

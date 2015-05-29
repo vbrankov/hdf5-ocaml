@@ -11,6 +11,7 @@ CFLAGS=-I $(HDF5_H_DIR) -ccopt "-Wall -pedantic -Wextra -Wunused -Werror \
 LIBNAME=hdf5_caml
 FOR_PACK_NAME=Hdf5_caml
 SRC_C=$(wildcard *.c)
+COMPFLAGS=-w @a
 
 .SUFFIXES: .ml .mli .cmi .cmo .cmx .cmxa .o
 
@@ -43,4 +44,6 @@ clean::
 .c.o:
 	$(CAMLOPT) $(CFLAGS) -c $<
 
-.PHONY: all clean depend
+run:
+
+.PHONY: all clean depend run

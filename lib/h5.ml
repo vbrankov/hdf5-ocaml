@@ -28,3 +28,6 @@ module Ih_info = struct
     index_size : int;
     heap_size  : int }
 end
+
+external init : unit -> unit = "hdf5_h5_init" "noalloc"
+let () = init ()
