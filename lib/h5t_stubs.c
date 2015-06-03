@@ -4,6 +4,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
+#include "h5_stubs.h"
 #include "h5i_stubs.h"
 #include "h5p_stubs.h"
 #include "h5t_stubs.h"
@@ -265,15 +266,15 @@ H5T_cdata_t H5T_cdata_val(value cdata_v)
   CAMLreturnT(H5T_cdata_t, cdata);
 }
 
-value Val_h5t_cdata(H5T_cdata_t cdata)
+value Val_h5t_cdata(H5T_cdata_t *cdata)
 {
   CAMLparam0();
   CAMLlocal1(cdata_v);
   cdata_v = caml_alloc_tuple(4);
-  Store_field(cdata_v, 0, Val_h5t_cmd(cdata.command));
-  Store_field(cdata_v, 1, Val_h5t_bkg(cdata.need_bkg));
-  Store_field(cdata_v, 2, Val_int(cdata.recalc));
-  Store_field(cdata_v, 3, caml_copy_int64((int64_t) cdata.priv));
+  Store_field(cdata_v, 0, Val_h5t_cmd(cdata->command));
+  Store_field(cdata_v, 1, Val_h5t_bkg(cdata->need_bkg));
+  Store_field(cdata_v, 2, Val_int(cdata->recalc));
+  Store_field(cdata_v, 3, caml_copy_int64((int64_t) cdata->priv));
   CAMLreturn(cdata_v);
 }
 
@@ -453,10 +454,7 @@ value hdf5_h5t_copy(value id_v)
 value hdf5_h5t_equal(value dtype_id1_v, value dtype_id2_v)
 {
   CAMLparam2(dtype_id1_v, dtype_id2_v);
-  htri_t ret;
-  ret = H5Tequal(H5T_val(dtype_id1_v), H5T_val(dtype_id2_v));
-  raise_if_fail(ret);
-  CAMLreturn(Val_bool(ret));
+  CAMLreturn(Val_htri(H5Tequal(H5T_val(dtype_id1_v), H5T_val(dtype_id2_v))));
 }
 
 value hdf5_h5t_get_class(value dtype_id_v)
@@ -522,7 +520,7 @@ void hdf5_h5t_set_strpad(value id_v, value strpad_v)
 value hdf5_h5t_is_variable_str(value dtype_id_v)
 {
   CAMLparam1(dtype_id_v);
-  CAMLreturn(Val_bool(H5Tis_variable_str(H5T_val(dtype_id_v))));
+  CAMLreturn(Val_htri(H5Tis_variable_str(H5T_val(dtype_id_v))));
 }
 
 value hdf5_h5t_get_nmembers(value dtype_id_v)

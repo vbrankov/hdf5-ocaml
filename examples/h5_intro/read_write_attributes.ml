@@ -110,6 +110,6 @@ let () =
   H5a.close attr;
   H5t.close atype;
 
-  H5a.iterate (H5d.to_loc dataset) attr_info ();
+  let _ = H5a.iterate (H5d.to_loc dataset) attr_info () in
   H5d.close dataset;
   H5f.close file

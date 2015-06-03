@@ -74,6 +74,13 @@ value hdf5_h5a_create_bytecode(value *argv, int argn)
   return hdf5_h5a_create(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
+value hdf5_h5a_open(value obj_id_v, value appl_id_v, value attr_name_v)
+{
+  CAMLparam3(obj_id_v, appl_id_v, attr_name_v);
+  CAMLreturn(alloc_h5a(H5Aopen(Loc_val(obj_id_v), String_val(attr_name_v),
+    H5P_opt_val(appl_id_v))));
+}
+
 value hdf5_h5a_open_name(value loc_id_v, value name_v)
 {
   CAMLparam2(loc_id_v, name_v);
@@ -170,7 +177,7 @@ herr_t hdf5_h5a_operator(hid_t location_id, const char *attr_name,
   CAMLreturnT(herr_t, H5_iter_val(ret));
 }
 
-void hdf5_h5a_iterate(value obj_id_v, value idx_type_opt_v, value order_opt_v, value n_v,
+value hdf5_h5a_iterate(value obj_id_v, value idx_type_opt_v, value order_opt_v, value n_v,
   value op_v, value op_data_v)
 {
   CAMLparam5(obj_id_v, idx_type_opt_v, order_opt_v, n_v, op_v);
@@ -178,23 +185,23 @@ void hdf5_h5a_iterate(value obj_id_v, value idx_type_opt_v, value order_opt_v, v
   CAMLlocal1(exception);
 
   struct operator_data op = { &op_v, &op_data_v, &exception };
-  hsize_t n = Is_block(n_v) ? Int_val(Field(Field(n_v, 0), 0)) : 0;
+  hsize_t n = Is_block(n_v) ? Int_val(Field(Field(n_v, 0), 0)) : 0, ret;
   exception = Val_unit;
 
-  (void) H5Aiterate(Loc_val(obj_id_v), H5_index_opt_val(idx_type_opt_v),
+  ret = H5Aiterate(Loc_val(obj_id_v), H5_index_opt_val(idx_type_opt_v),
     H5_iter_order_opt_val(order_opt_v), Is_block(n_v) ? &n : NULL, hdf5_h5a_operator,
     &op);
   if (Is_block(n_v))
     Store_field(Field(n_v, 0), 0, Val_int(n));
   if (exception != Val_unit)
     caml_raise(exception);
-  CAMLreturn0;
+  CAMLreturn(Val_h5_iter(ret));
 }
 
-void hdf5_h5a_iterate_bytecode(value *argv, int argn)
+value hdf5_h5a_iterate_bytecode(value *argv, int argn)
 {
   assert(argn == 6);
-  hdf5_h5a_iterate(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+  return hdf5_h5a_iterate(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
 value hdf5_h5a_get_space(value attr_id_v)

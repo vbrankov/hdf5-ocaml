@@ -147,6 +147,13 @@ value Val_h5_ih_info(H5_ih_info_t ih_info)
   CAMLreturn(ih_info_v);
 }
 
+value Val_htri(htri_t htri)
+{
+  if (htri < 0)
+    fail();
+  return Val_bool(htri);
+}
+
 struct custom_operations *caml_ba_ops;
 
 void hdf5_h5_init()

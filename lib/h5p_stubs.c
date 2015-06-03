@@ -71,6 +71,22 @@ void hdf5_h5p_set_userblock(value plist_v, value size_v)
   CAMLreturn0;
 }
 
+void hdf5_h5p_set_create_intermediate_group(value lcpl_v, value crt_intermed_group_v)
+{
+  CAMLparam2(lcpl_v, crt_intermed_group_v);
+  raise_if_fail(H5Pset_create_intermediate_group(H5P_val(lcpl_v),
+    Bool_val(crt_intermed_group_v)));
+  CAMLreturn0;
+}
+
+value hdf5_h5p_get_create_intermediate_group(value lcpl_v)
+{
+  CAMLparam1(lcpl_v);
+  unsigned crt_intermed_group;
+  raise_if_fail(H5Pget_create_intermediate_group(H5P_val(lcpl_v), &crt_intermed_group));
+  CAMLreturn(Val_int(crt_intermed_group));
+}
+
 value hdf5_h5p_get_layout(value plist_v)
 {
   CAMLparam1(plist_v);

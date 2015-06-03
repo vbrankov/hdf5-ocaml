@@ -31,6 +31,52 @@ static value alloc_h5g(hid_t id)
   return v;
 }
 
+H5G_storage_type_t H5G_storage_type_val(value st)
+{
+  switch (Int_val(st))
+  {
+    case 0: return H5G_STORAGE_TYPE_SYMBOL_TABLE;
+    case 1: return H5G_STORAGE_TYPE_COMPACT;
+    case 2: return H5G_STORAGE_TYPE_DENSE;
+    default: caml_failwith("unrecognized H5G_storage_type_t");
+  }
+}
+
+value Val_h5g_storage_type(H5G_storage_type_t st)
+{
+  switch (st)
+  {
+    case H5G_STORAGE_TYPE_UNKNOWN:      fail();
+    case H5G_STORAGE_TYPE_SYMBOL_TABLE: return Val_int(0);
+    case H5G_STORAGE_TYPE_COMPACT:      return Val_int(1);
+    case H5G_STORAGE_TYPE_DENSE:        return Val_int(2);
+    default: caml_failwith("unrecognized H5G_storage_type_t");
+  }
+}
+
+H5G_info_t H5G_info_val(value info_v)
+{
+  CAMLparam1(info_v);
+  H5G_info_t info = {
+    H5G_storage_type_val(Field(info_v, 0)),
+    Int_val(Field(info_v, 1)),
+    Int_val(Field(info_v, 2)),
+    Bool_val(Field(info_v, 3)) };
+  CAMLreturnT(H5G_info_t, info);
+}
+
+value Val_h5g_info(H5G_info_t *info)
+{
+  CAMLparam0();
+  CAMLlocal1(info_v);
+  info_v = caml_alloc_tuple(4);
+  Store_field(info_v, 0, Val_h5g_storage_type(info->storage_type));
+  Store_field(info_v, 1, Val_int(info->nlinks));
+  Store_field(info_v, 2, Val_int(info->max_corder));
+  Store_field(info_v, 3, Val_bool(info->mounted));
+  CAMLreturn(info_v);
+}
+
 void hdf5_h5g_close(value group_v)
 {
   CAMLparam1(group_v);
@@ -88,6 +134,14 @@ value hdf5_h5g_get_comment(value loc_id_v, value name_v)
   CAMLreturn(v);
 }
 
+value hdf5_h5g_get_info(value group_v)
+{
+  CAMLparam1(group_v);
+  H5G_info_t group_info;
+  raise_if_fail(H5Gget_info(H5G_val(group_v), &group_info));
+  CAMLreturn(Val_h5g_info(&group_info));
+}
+
 struct operator_data {
   value *callback;
   value *operator_data;
@@ -112,21 +166,21 @@ herr_t hdf5_h5g_operator(hid_t group, const char *name, void *op_data)
   CAMLreturnT(herr_t, H5_iter_val(ret));
 }
 
-void hdf5_h5g_iterate(value loc_id_v, value name_v, value idx_v, value operator_v,
+value hdf5_h5g_iterate(value loc_id_v, value name_v, value idx_v, value operator_v,
   value operator_data_v)
 {
   CAMLparam5(loc_id_v, name_v, idx_v, operator_v, operator_data_v);
   CAMLlocal1(exception);
 
   struct operator_data operator_data = { &operator_v, &operator_data_v, &exception };
-  int idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0;
+  int idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0, ret;
   exception = Val_unit;
 
-  (void) H5Giterate(Loc_val(loc_id_v), String_val(name_v),
+  ret = H5Giterate(Loc_val(loc_id_v), String_val(name_v),
         Is_block(idx_v) ? &idx : NULL, hdf5_h5g_operator, &operator_data);
   if (Is_block(idx_v))
     Store_field(Field(idx_v, 0), 0, Val_int(idx));
   if (exception != Val_unit)
     caml_raise(exception);
-  CAMLreturn0;
+  CAMLreturn(Val_h5_iter(ret));
 }

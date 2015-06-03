@@ -14,12 +14,12 @@ all: $(TARGETS)
 	$(CAMLOPT) $(LINKFLAGS) -o $@ $<
 
 clean::
-	rm -f *.cm* *.exe *.o *.h5 core.*
+	rm -f *.cm* *.exe *.o core.*
 
 depend:
 	$(CAMLDEP) *.mli *.ml > .depend
 
-run: $(TARGETS:.ml=.exe)
+run: $(TARGETS)
 	@for i in $^; do ./$$i; done
 
 .PHONY: all depend clean run

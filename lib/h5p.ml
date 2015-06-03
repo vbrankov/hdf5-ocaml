@@ -31,6 +31,10 @@ end
 external create : Cls_id.t -> t = "hdf5_h5p_create"
 external close : t -> unit = "hdf5_h5p_close"
 external set_userblock : t -> int -> unit = "hdf5_h5p_set_userblock"
+external set_create_intermediate_group : t -> bool -> unit
+  = "hdf5_h5p_set_create_intermediate_group"
+external get_create_intermediate_group : t -> bool
+  = "hdf5_h5p_get_create_intermediate_group"
 external get_layout : t -> Layout.t = "hdf5_h5p_get_layout"
 external set_chunk : t -> Hsize.t array -> unit = "hdf5_h5p_set_chunk"
 external get_chunk : t -> Hsize.t array = "hdf5_h5p_get_chunk"

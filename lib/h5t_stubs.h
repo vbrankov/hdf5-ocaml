@@ -20,7 +20,7 @@ value Val_h5t_cmd(H5T_cmd_t);
 H5T_bkg_t H5T_bkg_val(value);
 value Val_h5t_bkg(H5T_bkg_t);
 H5T_cdata_t H5T_cdata_val(value);
-value Val_h5t_cdata(H5T_cdata_t);
+value Val_h5t_cdata(H5T_cdata_t*);
 H5T_pers_t H5T_pers_val(value);
 value Val_h5t_pers(H5T_pers_t);
 H5T_direction_t H5T_direction_val(value);

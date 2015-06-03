@@ -2,6 +2,10 @@ module Time : sig
   type t = int64
 end
 
+module Addr : sig
+  type t = int
+end
+
 module Iter_order : sig
   type t =
   | INC

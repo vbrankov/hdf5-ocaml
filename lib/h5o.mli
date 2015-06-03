@@ -39,7 +39,7 @@ module Info : sig
 
   type t = {
     fileno    : int;
-    addr      : int64;
+    addr      : H5.Addr.t;
     type_     : Type.t;
     rc        : int;
     atime     : H5.Time.t;
@@ -54,3 +54,7 @@ end
 module Msg_crt_idx : sig
   type t = int
 end
+
+external get_info : Loc.t -> Info.t = "hdf5_h5o_get_info"
+external get_info_by_name : Loc.t -> ?lapl:H5p.t -> string -> Info.t
+  = "hdf5_h5o_get_info_by_name"

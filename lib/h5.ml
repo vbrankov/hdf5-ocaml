@@ -2,6 +2,10 @@ module Time = struct
   type t = int64
 end
 
+module Addr = struct
+  type t = int
+end
+
 module Iter_order = struct
   type t =
   | INC

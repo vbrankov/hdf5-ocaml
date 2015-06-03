@@ -13,4 +13,5 @@ H5_index_t H5_index_opt_val(value);
 value Val_h5_index(H5_index_t);
 H5_ih_info_t H5_ih_info_val(value);
 value Val_h5_ih_info(H5_ih_info_t);
+value Val_htri(htri_t);
 struct custom_operations *caml_ba_ops;
