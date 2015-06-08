@@ -154,6 +154,13 @@ value Val_htri(htri_t htri)
   return Val_bool(htri);
 }
 
+value Val_ssize(ssize_t s)
+{
+  if (s < 0)
+    fail();
+  return Val_int(s);
+}
+
 struct custom_operations *caml_ba_ops;
 
 void hdf5_h5_init()
