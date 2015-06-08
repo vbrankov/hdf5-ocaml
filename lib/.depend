@@ -2,7 +2,7 @@ h5a_stubs.o: h5a_stubs.c h5_stubs.h h5a_stubs.h h5d_stubs.h h5i_stubs.h \
  h5g_stubs.h h5p_stubs.h h5s_stubs.h h5t_stubs.h loc_stubs.h
 h5d_stubs.o: h5d_stubs.c h5_stubs.h h5d_stubs.h h5g_stubs.h h5i_stubs.h \
  h5p_stubs.h h5s_stubs.h h5t_stubs.h loc_stubs.h
-h5f_stubs.o: h5f_stubs.c h5_stubs.h h5i_stubs.h h5p_stubs.h
+h5f_stubs.o: h5f_stubs.c h5_stubs.h h5i_stubs.h h5p_stubs.h loc_stubs.h
 h5g_stubs.o: h5g_stubs.c h5_stubs.h h5g_stubs.h h5i_stubs.h h5l_stubs.h \
  h5p_stubs.h loc_stubs.h
 h5i_stubs.o: h5i_stubs.c

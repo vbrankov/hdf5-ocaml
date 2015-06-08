@@ -10,9 +10,16 @@
 #include "h5t_stubs.h"
 #include "loc_stubs.h"
 
+void h5t_finalize(value v)
+{
+  if (!H5T_closed(v))
+    H5Tclose(H5T_val(v));
+  H5T_closed(v) = true;
+}
+
 static struct custom_operations h5t_ops = {
   "hdf5.h5t",
-  custom_finalize_default,
+  h5t_finalize,
   custom_compare_default,
   custom_compare_ext_default,
   custom_hash_default,
@@ -23,8 +30,9 @@ static struct custom_operations h5t_ops = {
 value alloc_h5t(hid_t id)
 {
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5t_ops, sizeof(hid_t), 0, 1);
+  value v = caml_alloc_custom(&h5t_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5T_val(v) = id;
+  H5T_closed(v) = false;
   return v;
 }
 
@@ -483,10 +491,11 @@ value hdf5_h5t_get_native_type(value dtype_id_v, value direction_v)
     H5T_direction_val(direction_v))));
 }
 
-void hdf5_h5t_close(value dtype_id_v)
+void hdf5_h5t_close(value dtype_v)
 {
-  CAMLparam1(dtype_id_v);
-  raise_if_fail(H5Tclose(H5T_val(dtype_id_v)));
+  CAMLparam1(dtype_v);
+  raise_if_fail(H5Tclose(H5T_val(dtype_v)));
+  H5T_closed(dtype_v) = true;
   CAMLreturn0;
 }
 

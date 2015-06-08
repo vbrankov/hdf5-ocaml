@@ -9,9 +9,16 @@
 #include "h5i_stubs.h"
 #include "h5p_stubs.h"
 
+void h5p_finalize(value v)
+{
+  if (!H5P_closed(v))
+    H5Pclose(H5P_val(v));
+  H5P_closed(v) = true;
+}
+
 static struct custom_operations h5p_ops = {
   "hdf5.h5p",
-  custom_finalize_default,
+  h5p_finalize,
   custom_compare_default,
   custom_compare_ext_default,
   custom_hash_default,
@@ -22,8 +29,9 @@ static struct custom_operations h5p_ops = {
 value alloc_h5p(hid_t id)
 {
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5p_ops, sizeof(hid_t), 0, 1);
+  value v = caml_alloc_custom(&h5p_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5P_val(v) = id;
+  H5P_closed(v) = false;
   return v;
 }
 
@@ -57,10 +65,11 @@ value hdf5_h5p_create(value cls_id_v)
   CAMLreturn(alloc_h5p(H5Pcreate(cls_id)));
 }
 
-void hdf5_h5p_close(value cls_id_v)
+void hdf5_h5p_close(value plist_v)
 {
-  CAMLparam1(cls_id_v);
-  raise_if_fail(H5Pclose(H5P_val(cls_id_v)));
+  CAMLparam1(plist_v);
+  raise_if_fail(H5Pclose(H5P_val(plist_v)));
+  H5P_closed(plist_v) = true;
   CAMLreturn0;
 }
 

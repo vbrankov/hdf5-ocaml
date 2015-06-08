@@ -14,9 +14,16 @@
 #include "h5t_stubs.h"
 #include "loc_stubs.h"
 
+void h5d_finalize(value v)
+{
+  if (!H5D_closed(v))
+    H5Dclose(H5D_val(v));
+  H5D_closed(v) = true;
+}
+
 static struct custom_operations h5d_ops = {
   "hdf5.h5d",
-  custom_finalize_default,
+  h5d_finalize,
   custom_compare_default,
   custom_compare_ext_default,
   custom_hash_default,
@@ -27,8 +34,9 @@ static struct custom_operations h5d_ops = {
 static value alloc_h5d(hid_t id)
 {
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5d_ops, sizeof(hid_t), 0, 1);
+  value v = caml_alloc_custom(&h5d_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5D_val(v) = id;
+  H5D_closed(v) = false;
   return v;
 }
 
@@ -88,10 +96,11 @@ value hdf5_h5d_open(value loc_id_v, value dapl_id_v, value name_v)
     H5P_opt_val(dapl_id_v))));
 }
 
-void hdf5_h5d_close(value dataset_id_v)
+void hdf5_h5d_close(value dataset_v)
 {
-  CAMLparam1(dataset_id_v);
-  raise_if_fail(H5Dclose(H5D_val(dataset_id_v)));
+  CAMLparam1(dataset_v);
+  raise_if_fail(H5Dclose(H5D_val(dataset_v)));
+  H5D_closed(dataset_v) = true;
   CAMLreturn0;
 }
 

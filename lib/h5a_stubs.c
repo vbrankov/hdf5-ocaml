@@ -17,9 +17,16 @@
 #include "h5t_stubs.h"
 #include "loc_stubs.h"
 
+void h5a_finalize(value v)
+{
+  if (!H5A_closed(v))
+    H5Aclose(H5A_val(v));
+  H5A_closed(v) = true;
+}
+
 static struct custom_operations h5a_ops = {
   "hdf5.h5a",
-  custom_finalize_default,
+  h5a_finalize,
   custom_compare_default,
   custom_compare_ext_default,
   custom_hash_default,
@@ -30,8 +37,9 @@ static struct custom_operations h5a_ops = {
 static value alloc_h5a(hid_t id)
 {
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5a_ops, sizeof(hid_t), 0, 1);
+  value v = caml_alloc_custom(&h5a_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5A_val(v) = id;
+  H5A_closed(v) = false;
   return v;
 }
 
@@ -143,10 +151,11 @@ void hdf5_h5a_read_vl(value attr_id_v, value mem_type_id_v, value buf_v)
   CAMLreturn0;
 }
 
-void hdf5_h5a_close(value attr_id_v)
+void hdf5_h5a_close(value attr_v)
 {
-  CAMLparam1(attr_id_v);
-  raise_if_fail(H5Aclose(H5A_val(attr_id_v)));
+  CAMLparam1(attr_v);
+  raise_if_fail(H5Aclose(H5A_val(attr_v)));
+  H5A_closed(attr_v) = true;
   CAMLreturn0;
 }
 

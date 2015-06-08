@@ -75,6 +75,6 @@ external create : string -> ?fcpl:H5p.t -> ?fapl:H5p.t -> Acc.t list -> t
   = "hdf5_h5f_create"
 external open_ : string -> ?fapl:H5p.t -> Acc.t list -> t = "hdf5_h5f_open"
 external close : t -> unit = "hdf5_h5f_close"
-external flush : Loc.t -> unit = "hdf5_h5f_flush"
+external flush : Loc.t -> Scope.t -> unit = "hdf5_h5f_flush"
 external get_obj_count : t -> Obj.t list -> int = "hdf5_h5f_get_obj_count"
 external get_obj_ids : t -> Obj.t list -> Loc.t array = "hdf5_h5f_get_obj_ids"

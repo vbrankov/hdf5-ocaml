@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdbool.h>
 #include <caml/alloc.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
@@ -9,9 +10,19 @@
 #include "h5p_stubs.h"
 #include "loc_stubs.h"
 
+#define H5F_val(v) *((hid_t*) Data_custom_val(v))
+#define H5F_closed(v) *((bool*) ((char*) Data_custom_val(v) + sizeof(hid_t)))
+
+void h5f_finalize(value v)
+{
+  if (!H5F_closed(v))
+    H5Fclose(H5F_val(v));
+  H5F_closed(v) = true;
+}
+
 static struct custom_operations h5f_ops = {
   "hdf5.h5f",
-  custom_finalize_default,
+  h5f_finalize,
   custom_compare_default,
   custom_compare_ext_default,
   custom_hash_default,
@@ -19,13 +30,12 @@ static struct custom_operations h5f_ops = {
   custom_deserialize_default
 };
 
-#define H5F_val(v) *((hid_t*) Data_custom_val(v))
-
 static value alloc_h5f(hid_t id)
 {
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5f_ops, sizeof(hid_t), 0, 1);
+  value v = caml_alloc_custom(&h5f_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5F_val(v) = id;
+  H5F_closed(v) = false;
   return v;
 }
 
@@ -172,10 +182,11 @@ value hdf5_h5f_open(value name_v, value fapl_v, value flags_v)
     H5P_opt_val(fapl_v))));
 }
 
-void hdf5_h5f_close(value cls_v)
+void hdf5_h5f_close(value file_v)
 {
-  CAMLparam1(cls_v);
-  raise_if_fail(H5Fclose(H5F_val(cls_v)));
+  CAMLparam1(file_v);
+  raise_if_fail(H5Fclose(H5F_val(file_v)));
+  H5F_closed(file_v) = true;
   CAMLreturn0;
 }
 
