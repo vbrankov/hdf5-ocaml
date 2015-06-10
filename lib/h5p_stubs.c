@@ -8,6 +8,7 @@
 #include "h5d_stubs.h"
 #include "h5i_stubs.h"
 #include "h5p_stubs.h"
+#include "h5z_stubs.h"
 
 void h5p_finalize(value v)
 {
@@ -140,6 +141,22 @@ void hdf5_h5p_set_deflate(value plist_id_v, value level_v)
 {
   CAMLparam2(plist_id_v, level_v);
   raise_if_fail(H5Pset_deflate(H5P_val(plist_id_v), Int_val(level_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5p_set_filter(value plist_v, value filter_v, value flags_v, value cd_v)
+{
+  CAMLparam4(plist_v, filter_v, flags_v, cd_v);
+  size_t cd_nelmts;
+  unsigned int *cd_values;
+  herr_t err;
+  cd_nelmts = unsigned_int_array_val(cd_v, &cd_values);
+  if (cd_values == NULL)
+    fail();
+  err = H5Pset_filter(H5P_val(plist_v), H5Z_filter_val(filter_v), flag_val(flags_v),
+    cd_nelmts, cd_values);
+  free(cd_values);
+  raise_if_fail(err);
   CAMLreturn0;
 }
 

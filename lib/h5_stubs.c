@@ -9,6 +9,22 @@
 #include "hdf5.h"
 #include "h5i_stubs.h"
 
+int unsigned_int_array_val(value v, unsigned int **a)
+{
+  long i, length, e;
+
+  length = Wosize_val(v);
+  *a = calloc(length, sizeof(unsigned int));
+  if (*a == NULL)
+    return length;
+  for (i = 0; i < length; i++)
+  {
+    e = Long_val(Field(v, i));
+    (*a)[i] = e <= -1 ? H5S_UNLIMITED : (unsigned int) e;
+  }
+  return length;
+}
+
 int hsize_t_array_val(value v, hsize_t **a)
 {
   long i, length, e;

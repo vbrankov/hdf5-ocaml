@@ -197,6 +197,25 @@ void hdf5_h5f_flush(value object_v, value scope_v)
   CAMLreturn0;
 }
 
+value hdf5_h5f_get_name(value obj_v)
+{
+  CAMLparam1(obj_v);
+  CAMLlocal1(name_v);
+  hid_t obj_id = Loc_val(obj_v);
+  char *name;
+  ssize_t size;
+  size = H5Fget_name(obj_id, NULL, 0);
+  if (size < 0)
+    fail();
+  name = malloc(size);
+  if (name == NULL)
+    caml_raise_out_of_memory();
+  raise_if_fail(H5Fget_name(obj_id, name, size));
+  name_v = caml_copy_string(name);
+  free(name);
+  CAMLreturn(name_v);
+}
+
 value hdf5_h5f_get_obj_count(value file_v, value types_v)
 {
   CAMLparam2(file_v, types_v);

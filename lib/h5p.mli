@@ -39,6 +39,8 @@ external get_layout : t -> Layout.t = "hdf5_h5p_get_layout"
 external set_chunk : t -> Hsize.t array -> unit = "hdf5_h5p_set_chunk"
 external get_chunk : t -> Hsize.t array = "hdf5_h5p_get_chunk"
 external set_deflate : t -> int -> unit = "hdf5_h5p_set_deflate"
+external set_filter : t -> H5z.Filter.t -> H5z.Flag.t array -> int array -> unit
+  = "hdf5_h5p_set_filter"
 external set_vlen_mem_manager : t -> 'a Alloc.t -> 'a Free.t -> unit
   = "hdf5_h5p_set_vlen_mem_manager"
 external get_vlen_mem_manager : t -> ('a Alloc.t * 'a Free.t)

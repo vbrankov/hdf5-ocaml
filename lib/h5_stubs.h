@@ -1,5 +1,6 @@
 #define Int_opt_val(v, d) Is_block(v) ? Int_val(Field(v, 0)) : d
 
+int unsigned_int_array_val(value, unsigned int**);
 int hsize_t_array_val(value, hsize_t**);
 int hsize_t_array_opt_val(value, hsize_t**);
 value val_hsize_t_array(int, hsize_t*);

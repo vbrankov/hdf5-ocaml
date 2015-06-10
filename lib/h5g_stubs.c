@@ -31,12 +31,12 @@ static struct custom_operations h5g_ops = {
   custom_deserialize_default
 };
 
-static value alloc_h5g(hid_t id)
+static value alloc_h5g(hid_t id, bool close)
 {
   raise_if_fail(id);
   value v = caml_alloc_custom(&h5g_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5G_val(v) = id;
-  H5G_closed(v) = false;
+  H5G_closed(v) = !close;
   return v;
 }
 
@@ -98,14 +98,14 @@ value hdf5_h5g_create(value loc_v, value lcpl_v, value gcpl_v, value gapl_v, val
 {
   CAMLparam5(loc_v, lcpl_v, gcpl_v, gapl_v, name_v);
   CAMLreturn(alloc_h5g(H5Gcreate2(Loc_val(loc_v), String_val(name_v), H5P_opt_val(lcpl_v),
-    H5P_opt_val(gcpl_v), H5P_opt_val(gapl_v))));
+    H5P_opt_val(gcpl_v), H5P_opt_val(gapl_v)), true));
 }
 
 value hdf5_h5g_open(value loc_v, value gapl_v, value name_v)
 {
   CAMLparam3(loc_v, gapl_v, name_v);
   CAMLreturn(alloc_h5g(H5Gopen2(Loc_val(loc_v), String_val(name_v),
-    H5P_opt_val(gapl_v))));
+    H5P_opt_val(gapl_v)), true));
 }
 
 void hdf5_h5g_link(value loc_v, value link_type_v, value current_name_v,
@@ -164,7 +164,7 @@ herr_t hdf5_h5g_operator(hid_t group, const char *name, void *op_data)
   CAMLlocal1(ret);
   CAMLlocalN(args, 3);
   struct operator_data *operator_data = op_data;
-  args[0] = alloc_h5g(group);
+  args[0] = alloc_h5g(group, false);
   args[1] = caml_copy_string(name);
   args[2] = *operator_data->operator_data;
   ret = caml_callbackN_exn(*operator_data->callback, 3, args);

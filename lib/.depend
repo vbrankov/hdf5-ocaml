@@ -11,12 +11,14 @@ h5l_stubs.o: h5l_stubs.c h5_stubs.h h5i_stubs.h h5l_stubs.h h5p_stubs.h \
 h5lt_stubs.o: h5lt_stubs.c h5_stubs.h h5i_stubs.h h5t_stubs.h loc_stubs.h
 h5o_stubs.o: h5o_stubs.c h5_stubs.h h5i_stubs.h h5o_stubs.h h5p_stubs.h \
  loc_stubs.h
-h5p_stubs.o: h5p_stubs.c h5_stubs.h h5d_stubs.h h5i_stubs.h h5p_stubs.h
+h5p_stubs.o: h5p_stubs.c h5_stubs.h h5d_stubs.h h5i_stubs.h h5p_stubs.h \
+ h5z_stubs.h
 h5r_stubs.o: h5r_stubs.c h5i_stubs.h h5r_stubs.h h5s_stubs.h loc_stubs.h
 h5s_stubs.o: h5s_stubs.c h5_stubs.h h5i_stubs.h h5p_stubs.h h5s_stubs.h
 h5_stubs.o: h5_stubs.c h5i_stubs.h
 h5t_stubs.o: h5t_stubs.c h5_stubs.h h5i_stubs.h h5p_stubs.h h5t_stubs.h \
  loc_stubs.h
+h5z_stubs.o: h5z_stubs.c
 loc_stubs.o: loc_stubs.c h5i_stubs.h loc_stubs.h
 h5a.cmi : loc.cmi h5t.cmi h5s.cmi h5p.cmi h5o.cmi h5.cmi
 h5d.cmi : loc.cmi hsize.cmi h5t.cmi h5s.cmi h5p.cmi
@@ -27,10 +29,11 @@ h5l.cmi : loc.cmi h5t.cmi h5p.cmi h5.cmi
 h5lt.cmi : loc.cmi hsize.cmi h5t.cmi
 h5.cmi :
 h5o.cmi : loc.cmi h5p.cmi h5.cmi
-h5p.cmi : layout.cmi hsize.cmi
+h5p.cmi : layout.cmi hsize.cmi h5z.cmi
 h5r.cmi : loc.cmi h5s.cmi
 h5s.cmi : hsize.cmi
 h5t.cmi : loc.cmi h5p.cmi
+h5z.cmi :
 hsize.cmi :
 layout.cmi :
 loc.cmi :
@@ -52,18 +55,20 @@ h5.cmo : h5.cmi
 h5.cmx : h5.cmi
 h5o.cmo : loc.cmi h5p.cmi h5.cmi h5o.cmi
 h5o.cmx : loc.cmx h5p.cmx h5.cmx h5o.cmi
-h5p.cmo : layout.cmi hsize.cmi h5p.cmi
-h5p.cmx : layout.cmx hsize.cmx h5p.cmi
+h5p.cmo : layout.cmi hsize.cmi h5z.cmi h5p.cmi
+h5p.cmx : layout.cmx hsize.cmx h5z.cmx h5p.cmi
 h5r.cmo : loc.cmi h5s.cmi h5r.cmi
 h5r.cmx : loc.cmx h5s.cmx h5r.cmi
 h5s.cmo : hsize.cmi h5s.cmi
 h5s.cmx : hsize.cmx h5s.cmi
 h5t.cmo : loc.cmi h5p.cmi h5t.cmi
 h5t.cmx : loc.cmx h5p.cmx h5t.cmi
+h5z.cmo : h5z.cmi
+h5z.cmx : h5z.cmi
 hsize.cmo : hsize.cmi
 hsize.cmx : hsize.cmi
 layout.cmo : layout.cmi
 layout.cmx : layout.cmi
 loc.cmo : loc.cmi
 loc.cmx : loc.cmi
-SRC_ML=h5i.ml h5.ml hsize.ml layout.ml loc.ml h5s.ml h5r.ml h5p.ml h5o.ml h5f.ml h5t.ml h5lt.ml h5l.ml h5g.ml h5d.ml h5a.ml 
+SRC_ML=h5i.ml h5.ml h5z.ml hsize.ml layout.ml loc.ml h5s.ml h5r.ml h5p.ml h5o.ml h5f.ml h5t.ml h5lt.ml h5l.ml h5g.ml h5d.ml h5a.ml 
