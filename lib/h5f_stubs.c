@@ -207,6 +207,7 @@ value hdf5_h5f_get_name(value obj_v)
   size = H5Fget_name(obj_id, NULL, 0);
   if (size < 0)
     fail();
+  size++;
   name = malloc(size);
   if (name == NULL)
     caml_raise_out_of_memory();

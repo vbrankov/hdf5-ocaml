@@ -160,6 +160,27 @@ void hdf5_h5p_set_filter(value plist_v, value filter_v, value flags_v, value cd_
   CAMLreturn0;
 }
 
+void hdf5_h5p_set_fletcher32(value plist_v)
+{
+  CAMLparam1(plist_v);
+  raise_if_fail(H5Pset_fletcher32(H5P_val(plist_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5p_set_nbit(value plist_v)
+{
+  CAMLparam1(plist_v);
+  raise_if_fail(H5Pset_nbit(H5P_val(plist_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5p_set_shuffle(value plist_v)
+{
+  CAMLparam1(plist_v);
+  raise_if_fail(H5Pset_shuffle(H5P_val(plist_v)));
+  CAMLreturn0;
+}
+
 void *hdf5_h5p_alloc(size_t size, void *alloc_info)
 {
   return (void*) caml_callback_exn((value) alloc_info, Val_int(size));

@@ -4,6 +4,8 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include <caml/mlvalues.h>
+#include "h5_stubs.h"
+#include "h5i_stubs.h"
 
 H5Z_filter_t H5Z_filter_val(value v)
 {
@@ -73,4 +75,43 @@ unsigned flag_val(value v)
   CAMLreturnT(unsigned, flags);
 }
 
+value val_filter_config(unsigned f)
+{
+  CAMLparam0();
+  CAMLlocal3(h, v, t);
 
+  h = Val_unit;
+  while (f != 0)
+  {
+    if (f & H5Z_FILTER_CONFIG_ENCODE_ENABLED)
+    {
+      v = Val_int(0);
+      f ^= H5Z_FILTER_CONFIG_ENCODE_ENABLED;
+    }
+    else if (f & H5Z_FILTER_CONFIG_DECODE_ENABLED)
+    {
+      v = Val_int(1);
+      f ^= H5Z_FILTER_CONFIG_DECODE_ENABLED;
+    }
+    else caml_failwith("unrecognized filter_config");
+    t = h;
+    h = caml_alloc(2, 0);
+    Store_field(h, 0, v);
+    Store_field(h, 1, t);
+  }
+  CAMLreturn(h);
+}
+
+value hdf5_h5z_filter_avail(value filter_v)
+{
+  CAMLparam1(filter_v);
+  CAMLreturn(Val_htri(H5Zfilter_avail(H5Z_filter_val(filter_v))));
+}
+
+value hdf5_h5z_get_filter_info(value filter_v)
+{
+  CAMLparam1(filter_v);
+  unsigned int filter_config;
+  raise_if_fail(H5Zget_filter_info(H5Z_filter_val(filter_v), &filter_config));
+  CAMLreturn(val_filter_config(filter_config));
+}
