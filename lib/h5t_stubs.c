@@ -4,11 +4,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
-#include "h5_stubs.h"
-#include "h5i_stubs.h"
-#include "h5p_stubs.h"
-#include "h5t_stubs.h"
-#include "loc_stubs.h"
+#include "hdf5_caml.h"
 
 void h5t_finalize(value v)
 {
@@ -442,7 +438,7 @@ void hdf5_h5t_commit(value loc_id_v, value name_v, value lcpl_id_v, value tcpl_i
 {
   CAMLparam5(loc_id_v, name_v, lcpl_id_v, tcpl_id_v, tapl_id_v);
   CAMLxparam1(dtype_id_v);
-  raise_if_fail(H5Tcommit2(Loc_val(loc_id_v), String_val(name_v), H5T_val(dtype_id_v),
+  raise_if_fail(H5Tcommit2(Hid_val(loc_id_v), String_val(name_v), H5T_val(dtype_id_v),
     H5P_opt_val(lcpl_id_v), H5P_opt_val(tcpl_id_v), H5P_opt_val(tapl_id_v)));
   CAMLreturn0;
 }

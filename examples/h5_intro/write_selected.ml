@@ -31,7 +31,7 @@ let () =
 
   let file = H5f.create _FILE [ H5f.Acc.TRUNC ] in
   let fid = H5s.create_simple [| _FSPACE_DIM1; _FSPACE_DIM2 |] in
-  let dataset = H5d.create (H5f.to_loc file) "Matrix in file" H5t.native_int fid in
+  let dataset = H5d.create file "Matrix in file" H5t.native_int fid in
   H5d.write dataset H5t.native_int H5s.all H5s.all (genarray_of_array2 matrix);
   H5s.select_hyperslab fid H5s.Select.SET
     ~start: [| 0; 1 |]
@@ -59,7 +59,7 @@ let () =
   H5d.close dataset;
   H5f.close file;
   let file = H5f.open_ _FILE [ H5f.Acc.RDONLY ] in
-  let dataset = H5d.open_ (H5f.to_loc file) "Matrix in file" in
+  let dataset = H5d.open_ file "Matrix in file" in
   H5d.read dataset H5t.native_int H5s.all H5s.all (genarray_of_array2 matrix);
   for i = 0 to _MSPACE_DIM1 - 1 do
     for j = 0 to _MSPACE_DIM2 - 1 do

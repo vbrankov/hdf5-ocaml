@@ -84,7 +84,7 @@ let () =
   H5t.insert s1_tid "c_name" 8 H5t.native_double;
   H5t.insert s1_tid "b_name" 4 H5t.native_float;
 
-  let dataset = H5d.create (H5f.to_loc file) _DATASETNAME s1_tid space in
+  let dataset = H5d.create file _DATASETNAME s1_tid space in
   H5d.write dataset s1_tid H5s.all H5s.all (genarray_of_array1 s1);
   H5t.close s1_tid;
   H5s.close space;
@@ -92,7 +92,7 @@ let () =
   H5f.close file;
 
   let file = H5f.open_ _FILE H5f.Acc.([ RDONLY ]) in
-  let dataset = H5d.open_ (H5f.to_loc file) _DATASETNAME in
+  let dataset = H5d.open_ file _DATASETNAME in
   let s2_tid = H5t.create H5t.Class.COMPOUND S2.sizeof in
   H5t.insert s2_tid "c_name" 0 H5t.native_double;
   H5t.insert s2_tid "a_name" 8 H5t.native_int;

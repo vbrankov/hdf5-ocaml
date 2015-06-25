@@ -15,9 +15,9 @@ module Type = struct
   | DATASET_REGION
 end
 
-external create : Loc.t -> string -> ?space:H5s.t -> Type.t -> bytes = "hdf5_h5r_create"
-external dereference : Loc.t -> Type.t -> bytes -> Loc.t = "hdf5_h5r_dereference"
-external get_region : Loc.t -> Type.t -> bytes -> H5s.t = "hdf5_h5r_get_region"
+external create : Hid.t -> string -> ?space:Hid.t -> Type.t -> bytes = "hdf5_h5r_create"
+external dereference : Hid.t -> Type.t -> bytes -> Hid.t = "hdf5_h5r_dereference"
+external get_region : Hid.t -> Type.t -> bytes -> Hid.t = "hdf5_h5r_get_region"
 
 module Hobj_ref = struct
   type t = bytes

@@ -5,14 +5,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
-#include "h5_stubs.h"
-#include "h5d_stubs.h"
-#include "h5g_stubs.h"
-#include "h5i_stubs.h"
-#include "h5p_stubs.h"
-#include "h5s_stubs.h"
-#include "h5t_stubs.h"
-#include "loc_stubs.h"
+#include "hdf5_caml.h"
 
 void h5d_finalize(value v)
 {
@@ -72,7 +65,7 @@ value hdf5_h5d_create(value loc_id_v, value name_v, value dtype_id_v, value lcpl
   CAMLxparam2(dapl_id_v, space_id_v);
 
   CAMLreturn(alloc_h5d(H5Dcreate2(
-    Loc_val(loc_id_v),
+    Hid_val(loc_id_v),
     String_val(name_v),
     H5T_val(dtype_id_v),
     H5S_val(space_id_v),
@@ -91,7 +84,7 @@ value hdf5_h5d_open(value loc_id_v, value dapl_id_v, value name_v)
 {
   CAMLparam3(loc_id_v, dapl_id_v, name_v);
   CAMLreturn(alloc_h5d(H5Dopen2(
-    Loc_val(loc_id_v),
+    Hid_val(loc_id_v),
     String_val(name_v),
     H5P_opt_val(dapl_id_v))));
 }

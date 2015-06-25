@@ -47,11 +47,11 @@ let rec op_func loc_id name info od =
 
 let () =
   let file = H5f.open_ _FILE H5f.Acc.([ RDONLY ]) in
-  let infobuf = H5o.get_info (H5f.to_loc file) in
+  let infobuf = H5o.get_info file in
   let od = { Opdata.recurs = 0; prev = None; addr = infobuf.H5o.Info.addr } in
 
   Printf.printf "/ {\n%!";
-  let _ = H5l.iterate (H5f.to_loc file) H5.Index.NAME H5.Iter_order.NATIVE op_func od in
+  let _ = H5l.iterate file H5.Index.NAME H5.Iter_order.NATIVE op_func od in
   Printf.printf "}\n%!";
 
   H5f.close file 

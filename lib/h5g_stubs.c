@@ -7,12 +7,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
-#include "h5_stubs.h"
-#include "h5g_stubs.h"
-#include "h5i_stubs.h"
-#include "h5l_stubs.h"
-#include "h5p_stubs.h"
-#include "loc_stubs.h"
+#include "hdf5_caml.h"
 
 void h5g_finalize(value v)
 {
@@ -97,14 +92,14 @@ void hdf5_h5g_close(value group_v)
 value hdf5_h5g_create(value loc_v, value lcpl_v, value gcpl_v, value gapl_v, value name_v)
 {
   CAMLparam5(loc_v, lcpl_v, gcpl_v, gapl_v, name_v);
-  CAMLreturn(alloc_h5g(H5Gcreate2(Loc_val(loc_v), String_val(name_v), H5P_opt_val(lcpl_v),
+  CAMLreturn(alloc_h5g(H5Gcreate2(Hid_val(loc_v), String_val(name_v), H5P_opt_val(lcpl_v),
     H5P_opt_val(gcpl_v), H5P_opt_val(gapl_v)), true));
 }
 
 value hdf5_h5g_open(value loc_v, value gapl_v, value name_v)
 {
   CAMLparam3(loc_v, gapl_v, name_v);
-  CAMLreturn(alloc_h5g(H5Gopen2(Loc_val(loc_v), String_val(name_v),
+  CAMLreturn(alloc_h5g(H5Gopen2(Hid_val(loc_v), String_val(name_v),
     H5P_opt_val(gapl_v)), true));
 }
 
@@ -112,7 +107,7 @@ void hdf5_h5g_link(value loc_v, value link_type_v, value current_name_v,
   value new_name_v)
 {
   CAMLparam4(loc_v, link_type_v, current_name_v, new_name_v);
-  raise_if_fail(H5Glink(Loc_val(loc_v), H5L_type_val(link_type_v),
+  raise_if_fail(H5Glink(Hid_val(loc_v), H5L_type_val(link_type_v),
     String_val(current_name_v), String_val(new_name_v)));
   CAMLreturn0;
 }
@@ -120,14 +115,14 @@ void hdf5_h5g_link(value loc_v, value link_type_v, value current_name_v,
 void hdf5_h5g_unlink(value loc_id_v, value name_v)
 {
   CAMLparam2(loc_id_v, name_v);
-  raise_if_fail(H5Gunlink(Loc_val(loc_id_v), String_val(name_v)));
+  raise_if_fail(H5Gunlink(Hid_val(loc_id_v), String_val(name_v)));
   CAMLreturn0;
 }
 
 void hdf5_h5g_set_comment(value loc_id_v, value name_v, value comment_v)
 {
   CAMLparam3(loc_id_v, name_v, comment_v);
-  raise_if_fail(H5Gset_comment(Loc_val(loc_id_v), String_val(name_v),
+  raise_if_fail(H5Gset_comment(Hid_val(loc_id_v), String_val(name_v),
     String_val(comment_v)));
   CAMLreturn0;
 }
@@ -138,9 +133,9 @@ value hdf5_h5g_get_comment(value loc_id_v, value name_v)
   CAMLlocal1(v);
   int bufsize;
 
-  bufsize = H5Gget_comment(Loc_val(loc_id_v), String_val(name_v), 0, NULL);
+  bufsize = H5Gget_comment(Hid_val(loc_id_v), String_val(name_v), 0, NULL);
   v = caml_alloc_string(bufsize);
-  H5Gget_comment(Loc_val(loc_id_v), String_val(name_v), bufsize, String_val(v));
+  H5Gget_comment(Hid_val(loc_id_v), String_val(name_v), bufsize, String_val(v));
   CAMLreturn(v);
 }
 
@@ -186,7 +181,7 @@ value hdf5_h5g_iterate(value loc_id_v, value name_v, value idx_v, value operator
   int idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0, ret;
   exception = Val_unit;
 
-  ret = H5Giterate(Loc_val(loc_id_v), String_val(name_v),
+  ret = H5Giterate(Hid_val(loc_id_v), String_val(name_v),
         Is_block(idx_v) ? &idx : NULL, hdf5_h5g_operator, &operator_data);
   if (Is_block(idx_v))
     Store_field(Field(idx_v, 0), 0, Val_int(idx));

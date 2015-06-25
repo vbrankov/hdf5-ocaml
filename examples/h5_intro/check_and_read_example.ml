@@ -20,7 +20,7 @@ let () =
   done;
 
   let file = H5f.open_ _FILE [ H5f.Acc.RDONLY ] in
-  let dataset = H5d.open_ (H5f.to_loc file) _DATASETNAME in
+  let dataset = H5d.open_ file _DATASETNAME in
   let datatype = H5d.get_type dataset in
   let class_ = H5t.get_class datatype in
   if class_ = H5t.Class.INTEGER then Printf.printf "Data set has INTEGER type\n";

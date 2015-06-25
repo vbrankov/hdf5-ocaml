@@ -1,11 +1,10 @@
 #include <assert.h>
-#include <hdf5.h>
 #include <caml/alloc.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include <caml/mlvalues.h>
-#include "h5_stubs.h"
-#include "h5i_stubs.h"
+#include "hdf5.h"
+#include "hdf5_caml.h"
 
 H5Z_filter_t H5Z_filter_val(value v)
 {

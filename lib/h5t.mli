@@ -1,5 +1,3 @@
-type t
-
 module Class : sig
   type t =
   | NO_CLASS
@@ -117,152 +115,152 @@ end
 
 val variable : int
 
-val ieee_f32be : t
-val ieee_f32le : t
-val ieee_f64be : t
-val ieee_f64le : t
-val std_i8be : t
-val std_i8le : t
-val std_i16be : t
-val std_i16le : t
-val std_i32be : t
-val std_i32le : t
-val std_i64be : t
-val std_i64le : t
-val std_u8be : t
-val std_u8le : t
-val std_u16be : t
-val std_u16le : t
-val std_u32be : t
-val std_u32le : t
-val std_u64be : t
-val std_u64le : t
-val std_b8be : t
-val std_b8le : t
-val std_b16be : t
-val std_b16le : t
-val std_b32be : t
-val std_b32le : t
-val std_b64be : t
-val std_b64le : t
-val std_ref_obj : t
-val std_ref_dsetreg : t
-val unix_d32be : t
-val unix_d32le : t
-val unix_d64be : t
-val unix_d64le : t
-val c_s1 : t
-val fortran_s1 : t
-val intel_i8 : t
-val intel_i16 : t
-val intel_i32 : t
-val intel_i64 : t
-val intel_u8 : t
-val intel_u16 : t
-val intel_u32 : t
-val intel_u64 : t
-val intel_b8 : t
-val intel_b16 : t
-val intel_b32 : t
-val intel_b64 : t
-val intel_f32 : t
-val intel_f64 : t
-val alpha_i8 : t
-val alpha_i16 : t
-val alpha_i32 : t
-val alpha_i64 : t
-val alpha_u8 : t
-val alpha_u16 : t
-val alpha_u32 : t
-val alpha_u64 : t
-val alpha_b8 : t
-val alpha_b16 : t
-val alpha_b32 : t
-val alpha_b64 : t
-val alpha_f32 : t
-val alpha_f64 : t
-val mips_i8 : t
-val mips_i16 : t
-val mips_i32 : t
-val mips_i64 : t
-val mips_u8 : t
-val mips_u16 : t
-val mips_u32 : t
-val mips_u64 : t
-val mips_b8 : t
-val mips_b16 : t
-val mips_b32 : t
-val mips_b64 : t
-val mips_f32 : t
-val mips_f64 : t
-val vax_f32 : t
-val vax_f64 : t
-val native_char : t
-val native_schar : t
-val native_uchar : t
-val native_short : t
-val native_ushort : t
-val native_int : t
-val native_uint : t
-val native_long : t
-val native_ulong : t
-val native_llong : t
-val native_ullong : t
-val native_float : t
-val native_double : t
-val native_ldouble : t
-val native_b8 : t
-val native_b16 : t
-val native_b32 : t
-val native_b64 : t
-val native_opaque : t
-val native_haddr : t
-val native_hsize : t
-val native_hssize : t
-val native_herr : t
-val native_hbool : t
-val native_int8 : t
-val native_uint8 : t
-val native_int_least8 : t
-val native_uint_least8 : t
-val native_int_fast8  : t
-val native_uint_fast8 : t
-val native_int16 : t
-val native_uint16 : t
-val native_int_least16 : t
-val native_uint_least16 : t
-val native_int_fast16 : t
-val native_uint_fast16 : t
-val native_int32 : t
-val native_uint32 : t
-val native_int_least32 : t
-val native_uint_least32 : t
-val native_int_fast32 : t
-val native_uint_fast32 : t
-val native_int64 : t
-val native_uint64 : t
-val native_int_least64 : t
-val native_uint_least64  : t
-val native_int_fast64 : t
-val native_uint_fast64 : t
+val ieee_f32be : Hid.t
+val ieee_f32le : Hid.t
+val ieee_f64be : Hid.t
+val ieee_f64le : Hid.t
+val std_i8be : Hid.t
+val std_i8le : Hid.t
+val std_i16be : Hid.t
+val std_i16le : Hid.t
+val std_i32be : Hid.t
+val std_i32le : Hid.t
+val std_i64be : Hid.t
+val std_i64le : Hid.t
+val std_u8be : Hid.t
+val std_u8le : Hid.t
+val std_u16be : Hid.t
+val std_u16le : Hid.t
+val std_u32be : Hid.t
+val std_u32le : Hid.t
+val std_u64be : Hid.t
+val std_u64le : Hid.t
+val std_b8be : Hid.t
+val std_b8le : Hid.t
+val std_b16be : Hid.t
+val std_b16le : Hid.t
+val std_b32be : Hid.t
+val std_b32le : Hid.t
+val std_b64be : Hid.t
+val std_b64le : Hid.t
+val std_ref_obj : Hid.t
+val std_ref_dsetreg : Hid.t
+val unix_d32be : Hid.t
+val unix_d32le : Hid.t
+val unix_d64be : Hid.t
+val unix_d64le : Hid.t
+val c_s1 : Hid.t
+val fortran_s1 : Hid.t
+val intel_i8 : Hid.t
+val intel_i16 : Hid.t
+val intel_i32 : Hid.t
+val intel_i64 : Hid.t
+val intel_u8 : Hid.t
+val intel_u16 : Hid.t
+val intel_u32 : Hid.t
+val intel_u64 : Hid.t
+val intel_b8 : Hid.t
+val intel_b16 : Hid.t
+val intel_b32 : Hid.t
+val intel_b64 : Hid.t
+val intel_f32 : Hid.t
+val intel_f64 : Hid.t
+val alpha_i8 : Hid.t
+val alpha_i16 : Hid.t
+val alpha_i32 : Hid.t
+val alpha_i64 : Hid.t
+val alpha_u8 : Hid.t
+val alpha_u16 : Hid.t
+val alpha_u32 : Hid.t
+val alpha_u64 : Hid.t
+val alpha_b8 : Hid.t
+val alpha_b16 : Hid.t
+val alpha_b32 : Hid.t
+val alpha_b64 : Hid.t
+val alpha_f32 : Hid.t
+val alpha_f64 : Hid.t
+val mips_i8 : Hid.t
+val mips_i16 : Hid.t
+val mips_i32 : Hid.t
+val mips_i64 : Hid.t
+val mips_u8 : Hid.t
+val mips_u16 : Hid.t
+val mips_u32 : Hid.t
+val mips_u64 : Hid.t
+val mips_b8 : Hid.t
+val mips_b16 : Hid.t
+val mips_b32 : Hid.t
+val mips_b64 : Hid.t
+val mips_f32 : Hid.t
+val mips_f64 : Hid.t
+val vax_f32 : Hid.t
+val vax_f64 : Hid.t
+val native_char : Hid.t
+val native_schar : Hid.t
+val native_uchar : Hid.t
+val native_short : Hid.t
+val native_ushort : Hid.t
+val native_int : Hid.t
+val native_uint : Hid.t
+val native_long : Hid.t
+val native_ulong : Hid.t
+val native_llong : Hid.t
+val native_ullong : Hid.t
+val native_float : Hid.t
+val native_double : Hid.t
+val native_ldouble : Hid.t
+val native_b8 : Hid.t
+val native_b16 : Hid.t
+val native_b32 : Hid.t
+val native_b64 : Hid.t
+val native_opaque : Hid.t
+val native_haddr : Hid.t
+val native_hsize : Hid.t
+val native_hssize : Hid.t
+val native_herr : Hid.t
+val native_hbool : Hid.t
+val native_int8 : Hid.t
+val native_uint8 : Hid.t
+val native_int_least8 : Hid.t
+val native_uint_least8 : Hid.t
+val native_int_fast8  : Hid.t
+val native_uint_fast8 : Hid.t
+val native_int16 : Hid.t
+val native_uint16 : Hid.t
+val native_int_least16 : Hid.t
+val native_uint_least16 : Hid.t
+val native_int_fast16 : Hid.t
+val native_uint_fast16 : Hid.t
+val native_int32 : Hid.t
+val native_uint32 : Hid.t
+val native_int_least32 : Hid.t
+val native_uint_least32 : Hid.t
+val native_int_fast32 : Hid.t
+val native_uint_fast32 : Hid.t
+val native_int64 : Hid.t
+val native_uint64 : Hid.t
+val native_int_least64 : Hid.t
+val native_uint_least64  : Hid.t
+val native_int_fast64 : Hid.t
+val native_uint_fast64 : Hid.t
 
-external to_loc : t -> Loc.t = "%identity"
-external of_loc : Loc.t -> t = "%identity"
+external to_loc : Hid.t -> Hid.t = "%identity"
+external of_loc : Hid.t -> Hid.t = "%identity"
 
-external create : Class.t -> int -> t = "hdf5_h5t_create"
-external commit : Loc.t -> string -> ?lcpl:H5p.t -> ?tcpl:H5p.t -> ?tapl:H5p.t -> t
+external create : Class.t -> int -> Hid.t = "hdf5_h5t_create"
+external commit : Hid.t -> string -> ?lcpl:Hid.t -> ?tcpl:Hid.t -> ?tapl:Hid.t -> Hid.t
   -> unit = "hdf5_h5t_commit_bytecode" "hdf5_h5t_commit"
-external copy : t -> t = "hdf5_h5t_copy"
-external equal : t -> t -> bool = "hdf5_h5t_equal"
-external get_class : t -> Class.t = "hdf5_h5t_get_class"
-external set_size : t -> int -> unit = "hdf5_h5t_set_size"
-external get_size : t -> int = "hdf5_h5t_get_size"
-external get_native_type : t -> Direction.t -> t = "hdf5_h5t_get_native_type"
-external close : t -> unit = "hdf5_h5t_close"
-external get_order : t -> Order.t = "hdf5_h5t_get_order"
-external set_order : t -> Order.t -> unit = "hdf5_h5t_set_order"
-external get_strpad : t -> Str.t = "hdf5_h5t_get_strpad"
-external set_strpad : t -> Str.t -> unit = "hdf5_h5t_set_strpad"
-external is_variable_str : t -> bool = "hdf5_h5t_is_variable_str"
-external get_nmembers : t -> int = "hdf5_h5t_get_nmembers"
-external insert : t -> string -> int -> t -> unit = "hdf5_h5t_insert"
+external copy : Hid.t -> Hid.t = "hdf5_h5t_copy"
+external equal : Hid.t -> Hid.t -> bool = "hdf5_h5t_equal"
+external get_class : Hid.t -> Class.t = "hdf5_h5t_get_class"
+external set_size : Hid.t -> int -> unit = "hdf5_h5t_set_size"
+external get_size : Hid.t -> int = "hdf5_h5t_get_size"
+external get_native_type : Hid.t -> Direction.t -> Hid.t = "hdf5_h5t_get_native_type"
+external close : Hid.t -> unit = "hdf5_h5t_close"
+external get_order : Hid.t -> Order.t = "hdf5_h5t_get_order"
+external set_order : Hid.t -> Order.t -> unit = "hdf5_h5t_set_order"
+external get_strpad : Hid.t -> Str.t = "hdf5_h5t_get_strpad"
+external set_strpad : Hid.t -> Str.t -> unit = "hdf5_h5t_set_strpad"
+external is_variable_str : Hid.t -> bool = "hdf5_h5t_is_variable_str"
+external get_nmembers : Hid.t -> int = "hdf5_h5t_get_nmembers"
+external insert : Hid.t -> string -> int -> Hid.t -> unit = "hdf5_h5t_insert"

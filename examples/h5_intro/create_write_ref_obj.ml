@@ -32,29 +32,28 @@ let () =
   let tu32 = Array1.create int32 c_layout _SPACE1_DIM1 in
   let fid1 = H5f.create _FILE1 H5f.Acc.([ TRUNC ]) in
   let sid1 = H5s.create_simple [| _SPACE1_DIM1 |] in
-  let group = H5g.create (H5f.to_loc fid1) "Group1" in
-  H5g.set_comment (H5g.to_loc group) "." "Foo!";
-  let dataset = H5d.create (H5g.to_loc group) "Dataset1" H5t.std_u32le sid1 in
+  let group = H5g.create fid1 "Group1" in
+  H5g.set_comment group "." "Foo!";
+  let dataset = H5d.create group "Dataset1" H5t.std_u32le sid1 in
   for i = 0 to _SPACE1_DIM1 - 1 do
     tu32.{i} <- Int32.of_int (i * 3)
   done;
   H5d.write dataset H5t.native_int H5s.all H5s.all (genarray_of_array1 tu32);
   H5d.close dataset;
-  let dataset = H5d.create (H5g.to_loc group) "Dataset2" H5t.native_uchar sid1 in
+  let dataset = H5d.create group "Dataset2" H5t.native_uchar sid1 in
   H5d.close dataset;
   let tid1 = H5t.create H5t.Class.COMPOUND S1.sizeof in
   H5t.insert tid1 "a" 0 H5t.native_int;
   H5t.insert tid1 "b" 4 H5t.native_int;
   H5t.insert tid1 "c" 8 H5t.native_float;
-  H5t.commit (H5g.to_loc group) "Datatype1" tid1;
+  H5t.commit group "Datatype1" tid1;
   H5t.close tid1;
   H5g.close group;
-  let dataset = H5d.create (H5f.to_loc fid1) "Dataset3" H5t.std_ref_obj sid1 in
-  H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 0 (create (H5f.to_loc fid1) "/Group1/Dataset1"));
-  H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 1 (create (H5f.to_loc fid1) "/Group1/Dataset2"));
-  H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 2 (create (H5f.to_loc fid1) "/Group1"));
-  H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 3
-    (create (H5f.to_loc fid1) "/Group1/Datatype1"));
+  let dataset = H5d.create fid1 "Dataset3" H5t.std_ref_obj sid1 in
+  H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 0 (create fid1 "/Group1/Dataset1"));
+  H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 1 (create fid1 "/Group1/Dataset2"));
+  H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 2 (create fid1 "/Group1"));
+  H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 3 (create fid1 "/Group1/Datatype1"));
   H5d.write dataset H5t.std_ref_obj H5s.all H5s.all
     (H5r.Hobj_ref.Bigarray.to_genarray wbuf);
   H5s.close sid1;

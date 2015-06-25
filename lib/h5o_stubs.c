@@ -2,11 +2,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
-#include "h5_stubs.h"
-#include "h5i_stubs.h"
-#include "h5o_stubs.h"
-#include "h5p_stubs.h"
-#include "loc_stubs.h"
+#include "hdf5_caml.h"
 
 H5O_type_t H5O_type_val(value type)
 {
@@ -82,7 +78,7 @@ H5O_info_t H5O_info_val(value info_v)
   meta_size_v = Field(info_v, 10);
   H5O_info_t info = {
     Int_val(Field(info_v, 0)),
-    Loc_val(Field(info_v, 1)),
+    Hid_val(Field(info_v, 1)),
     H5O_type_val(Field(info_v, 2)),
     Int_val(Field(info_v, 3)),
     Int64_val(Field(info_v, 4)),
@@ -122,7 +118,7 @@ value hdf5_h5o_get_info(value object_v)
 {
   CAMLparam1(object_v);
   H5O_info_t object_info;
-  raise_if_fail(H5Oget_info(Loc_val(object_v), &object_info));
+  raise_if_fail(H5Oget_info(Hid_val(object_v), &object_info));
   CAMLreturn(Val_h5o_info(&object_info));
 }
 
@@ -130,7 +126,7 @@ value hdf5_h5o_get_info_by_name(value loc_v, value lapl_v, value object_name_v)
 {
   CAMLparam3(loc_v, lapl_v, object_name_v);
   H5O_info_t object_info;
-  raise_if_fail(H5Oget_info_by_name(Loc_val(loc_v), String_val(object_name_v),
+  raise_if_fail(H5Oget_info_by_name(Hid_val(loc_v), String_val(object_name_v),
     &object_info, H5P_opt_val(lapl_v)));
   CAMLreturn(Val_h5o_info(&object_info));
 }

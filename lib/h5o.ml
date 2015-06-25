@@ -55,6 +55,6 @@ module Msg_crt_idx = struct
   type t = int
 end
 
-external get_info : Loc.t -> Info.t = "hdf5_h5o_get_info"
-external get_info_by_name : Loc.t -> ?lapl:H5p.t -> string -> Info.t
+external get_info : Hid.t -> Info.t = "hdf5_h5o_get_info"
+external get_info_by_name : Hid.t -> ?lapl:Hid.t -> string -> Info.t
   = "hdf5_h5o_get_info_by_name"

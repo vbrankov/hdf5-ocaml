@@ -11,7 +11,7 @@ let () =
   let chunk_out = Array2.create int32 c_layout 2 5 in
   let column = Array1.create int32 c_layout 10 in
   let file = H5f.open_ _FILE H5f.Acc.([ RDONLY ]) in
-  let dataset = H5d.open_ (H5f.to_loc file) _DATASETNAME in
+  let dataset = H5d.open_ file _DATASETNAME in
   let filespace = H5d.get_space dataset in
   let dims, _ = H5s.get_simple_extent_dims filespace in
   Printf.printf "dataset rank %d, dimensions %d x %d\n"

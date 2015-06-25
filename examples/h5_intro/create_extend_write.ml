@@ -19,8 +19,7 @@ let () =
   let file = H5f.create _FILE H5f.Acc.([ TRUNC ]) in
   let cparms = H5p.create H5p.Cls_id.DATASET_CREATE in
   H5p.set_chunk cparms [| 2; 5 |];
-  let dataset =
-    H5d.create (H5f.to_loc file) _DATASETNAME H5t.native_int ~dcpl:cparms dataspace in
+  let dataset = H5d.create file _DATASETNAME H5t.native_int ~dcpl:cparms dataspace in
   H5d.extend dataset [| 3; 3 |];
   let filespace = H5d.get_space dataset in
   H5s.select_hyperslab filespace H5s.Select.SET ~start:[| 0; 0 |] ~count:[| 3; 3 |] ();

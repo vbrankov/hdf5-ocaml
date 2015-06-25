@@ -10,10 +10,26 @@
 #include "h5p_stubs.h"
 #include "h5z_stubs.h"
 
+void hdf5_h5p_free_vlen_mem_manager(value id_v)
+{
+  H5MM_allocate_t alloc;
+  H5MM_free_t free;
+  void *alloc_info, *free_info;
+  herr_t err;
+
+  err = H5Pget_vlen_mem_manager(H5P_val(id_v), &alloc, &alloc_info, &free, &free_info);
+  if (err < 0) return;
+  if (alloc != NULL)
+    caml_remove_generational_global_root((value*) alloc_info);
+  if (free != NULL)
+    caml_remove_generational_global_root((value*) free_info);
+}
+
 void h5p_finalize(value v)
 {
   if (!H5P_closed(v))
     H5Pclose(H5P_val(v));
+  hdf5_h5p_free_vlen_mem_manager(v);
   H5P_closed(v) = true;
 }
 
@@ -183,7 +199,7 @@ void hdf5_h5p_set_shuffle(value plist_v)
 
 void *hdf5_h5p_alloc(size_t size, void *alloc_info)
 {
-  return (void*) caml_callback_exn((value) alloc_info, Val_int(size));
+  return (void*) caml_callback_exn(*((value*) alloc_info), Val_int(size));
 }
 
 void hdf5_h5p_free(void *mem, void *free_info)
@@ -194,8 +210,32 @@ void hdf5_h5p_free(void *mem, void *free_info)
 void hdf5_h5p_set_vlen_mem_manager(value plist_id_v, value alloc_v, value free_v)
 {
   CAMLparam3(plist_id_v, alloc_v, free_v);
-  raise_if_fail(H5Pset_vlen_mem_manager(H5P_val(plist_id_v), hdf5_h5p_alloc,
-    (void*) &alloc_v, hdf5_h5p_free, (void*) &free_v));
+  value *alloc_info, *free_info;
+  herr_t err;
+
+  hdf5_h5p_free_vlen_mem_manager(plist_id_v);
+
+  alloc_info = malloc(sizeof(value));
+  if (alloc_info == NULL)
+    caml_raise_out_of_memory();
+  free_info = malloc(sizeof(value));
+  if (free_info == NULL)
+  {
+    free(alloc_info);
+    caml_raise_out_of_memory();
+  }
+  *alloc_info = alloc_v;
+  caml_register_generational_global_root(alloc_info);
+  *free_info = free_v;
+  caml_register_generational_global_root(free_info);
+  err = H5Pset_vlen_mem_manager(H5P_val(plist_id_v), hdf5_h5p_alloc, (void*) alloc_info,
+    hdf5_h5p_free, (void*) free_info);
+  if (err < 0)
+  {
+    free(alloc_info);
+    free(free_info);
+    fail();
+  }
   CAMLreturn0;
 }
 

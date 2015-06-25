@@ -2,9 +2,9 @@ open Bigarray
 
 module Hobj_ref : sig
   type t
-  val create : Loc.t -> ?space:H5s.t -> string -> t
-  val dereference : Loc.t -> t -> Loc.t
-  val get_region : Loc.t -> t -> H5s.t
+  val create : Hid.t -> ?space:Hid.t -> string -> t
+  val dereference : Hid.t -> t -> Hid.t
+  val get_region : Hid.t -> t -> Hid.t
   module Bigarray : sig
     type hobj_ref = t
     type t
@@ -17,9 +17,9 @@ end
 
 module Hdset_reg_ref : sig
   type t
-  val create : Loc.t -> ?space:H5s.t -> string -> t
-  val dereference : Loc.t -> t -> Loc.t
-  val get_region : Loc.t -> t -> H5s.t
+  val create : Hid.t -> ?space:Hid.t -> string -> t
+  val dereference : Hid.t -> t -> Hid.t
+  val get_region : Hid.t -> t -> Hid.t
   module Bigarray : sig
     type hdset_reg_ref = t
     type t

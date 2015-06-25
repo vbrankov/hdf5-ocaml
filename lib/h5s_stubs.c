@@ -4,10 +4,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
-#include "h5_stubs.h"
-#include "h5i_stubs.h"
-#include "h5p_stubs.h"
-#include "h5s_stubs.h"
+#include "hdf5_caml.h"
 
 void h5s_finalize(value v)
 {

@@ -1,5 +1,3 @@
-type t
-
 module Class = struct
   type t =
   | NO_CLASS
@@ -118,13 +116,19 @@ end
 external get_variable : unit -> int = "hdf5_h5t_get_variable"
 let variable = get_variable ()
 
-external datatypes : unit -> (t * t * t * t * t * t * t * t * t * t * t * t * t * t * t *
-t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t
-* t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t *
-t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t
-* t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t *
-t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t * t)
-= "hdf5_h5t_datatypes"
+external datatypes : unit -> (Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t
+  * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t * Hid.t)
+  = "hdf5_h5t_datatypes"
 
 let ieee_f32be, ieee_f32le, ieee_f64be, ieee_f64le, std_i8be, std_i8le, std_i16be,
   std_i16le, std_i32be, std_i32le, std_i64be, std_i64le, std_u8be, std_u8le, std_u16be,
@@ -147,23 +151,23 @@ let ieee_f32be, ieee_f32le, ieee_f64be, ieee_f64le, std_i8be, std_i8le, std_i16b
   native_int64, native_uint64, native_int_least64, native_uint_least64 ,
   native_int_fast64, native_uint_fast64 = datatypes ()
 
-external to_loc : t -> Loc.t = "%identity"
-external of_loc : Loc.t -> t = "%identity"
+external to_loc : Hid.t -> Hid.t = "%identity"
+external of_loc : Hid.t -> Hid.t = "%identity"
 
-external create : Class.t -> int -> t = "hdf5_h5t_create"
-external commit : Loc.t -> string -> ?lcpl:H5p.t -> ?tcpl:H5p.t -> ?tapl:H5p.t -> t
+external create : Class.t -> int -> Hid.t = "hdf5_h5t_create"
+external commit : Hid.t -> string -> ?lcpl:Hid.t -> ?tcpl:Hid.t -> ?tapl:Hid.t -> Hid.t
   -> unit = "hdf5_h5t_commit_bytecode" "hdf5_h5t_commit"
-external copy : t -> t = "hdf5_h5t_copy"
-external equal : t -> t -> bool = "hdf5_h5t_equal"
-external get_class : t -> Class.t = "hdf5_h5t_get_class"
-external set_size : t -> int -> unit = "hdf5_h5t_set_size"
-external get_size : t -> int = "hdf5_h5t_get_size"
-external get_native_type : t -> Direction.t -> t = "hdf5_h5t_get_native_type"
-external close : t -> unit = "hdf5_h5t_close"
-external get_order : t -> Order.t = "hdf5_h5t_get_order"
-external set_order : t -> Order.t -> unit = "hdf5_h5t_set_order"
-external get_strpad : t -> Str.t = "hdf5_h5t_get_strpad"
-external set_strpad : t -> Str.t -> unit = "hdf5_h5t_set_strpad"
-external get_nmembers : t -> int = "hdf5_h5t_get_nmembers"
-external is_variable_str : t -> bool = "hdf5_h5t_is_variable_str"
-external insert : t -> string -> int -> t -> unit = "hdf5_h5t_insert"
+external copy : Hid.t -> Hid.t = "hdf5_h5t_copy"
+external equal : Hid.t -> Hid.t -> bool = "hdf5_h5t_equal"
+external get_class : Hid.t -> Class.t = "hdf5_h5t_get_class"
+external set_size : Hid.t -> int -> unit = "hdf5_h5t_set_size"
+external get_size : Hid.t -> int = "hdf5_h5t_get_size"
+external get_native_type : Hid.t -> Direction.t -> Hid.t = "hdf5_h5t_get_native_type"
+external close : Hid.t -> unit = "hdf5_h5t_close"
+external get_order : Hid.t -> Order.t = "hdf5_h5t_get_order"
+external set_order : Hid.t -> Order.t -> unit = "hdf5_h5t_set_order"
+external get_strpad : Hid.t -> Str.t = "hdf5_h5t_get_strpad"
+external set_strpad : Hid.t -> Str.t -> unit = "hdf5_h5t_set_strpad"
+external get_nmembers : Hid.t -> int = "hdf5_h5t_get_nmembers"
+external is_variable_str : Hid.t -> bool = "hdf5_h5t_is_variable_str"
+external insert : Hid.t -> string -> int -> Hid.t -> unit = "hdf5_h5t_insert"

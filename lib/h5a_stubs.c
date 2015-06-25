@@ -7,15 +7,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
-#include "h5_stubs.h"
-#include "h5a_stubs.h"
-#include "h5d_stubs.h"
-#include "h5i_stubs.h"
-#include "h5g_stubs.h"
-#include "h5p_stubs.h"
-#include "h5s_stubs.h"
-#include "h5t_stubs.h"
-#include "loc_stubs.h"
+#include "hdf5_caml.h"
 
 void h5a_finalize(value v)
 {
@@ -71,7 +63,7 @@ value hdf5_h5a_create(value loc_id_v, value attr_name_v, value type_id_v, value 
 {
   CAMLparam5(loc_id_v, attr_name_v, type_id_v, acpl_id_v, aapl_id_v);
   CAMLxparam1(space_id_v);
-  CAMLreturn(alloc_h5a(H5Acreate2(Loc_val(loc_id_v), String_val(attr_name_v),
+  CAMLreturn(alloc_h5a(H5Acreate2(Hid_val(loc_id_v), String_val(attr_name_v),
     H5T_val(type_id_v), H5S_val(space_id_v), H5P_opt_val(acpl_id_v),
     H5P_opt_val(aapl_id_v))));
 }
@@ -85,20 +77,20 @@ value hdf5_h5a_create_bytecode(value *argv, int argn)
 value hdf5_h5a_open(value obj_id_v, value appl_id_v, value attr_name_v)
 {
   CAMLparam3(obj_id_v, appl_id_v, attr_name_v);
-  CAMLreturn(alloc_h5a(H5Aopen(Loc_val(obj_id_v), String_val(attr_name_v),
+  CAMLreturn(alloc_h5a(H5Aopen(Hid_val(obj_id_v), String_val(attr_name_v),
     H5P_opt_val(appl_id_v))));
 }
 
 value hdf5_h5a_open_name(value loc_id_v, value name_v)
 {
   CAMLparam2(loc_id_v, name_v);
-  CAMLreturn(alloc_h5a(H5Aopen_name(Loc_val(loc_id_v), String_val(name_v))));
+  CAMLreturn(alloc_h5a(H5Aopen_name(Hid_val(loc_id_v), String_val(name_v))));
 }
 
 value hdf5_h5a_open_idx(value loc_id_v, value idx_v)
 {
   CAMLparam2(loc_id_v, idx_v);
-  CAMLreturn(alloc_h5a(H5Aopen_idx(Loc_val(loc_id_v), Int_val(idx_v))));
+  CAMLreturn(alloc_h5a(H5Aopen_idx(Hid_val(loc_id_v), Int_val(idx_v))));
 }
 
 void hdf5_h5a_write(value attr_id_v, value mem_type_id_v, value buf_v)
@@ -173,7 +165,7 @@ herr_t hdf5_h5a_operator(hid_t location_id, const char *attr_name,
   CAMLlocalN(args, 4);
   struct operator_data *operator_data = op_data;
 
-  args[0] = alloc_loc(location_id);
+  args[0] = alloc_hid(location_id);
   args[1] = caml_copy_string(attr_name);
   args[2] = Val_h5a_info(*ainfo);
   args[3] = *operator_data->operator_data;
@@ -197,7 +189,7 @@ value hdf5_h5a_iterate(value obj_id_v, value idx_type_opt_v, value order_opt_v, 
   hsize_t n = Is_block(n_v) ? Int_val(Field(Field(n_v, 0), 0)) : 0, ret;
   exception = Val_unit;
 
-  ret = H5Aiterate(Loc_val(obj_id_v), H5_index_opt_val(idx_type_opt_v),
+  ret = H5Aiterate(Hid_val(obj_id_v), H5_index_opt_val(idx_type_opt_v),
     H5_iter_order_opt_val(order_opt_v), Is_block(n_v) ? &n : NULL, hdf5_h5a_operator,
     &op);
   if (Is_block(n_v))

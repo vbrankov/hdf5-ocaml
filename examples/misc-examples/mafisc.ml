@@ -16,7 +16,7 @@ let () =
 
   let file = H5f.create "mafisc-raw.h5" H5f.Acc.([ TRUNC ]) in
   let dataspace = H5s.create_simple [| dim1; dim2 |] in
-  let dataset = H5d.create (H5f.to_loc file) "data" H5t.native_double dataspace in
+  let dataset = H5d.create file "data" H5t.native_double dataspace in
   H5d.write dataset H5t.native_double H5s.all H5s.all data;
   H5d.close dataset;
   H5s.close dataspace;
@@ -27,7 +27,7 @@ let () =
   let dcpl = H5p.create H5p.Cls_id.DATASET_CREATE in
   H5p.set_filter dcpl (H5z.Filter.CUSTOM 32002) H5z.Flag.([ MANDATORY ]) [| 6 |];
   H5p.set_chunk dcpl [| dim1; dim2 |];
-  let dataset = H5d.create (H5f.to_loc file) "data" H5t.native_double ~dcpl dataspace in
+  let dataset = H5d.create file "data" H5t.native_double ~dcpl dataspace in
   H5d.write dataset H5t.native_double H5s.all H5s.all data;
   H5d.close dataset;
   H5s.close dataspace;

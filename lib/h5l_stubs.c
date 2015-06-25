@@ -5,12 +5,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
-#include "h5_stubs.h"
-#include "h5i_stubs.h"
-#include "h5l_stubs.h"
-#include "h5p_stubs.h"
-#include "h5t_stubs.h"
-#include "loc_stubs.h"
+#include "hdf5_caml.h"
 
 H5L_type_t H5L_type_val(value type)
 {
@@ -47,7 +42,7 @@ value Val_h5l_info(const H5L_info_t *info)
   Store_field(info_v, 2, Val_int(info->corder));
   Store_field(info_v, 3, Val_h5t_cset(info->cset));
   if (info->type == H5L_TYPE_HARD)
-    Store_field(info_v, 4, alloc_loc(info->u.address));
+    Store_field(info_v, 4, alloc_hid(info->u.address));
   else
     Store_field(info_v, 4, Val_int(0));
   CAMLreturn(info_v);
@@ -76,8 +71,8 @@ value hdf5_h5l_create_hard(value obj_loc_v, value obj_name_v, value link_loc_v,
 {
   CAMLparam5(obj_loc_v, obj_name_v, link_loc_v, lcpl_v, lapl_v);
   CAMLxparam1(link_name_v);
-  CAMLreturn(alloc_h5l(H5Lcreate_hard(Loc_val(obj_loc_v), String_val(obj_name_v),
-    Loc_val(link_loc_v), String_val(link_name_v), H5P_opt_val(lcpl_v),
+  CAMLreturn(alloc_h5l(H5Lcreate_hard(Hid_val(obj_loc_v), String_val(obj_name_v),
+    Hid_val(link_loc_v), String_val(link_name_v), H5P_opt_val(lcpl_v),
     H5P_opt_val(lapl_v))));
 }
 
@@ -90,7 +85,7 @@ value hdf5_h5l_create_hard_bytecode(value *argv, int argn)
 value hdf5_h5l_exists(value loc_v, value lapl_v, value name_v)
 {
   CAMLparam3(loc_v, lapl_v, name_v);
-  CAMLreturn(Val_htri(H5Lexists(Loc_val(loc_v), String_val(name_v),
+  CAMLreturn(Val_htri(H5Lexists(Hid_val(loc_v), String_val(name_v),
     H5P_opt_val(lapl_v))));
 }
 
@@ -99,7 +94,7 @@ void hdf5_h5l_move(value src_loc_v, value src_name_v, value dest_loc_v, value lc
 {
   CAMLparam5(src_loc_v, src_name_v, dest_loc_v, lcpl_v, lapl_v);
   CAMLxparam1(dest_name_v);
-  raise_if_fail(H5Lmove(Loc_val(src_loc_v), String_val(src_name_v), Loc_val(dest_loc_v),
+  raise_if_fail(H5Lmove(Hid_val(src_loc_v), String_val(src_name_v), Hid_val(dest_loc_v),
     String_val(dest_name_v), H5P_opt_val(lcpl_v), H5P_opt_val(lapl_v)));
   CAMLreturn0;
 }
@@ -115,7 +110,7 @@ void hdf5_h5l_copy(value src_loc_v, value src_name_v, value dest_loc_v, value lc
 {
   CAMLparam5(src_loc_v, src_name_v, dest_loc_v, lcpl_v, lapl_v);
   CAMLxparam1(dest_name_v);
-  raise_if_fail(H5Lcopy(Loc_val(src_loc_v), String_val(src_name_v), Loc_val(dest_loc_v),
+  raise_if_fail(H5Lcopy(Hid_val(src_loc_v), String_val(src_name_v), Hid_val(dest_loc_v),
     String_val(dest_name_v), H5P_opt_val(lcpl_v), H5P_opt_val(lapl_v)));
   CAMLreturn0;
 }
@@ -129,7 +124,7 @@ void hdf5_h5l_copy_bytecode(value *argv, int argn)
 void hdf5_h5l_delete(value loc_v, value lapl_v, value name_v)
 {
   CAMLparam3(loc_v, lapl_v, name_v);
-  raise_if_fail(H5Ldelete(Loc_val(loc_v), String_val(name_v), H5P_opt_val(lapl_v)));
+  raise_if_fail(H5Ldelete(Hid_val(loc_v), String_val(name_v), H5P_opt_val(lapl_v)));
   CAMLreturn0;
 }
 
@@ -171,7 +166,7 @@ value hdf5_h5l_iterate(value group_v, value index_type_v, value order_v, value i
   hsize_t idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0, ret;
   exception = Val_unit;
 
-  ret = H5Literate(Loc_val(group_v), H5_index_val(index_type_v),
+  ret = H5Literate(Hid_val(group_v), H5_index_val(index_type_v),
     H5_iter_order_val(order_v), Is_block(idx_v) ? &idx : NULL, hdf5_h5l_operator,
     &op_data);
   if (Is_block(idx_v))
@@ -198,7 +193,7 @@ value hdf5_h5l_iterate_by_name(value loc_v, value group_name_v, value index_type
   hsize_t idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0, ret;
   exception = Val_unit;
 
-  ret = H5Literate_by_name(Loc_val(loc_v), String_val(group_name_v),
+  ret = H5Literate_by_name(Hid_val(loc_v), String_val(group_name_v),
     H5_index_val(index_type_v), H5_iter_order_val(order_v),
     Is_block(idx_v) ? &idx : NULL, hdf5_h5l_operator, &op_data, H5P_opt_val(lapl_v));
   if (Is_block(idx_v))
@@ -221,7 +216,7 @@ value hdf5_h5l_get_name_by_idx(value loc_v, value group_name_v, value index_fiel
   CAMLparam5(loc_v, group_name_v, index_field_v, order_v, lapl_v);
   CAMLxparam1(n_v);
   CAMLlocal1(name_v);
-  hid_t loc_id = Loc_val(loc_v), lapl_id = H5P_opt_val(lapl_v);
+  hid_t loc_id = Hid_val(loc_v), lapl_id = H5P_opt_val(lapl_v);
   const char *group_name = String_val(group_name_v);
   H5_index_t index_field = H5_index_val(index_field_v);
   H5_iter_order_t order = H5_iter_order_val(order_v);

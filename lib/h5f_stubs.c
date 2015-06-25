@@ -5,10 +5,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
-#include "h5_stubs.h"
-#include "h5i_stubs.h"
-#include "h5p_stubs.h"
-#include "loc_stubs.h"
+#include "hdf5_caml.h"
 
 #define H5F_val(v) *((hid_t*) Data_custom_val(v))
 #define H5F_closed(v) *((bool*) ((char*) Data_custom_val(v) + sizeof(hid_t)))
@@ -193,7 +190,7 @@ void hdf5_h5f_close(value file_v)
 void hdf5_h5f_flush(value object_v, value scope_v)
 {
   CAMLparam2(object_v, scope_v);
-  raise_if_fail(H5Fflush(Loc_val(object_v), H5F_scope_val(scope_v)));
+  raise_if_fail(H5Fflush(Hid_val(object_v), H5F_scope_val(scope_v)));
   CAMLreturn0;
 }
 
@@ -201,7 +198,7 @@ value hdf5_h5f_get_name(value obj_v)
 {
   CAMLparam1(obj_v);
   CAMLlocal1(name_v);
-  hid_t obj_id = Loc_val(obj_v);
+  hid_t obj_id = Hid_val(obj_v);
   char *name;
   ssize_t size;
   size = H5Fget_name(obj_id, NULL, 0);
@@ -220,14 +217,14 @@ value hdf5_h5f_get_name(value obj_v)
 value hdf5_h5f_get_obj_count(value file_v, value types_v)
 {
   CAMLparam2(file_v, types_v);
-  CAMLreturn(Val_ssize(H5Fget_obj_count(Loc_val(file_v), obj_val(types_v))));
+  CAMLreturn(Val_ssize(H5Fget_obj_count(Hid_val(file_v), obj_val(types_v))));
 }
 
 value hdf5_h5f_get_obj_ids(value file_v, value types_v)
 {
   CAMLparam2(file_v, types_v);
   CAMLlocal1(obj_v_list);
-  hid_t file_id = Loc_val(file_v);
+  hid_t file_id = Hid_val(file_v);
   unsigned int types = obj_val(types_v);
   ssize_t max_objs = H5Fget_obj_count(file_id, types), ret;
   raise_if_fail(max_objs);
@@ -240,7 +237,7 @@ value hdf5_h5f_get_obj_ids(value file_v, value types_v)
     free(obj_id_list);
     fail();
   }
-  obj_v_list = val_loc_array(max_objs, obj_id_list);
+  obj_v_list = val_hid_array(max_objs, obj_id_list);
   free(obj_id_list);
   CAMLreturn(obj_v_list);
 }

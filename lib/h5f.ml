@@ -1,5 +1,3 @@
-type t
-
 module Acc = struct
   type t =
   | RDONLY
@@ -68,14 +66,11 @@ module Libver = struct
   | LATEST
 end
 
-external to_loc : t -> Loc.t = "%identity"
-external of_loc : Loc.t -> t = "%identity"
-
-external create : string -> ?fcpl:H5p.t -> ?fapl:H5p.t -> Acc.t list -> t
+external create : string -> ?fcpl:Hid.t -> ?fapl:Hid.t -> Acc.t list -> Hid.t
   = "hdf5_h5f_create"
-external open_ : string -> ?fapl:H5p.t -> Acc.t list -> t = "hdf5_h5f_open"
-external close : t -> unit = "hdf5_h5f_close"
-external flush : Loc.t -> Scope.t -> unit = "hdf5_h5f_flush"
-external get_name : Loc.t -> string = "hdf5_h5f_get_name"
-external get_obj_count : t -> Obj.t list -> int = "hdf5_h5f_get_obj_count"
-external get_obj_ids : t -> Obj.t list -> Loc.t array = "hdf5_h5f_get_obj_ids"
+external open_ : string -> ?fapl:Hid.t -> Acc.t list -> Hid.t = "hdf5_h5f_open"
+external close : Hid.t -> unit = "hdf5_h5f_close"
+external flush : Hid.t -> Scope.t -> unit = "hdf5_h5f_flush"
+external get_name : Hid.t -> string = "hdf5_h5f_get_name"
+external get_obj_count : Hid.t -> Obj.t list -> int = "hdf5_h5f_get_obj_count"
+external get_obj_ids : Hid.t -> Obj.t list -> Hid.t array = "hdf5_h5f_get_obj_ids"
