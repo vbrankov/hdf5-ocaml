@@ -23,6 +23,10 @@ module Make(S : S) : sig
   val fields : Field.t list
   val nfields : int
   val size : int
+  val field_names : string array
+  val field_offset : int array
+  val field_types : Hid.t array
+  val field_sizes : int array
   
   type t
 
@@ -91,6 +95,9 @@ module Make(S : S) : sig
 
     val create : int -> t
     val unsafe_get : t -> int -> e
+    val make_table : t -> title:string -> Hid.t -> string -> chunk_size:int
+      -> compress:bool -> unit
+    val read_table : Hid.t -> string -> t
   end
 
   val mem : t -> Array.t
@@ -104,6 +111,6 @@ module Make(S : S) : sig
     val append : t -> e
     val unsafe_get : t -> int -> e
     val iter : t -> f:(e -> unit) -> unit
-    val compact : t -> Array.t
+    val to_array : t -> Array.t
   end
 end

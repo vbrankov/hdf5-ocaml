@@ -11,3 +11,4 @@ external write_records : Hid.t -> string -> start:int -> nrecords:int -> type_si
 external read_table : Hid.t -> string -> dst_size:int -> dst_offset:int array
   -> dst_sizes:int array -> _ -> unit
   = "hdf5_h5tb_read_table_bytecode" "hdf5_h5tb_read_table"
+external get_table_info : Hid.t -> string -> int = "hdf5_h5tb_get_table_info"

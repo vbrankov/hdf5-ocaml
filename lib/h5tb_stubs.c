@@ -273,3 +273,12 @@ void hdf5_h5tb_read_table_bytecode(value *argv, int argn)
   assert(argn == 6);
   hdf5_h5tb_read_table(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
+
+value hdf5_h5tb_get_table_info(value loc_v, value table_name_v)
+{
+  CAMLparam2(loc_v, table_name_v);
+  hsize_t nfields, nrecords;
+  raise_if_fail(H5TBget_table_info(Hid_val(loc_v), String_val(table_name_v), &nfields,
+    &nrecords));
+  CAMLreturn(Val_int(nrecords));
+}

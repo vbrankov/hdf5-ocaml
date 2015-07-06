@@ -1,11 +1,13 @@
-open Bigarray
-
 module Type = struct
   type t =
   | Int
   | Int64
   | Float64
   | String of int
+
+  let size = function
+  | Int | Int64 | Float64 -> 8
+  | String l -> l
 end
 
 module Field = struct
@@ -25,11 +27,32 @@ module Make(S : S) = struct
   include S
 
   let nfields = List.length S.fields
-  let size64 = List.fold_left (fun size field ->
-    match field.Field.type_ with
-    | Type.Int | Type.Int64 | Type.Float64 -> size + 4
-    | Type.String s -> size + (s + 7) / 8 * 4) 0 S.fields
+  let size64 = List.fold_left (fun s field ->
+    s + (Type.size field.Field.type_ + 7) / 8 * 8 / 2) 0 S.fields
   let size = 2 * size64
+  let field_names =
+    List.map (fun field -> field.Field.name) S.fields
+    |> Array.of_list
+  let field_offset =
+    let offset = ref 0 in
+    List.map (fun field ->
+      let field_offset = !offset in
+      offset := !offset + (Type.size field.Field.type_ + 7) / 8 * 8;
+      field_offset) S.fields
+    |> Array.of_list
+  let field_types =
+    List.map (fun field ->
+      match field.Field.type_ with
+      | Type.Int | Type.Int64 -> H5t.native_long
+      | Type.Float64 -> H5t.native_double
+      | Type.String l ->
+        let type_ = H5t.copy H5t.c_s1 in
+        H5t.set_size type_ l;
+        type_) S.fields
+    |> Array.of_list
+  let field_sizes =
+    List.map (fun field -> Type.size field.Field.type_) S.fields
+    |> Array.of_list
 
   module Mem = struct
     type t = {
@@ -70,6 +93,8 @@ module Make(S : S) = struct
     let mlen = if len < vlen then len else vlen in
     unsafe_blit_string v 0 (Obj.magic t.ptr) pos mlen;
     unsafe_fill (Obj.magic t.ptr) (pos + mlen) (len - mlen) '\000'
+
+  open Bigarray
 
   let get_int_0 t   = Int64.to_int (Obj.magic (t.ptr -  4) : int64)
   let get_int_1 t   = Int64.to_int (Obj.magic (t.ptr +  0) : int64)
@@ -131,6 +156,16 @@ module Make(S : S) = struct
     let unsafe_get t i = { ptr = t.Mem.data + i * size64; mem = t }
 
     let unsafe_blit t t' = Array2.blit (Obj.magic t) (Obj.magic t')
+
+    let make_table t ~title loc dset_name ~chunk_size ~compress =
+      H5tb.make_table title loc dset_name ~nrecords:(t.Mem.dim / size) ~type_size:size
+        ~field_names ~field_offset ~field_types ~chunk_size ~compress t
+    let read_table loc table_name =
+      let nrecords = H5tb.get_table_info loc table_name in
+      let t = create nrecords in
+      H5tb.read_table loc table_name ~dst_size:size ~dst_offset:field_offset
+        ~dst_sizes:field_sizes t;
+      t
   end
 
   let create () = Array.unsafe_get (Array.create 1) 0
@@ -180,7 +215,7 @@ module Make(S : S) = struct
       done;
       unsafe_move ptr t.length
 
-    let compact t =
+    let to_array t =
       let mem = Array.create t.length in
       Array.unsafe_blit (Array1.sub (Obj.magic t.mem) 0 (t.length * size)) mem;
       (Obj.magic mem : Mem.t)
