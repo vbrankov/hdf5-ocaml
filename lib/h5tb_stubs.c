@@ -70,11 +70,12 @@ void hdf5_h5tb_make_table(value table_title_v, value loc_v, value dset_name_v,
       fill_data = (void*) fill_data_v;
   }
   if (Is_long(data_v))
-    caml_invalid_argument("H5tb.make_table: immediate values not allowed");
+    data = NULL;
   else if (Tag_hd(Hd_val(data_v)) == Custom_tag && Custom_ops_val(data_v) == caml_ba_ops)
     data = Caml_ba_data_val(data_v);
   else
     data = (void*) data_v;
+  printf("data c %ld %ld\n", (long) fill_data, (long) data);
 
   err = H5TBmake_table(String_val(table_title_v), Hid_val(loc_v), String_val(dset_name_v),
     nfields, Int_val(nrecords_v), Int_val(type_size_v), (const char**) field_names,
@@ -95,6 +96,124 @@ void hdf5_h5tb_make_table_bytecode(value *argv, int argn)
   assert(argn == 12);
   hdf5_h5tb_make_table(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5],
     argv[6], argv[7], argv[8], argv[9], argv[10], argv[11]);
+}
+
+void hdf5_h5tb_append_records(value loc_v, value dset_name_v, value nrecords_v,
+  value type_size_v, value field_offset_v, value field_sizes_v, value data_v)
+{
+  CAMLparam5(loc_v, dset_name_v, nrecords_v, type_size_v, field_offset_v);
+  CAMLxparam2(field_sizes_v, data_v);
+  hid_t loc_id;
+  const char *dset_name;
+  hsize_t nfields, nrecords;
+  size_t *field_offset, *field_sizes;
+  void *data;
+  herr_t err;
+
+  loc_id = Hid_val(loc_v);
+  dset_name = String_val(dset_name_v);
+  raise_if_fail(H5TBget_table_info(loc_id, dset_name, &nfields, &nrecords));
+  if (nfields != size_t_array_val(field_offset_v, &field_offset))
+  {
+    free(field_offset);
+    caml_invalid_argument(
+      "H5tb.append_records: the length of field_offset not equal to the number of fields"
+    );
+  }
+  if (field_offset == NULL)
+    caml_raise_out_of_memory();
+  if (nfields != size_t_array_val(field_sizes_v, &field_sizes))
+  {
+    free(field_offset);
+    free(field_sizes);
+    caml_invalid_argument(
+      "H5tb.append_records: the length of field_sizes not equal to the number of fields");
+  }
+  if (field_sizes == NULL)
+  {
+    free(field_offset);
+    caml_raise_out_of_memory();
+  }
+  if (Is_long(data_v))
+    caml_invalid_argument("H5tb.append_records: immediate values not allowed");
+  else if (Tag_hd(Hd_val(data_v)) == Custom_tag && Custom_ops_val(data_v) == caml_ba_ops)
+    data = Caml_ba_data_val(data_v);
+  else
+    data = (void*) data_v;
+
+  err = H5TBappend_records(loc_id, dset_name, Int_val(nrecords_v), Int_val(type_size_v),
+    field_offset, field_sizes, data);
+  free(field_offset);
+  free(field_sizes);
+  raise_if_fail(err);
+  
+  CAMLreturn0;
+}
+
+void hdf5_h5tb_append_records_bytecode(value *argv, int argn)
+{
+  assert(argn == 7);
+  hdf5_h5tb_append_records(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+}
+
+void hdf5_h5tb_write_records(value loc_v, value table_name_v, value start_v,
+  value nrecords_v, value type_size_v, value field_offset_v, value field_sizes_v,
+  value data_v)
+{
+  CAMLparam5(loc_v, table_name_v, start_v, nrecords_v, type_size_v);
+  CAMLxparam3(field_offset_v, field_sizes_v, data_v);
+  hid_t loc_id;
+  const char *table_name;
+  hsize_t nfields, nrecords;
+  size_t *field_offset, *field_sizes;
+  void *data;
+  herr_t err;
+
+  loc_id = Hid_val(loc_v);
+  table_name = String_val(table_name_v);
+  raise_if_fail(H5TBget_table_info(loc_id, table_name, &nfields, &nrecords));
+  if (nfields != size_t_array_val(field_offset_v, &field_offset))
+  {
+    free(field_offset);
+    caml_invalid_argument(
+      "H5tb.write_records: the length of field_offset not equal to the number of fields"
+    );
+  }
+  if (field_offset == NULL)
+    caml_raise_out_of_memory();
+  if (nfields != size_t_array_val(field_sizes_v, &field_sizes))
+  {
+    free(field_offset);
+    free(field_sizes);
+    caml_invalid_argument(
+      "H5tb.write_records: the length of field_sizes not equal to the number of fields");
+  }
+  if (field_sizes == NULL)
+  {
+    free(field_offset);
+    caml_raise_out_of_memory();
+  }
+  if (Is_long(data_v))
+    caml_invalid_argument("H5tb.write_records: immediate values not allowed");
+  else if (Tag_hd(Hd_val(data_v)) == Custom_tag && Custom_ops_val(data_v) == caml_ba_ops)
+    data = Caml_ba_data_val(data_v);
+  else
+    data = (void*) data_v;
+
+  err = H5TBwrite_records(loc_id, table_name, Int_val(start_v), Int_val(nrecords_v),
+    Int_val(type_size_v), field_offset, field_sizes, data);
+  free(field_offset);
+  free(field_sizes);
+  raise_if_fail(err);
+  
+  CAMLreturn0;
+}
+
+void hdf5_h5tb_write_records_bytecode(value *argv, int argn)
+{
+  assert(argn == 8);
+  hdf5_h5tb_write_records(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
+    argv[7]);
 }
 
 void hdf5_h5tb_read_table(value loc_v, value table_name_v, value dst_size_v,

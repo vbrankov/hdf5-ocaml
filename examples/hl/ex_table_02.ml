@@ -1,7 +1,8 @@
 open Hdf5_caml
 
-let _NRECORDS   = 8
-let _TABLE_NAME = "table"
+let _NRECORDS     = 8
+let _NRECORDS_ADD = 2
+let _TABLE_NAME   = "table"
 
 module Particle = struct
   open Struct
@@ -35,7 +36,7 @@ module Particle = struct
 end
 
 let () =
-  let dst_buf = Particle.Array.create _NRECORDS in
+  let dst_buf = Particle.Array.create (_NRECORDS + _NRECORDS_ADD) in
   let p_data = Particle.Vector.create () in
   Particle.(set (Vector.append p_data) "zero"   0  0 0.  0.);
   Particle.(set (Vector.append p_data) "one"   10 10 1. 10.);
@@ -47,9 +48,14 @@ let () =
   Particle.(set (Vector.append p_data) "seven" 70 70 7. 70.);
   let p_data = Particle.Vector.compact p_data in
 
+  let particle_in = Particle.Vector.create () in
+  Particle.(set (Vector.append particle_in) "eight" 80 80 8. 80.);
+  Particle.(set (Vector.append particle_in) "ning"  90 90 9. 90.);
+  let particle_in = Particle.Vector.compact particle_in in
+
   let string_type = H5t.copy H5t.c_s1 in
   H5t.set_size string_type 16;
-  let file_id = H5f.create "ex_table_01.h5" H5f.Acc.([ TRUNC ]) in
+  let file_id = H5f.create "ex_table_02.h5" H5f.Acc.([ TRUNC ]) in
   H5tb.make_table "Table Title" file_id _TABLE_NAME ~nrecords:_NRECORDS
     ~type_size:Particle.size
     ~field_names:[| "Name"; "Latitude"; "Longitude"; "Pressure"; "Temperature" |]
@@ -60,12 +66,16 @@ let () =
     ~chunk_size:10
     ~compress:false
     p_data;
+  H5tb.append_records file_id _TABLE_NAME ~nrecords:_NRECORDS_ADD ~type_size:Particle.size
+    ~field_offset:[| 0; 16; 24; 32; 40 |]
+    ~field_sizes:[| 16; 8; 8; 8; 8 |]
+    particle_in;
   H5tb.read_table file_id _TABLE_NAME ~dst_size:Particle.size
     ~dst_offset:[| 0; 16; 24; 32; 40 |]
     ~dst_sizes:[| 16; 8; 8; 8; 8 |]
     dst_buf;
   let p = Particle.Array.unsafe_get dst_buf 0 in
-  for i = 0 to _NRECORDS - 1 do
+  for i = 0 to _NRECORDS + _NRECORDS_ADD - 1 do
     Printf.printf "%-5s %-5d %-5d %-5f %-5f\n%!"
       (Particle.name p) (Particle.lati p) (Particle.longi p) (Particle.pressure p)
       (Particle.temperature p);

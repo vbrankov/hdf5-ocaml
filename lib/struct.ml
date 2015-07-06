@@ -1,7 +1,5 @@
 open Bigarray
 
-external int_as_pointer : int -> int = "%int_as_pointer"
-
 module Type = struct
   type t =
   | Int
@@ -124,12 +122,8 @@ module Make(S : S) = struct
   let set_float64_6 t v = Array.unsafe_set (Obj.magic (t.ptr + 24) : float array) 0 v
   let set_float64_7 t v = Array.unsafe_set (Obj.magic (t.ptr + 28) : float array) 0 v
 
-  let get_float64 t i =
-    Array.unsafe_get (Obj.magic (t.ptr + int_as_pointer (i * 4)) : float array) 0
-  let set_float64 t i v =
-    Array.unsafe_set (Obj.magic (t.ptr + int_as_pointer (i * 4)) : float array) 0 v
-
   module Array = struct
+    type e = t
     type t = Mem.t
 
     let create len = (Obj.magic (Array1.create Char C_layout (len * size)) : Mem.t)
@@ -140,14 +134,15 @@ module Make(S : S) = struct
   end
 
   let create () = Array.unsafe_get (Array.create 1) 0
+  let mem t = t.mem
 
   module Vector = struct
-    type ptr = t
+    type e = t
     type t = {
       mutable mem : Mem.t;
       mutable capacity : int;
       mutable length : int;
-      mutable end_ : ptr;
+      mutable end_ : e;
     }
 
     let create ?(capacity = 16) () =
