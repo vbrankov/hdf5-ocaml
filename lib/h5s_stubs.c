@@ -320,7 +320,7 @@ void hdf5_h5s_select_hyperslab(value space_id_v, value op_v, value start_v,
   CAMLxparam2(block_v, unit_v);
 
   hid_t space_id = H5S_val(space_id_v);
-  int ndims;
+  size_t ndims;
   hsize_t *start, *stride, *count, *block;
   herr_t err;
   

@@ -28,7 +28,12 @@ h5r_stubs.o: h5r_stubs.c hdf5_caml.h h5_stubs.h h5a_stubs.h h5d_stubs.h \
 h5s_stubs.o: h5s_stubs.c hdf5_caml.h h5_stubs.h h5a_stubs.h h5d_stubs.h \
  h5g_stubs.h h5i_stubs.h h5l_stubs.h h5p_stubs.h h5r_stubs.h h5s_stubs.h \
  h5t_stubs.h hid_stubs.h
-h5_stubs.o: h5_stubs.c h5i_stubs.h
+h5_stubs.o: h5_stubs.c hdf5_caml.h h5_stubs.h h5a_stubs.h h5d_stubs.h \
+ h5g_stubs.h h5i_stubs.h h5l_stubs.h h5p_stubs.h h5r_stubs.h h5s_stubs.h \
+ h5t_stubs.h hid_stubs.h
+h5tb_stubs.o: h5tb_stubs.c hdf5_caml.h h5_stubs.h h5a_stubs.h h5d_stubs.h \
+ h5g_stubs.h h5i_stubs.h h5l_stubs.h h5p_stubs.h h5r_stubs.h h5s_stubs.h \
+ h5t_stubs.h hid_stubs.h
 h5t_stubs.o: h5t_stubs.c hdf5_caml.h h5_stubs.h h5a_stubs.h h5d_stubs.h \
  h5g_stubs.h h5i_stubs.h h5l_stubs.h h5p_stubs.h h5r_stubs.h h5s_stubs.h \
  h5t_stubs.h hid_stubs.h
@@ -48,6 +53,7 @@ h5o.cmi : hid.cmi h5.cmi
 h5p.cmi : layout.cmi hsize.cmi hid.cmi h5z.cmi
 h5r.cmi : hid.cmi
 h5s.cmi : hsize.cmi hid.cmi
+h5tb.cmi : hid.cmi
 h5t.cmi : hid.cmi
 h5z.cmi :
 hid.cmi :
@@ -77,6 +83,8 @@ h5r.cmo : hid.cmi h5r.cmi
 h5r.cmx : hid.cmx h5r.cmi
 h5s.cmo : hsize.cmi hid.cmi h5s.cmi
 h5s.cmx : hsize.cmx hid.cmx h5s.cmi
+h5tb.cmo : hid.cmi h5tb.cmi
+h5tb.cmx : hid.cmx h5tb.cmi
 h5t.cmo : hid.cmi h5t.cmi
 h5t.cmx : hid.cmx h5t.cmi
 h5z.cmo : h5z.cmi
@@ -87,4 +95,6 @@ hsize.cmo : hsize.cmi
 hsize.cmx : hsize.cmi
 layout.cmo : layout.cmi
 layout.cmx : layout.cmi
-SRC_ML=h5i.ml h5.ml h5z.ml hid.ml hsize.ml layout.ml h5t.ml h5s.ml h5r.ml h5p.ml h5o.ml h5lt.ml h5l.ml h5g.ml h5f.ml h5d.ml h5a.ml 
+struct.cmo :
+struct.cmx :
+SRC_ML=h5i.ml h5.ml h5z.ml hid.ml hsize.ml layout.ml struct.ml h5t.ml h5tb.ml h5s.ml h5r.ml h5p.ml h5o.ml h5lt.ml h5l.ml h5g.ml h5f.ml h5d.ml h5a.ml 

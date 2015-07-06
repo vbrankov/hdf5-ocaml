@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 #include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/custom.h>
@@ -7,9 +8,9 @@
 #include <caml/memory.h>
 #include <caml/mlvalues.h>
 #include "hdf5.h"
-#include "h5i_stubs.h"
+#include "hdf5_caml.h"
 
-int unsigned_int_array_val(value v, unsigned int **a)
+size_t unsigned_int_array_val(value v, unsigned int **a)
 {
   long i, length, e;
 
@@ -25,7 +26,22 @@ int unsigned_int_array_val(value v, unsigned int **a)
   return length;
 }
 
-int hsize_t_array_val(value v, hsize_t **a)
+size_t size_t_array_val(value v, size_t **a)
+{
+  size_t i, length;
+
+  length = Wosize_val(v);
+  *a = calloc(length, sizeof(size_t));
+  if (*a == NULL)
+    return length;
+  for (i = 0; i < length; i++)
+  {
+    (*a)[i] = Long_val(Field(v, i));
+  }
+  return length;
+}
+
+size_t hsize_t_array_val(value v, hsize_t **a)
 {
   long i, length, e;
 
@@ -41,7 +57,7 @@ int hsize_t_array_val(value v, hsize_t **a)
   return length;
 }
 
-int hsize_t_array_opt_val(value v, hsize_t **a)
+size_t hsize_t_array_opt_val(value v, hsize_t **a)
 {
   if (Is_block(v))
     return hsize_t_array_val(Field(v, 0), a);
@@ -49,16 +65,44 @@ int hsize_t_array_opt_val(value v, hsize_t **a)
   return 0;
 }
 
-value val_hsize_t_array(int length, hsize_t *a)
+value val_hsize_t_array(size_t length, hsize_t *a)
 {
   CAMLparam0();
   CAMLlocal1(a_v);
-  int i;
+  size_t i;
 
   a_v = caml_alloc_tuple(length);
   for (i = 0; i < length; i++)
     Field(a_v, i) = Val_int(a[i]);
   CAMLreturn(a_v);
+}
+
+size_t string_array_val(value v, char ***a)
+{
+  long i, j, length, avlen;
+  char *vv, *av;
+
+  length = Wosize_val(v);
+  *a = calloc(length, sizeof(char*));
+  if (*a == NULL)
+    return length;
+  for (i = 0; i < length; i++)
+  {
+    vv = String_val(Field(v, i));
+    avlen = strlen(vv) + 1;
+    av = malloc(avlen);
+    if (av == NULL)
+    {
+      for (j = 0; j < i; j++)
+        free((*a)[i]);
+      free(*a);
+      *a = NULL;
+      return length;
+    }
+    strncpy(av, vv, avlen);
+    (*a)[i] = av;
+  }
+  return length;
 }
 
 H5_iter_order_t H5_iter_order_val(value iter_order)

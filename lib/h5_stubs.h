@@ -1,9 +1,11 @@
 #define Int_opt_val(v, d) Is_block(v) ? Int_val(Field(v, 0)) : d
 
-int unsigned_int_array_val(value, unsigned int**);
-int hsize_t_array_val(value, hsize_t**);
-int hsize_t_array_opt_val(value, hsize_t**);
-value val_hsize_t_array(int, hsize_t*);
+size_t unsigned_int_array_val(value, unsigned int**);
+size_t size_t_array_val(value, size_t**);
+size_t hsize_t_array_val(value, hsize_t**);
+size_t hsize_t_array_opt_val(value, hsize_t**);
+value val_hsize_t_array(size_t, hsize_t*);
+size_t string_array_val(value, char***);
 H5_iter_order_t H5_iter_order_val(value);
 H5_iter_order_t H5_iter_order_opt_val(value);
 value Val_h5_iter_order(H5_iter_order_t);

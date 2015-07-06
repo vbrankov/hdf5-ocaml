@@ -23,11 +23,26 @@ value alloc_hid(hid_t id)
   return v;
 }
 
-value val_hid_array(int length, hid_t *a)
+size_t hid_array_val(value v, hid_t **a)
+{
+  size_t i, length;
+
+  length = Wosize_val(v);
+  *a = calloc(length, sizeof(hid_t));
+  if (*a == NULL)
+    return length;
+  for (i = 0; i < length; i++)
+  {
+    (*a)[i] = Hid_val(Field(v, i));
+  }
+  return length;
+}
+
+value val_hid_array(size_t length, hid_t *a)
 {
   CAMLparam0();
   CAMLlocal1(a_v);
-  int i;
+  size_t i;
 
   a_v = caml_alloc_tuple(length);
   for (i = 0; i < length; i++)
