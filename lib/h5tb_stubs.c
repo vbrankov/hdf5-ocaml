@@ -75,7 +75,6 @@ void hdf5_h5tb_make_table(value table_title_v, value loc_v, value dset_name_v,
     data = Caml_ba_data_val(data_v);
   else
     data = (void*) data_v;
-  printf("data c %ld %ld\n", (long) fill_data, (long) data);
 
   err = H5TBmake_table(String_val(table_title_v), Hid_val(loc_v), String_val(dset_name_v),
     nfields, Int_val(nrecords_v), Int_val(type_size_v), (const char**) field_names,

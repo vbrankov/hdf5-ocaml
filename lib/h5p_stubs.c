@@ -28,9 +28,11 @@ void hdf5_h5p_free_vlen_mem_manager(value id_v)
 void h5p_finalize(value v)
 {
   if (!H5P_closed(v))
+  {
     H5Pclose(H5P_val(v));
-  hdf5_h5p_free_vlen_mem_manager(v);
-  H5P_closed(v) = true;
+    hdf5_h5p_free_vlen_mem_manager(v);
+    H5P_closed(v) = true;
+  }
 }
 
 static struct custom_operations h5p_ops = {
