@@ -1,5 +1,5 @@
 open Bigarray
-open Hdf5_caml
+open Hdf5_raw
 
 let _FILE        = "SDSextendible.h5"
 let _DATASETNAME = "ExtendibleArray"

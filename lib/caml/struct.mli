@@ -1,3 +1,5 @@
+open Hdf5_raw
+
 module Type : sig
   type t =
   | Int

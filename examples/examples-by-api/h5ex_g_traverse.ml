@@ -1,4 +1,4 @@
-open Hdf5_caml
+open Hdf5_raw
 
 let _FILE = "h5ex_g_traverse.h5"
 

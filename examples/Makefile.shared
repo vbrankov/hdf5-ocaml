@@ -1,8 +1,8 @@
 CAMLDEP=ocamldep.opt
 CAMLOPT=ocamlopt.opt
 
-COMPFLAGS=-I ../../lib
-LINKFLAGS=$(COMPFLAGS) bigarray.cmxa hdf5_caml.cmxa
+COMPFLAGS=-I ../../lib/raw -I ../../lib/caml
+LINKFLAGS=$(COMPFLAGS) bigarray.cmxa hdf5_raw.cmxa hdf5_caml.cmxa
 SRC=$(wildcard *.ml)
 TARGETS=$(SRC:.ml=.exe)
 
@@ -10,7 +10,7 @@ TARGETS=$(SRC:.ml=.exe)
 
 all: $(TARGETS)
 
-.ml.exe: ../../lib/hdf5_caml.cmxa
+.ml.exe: ../../lib/raw/hdf5_raw.cmxa ../../lib/caml/hdf5_caml.cmxa
 	$(CAMLOPT) $(LINKFLAGS) -o $@ $<
 
 clean::

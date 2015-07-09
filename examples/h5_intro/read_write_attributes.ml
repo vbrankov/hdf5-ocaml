@@ -1,5 +1,5 @@
 open Bigarray
-open Hdf5_caml
+open Hdf5_raw
 
 let _FILE   = "Attributes.h5"
 let _SIZE   = 7

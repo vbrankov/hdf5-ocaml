@@ -1,5 +1,5 @@
 open Bigarray
-open Hdf5_caml
+open Hdf5_raw
 
 let _FILE1       = "trefer1.h5"
 let _SPACE1_NAME = "Space1"

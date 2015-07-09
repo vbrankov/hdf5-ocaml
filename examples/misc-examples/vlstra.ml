@@ -1,4 +1,4 @@
-open Hdf5_caml
+open Hdf5_raw
 
 let _VFILE = "vlstra.h5"
 let _VDIM  = 4

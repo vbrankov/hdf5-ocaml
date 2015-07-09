@@ -1,4 +1,4 @@
-open Hdf5_caml
+open Hdf5_raw
 
 let _H5FILE_NAME = "interm_group.h5"
 

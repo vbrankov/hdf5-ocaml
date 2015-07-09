@@ -1,4 +1,4 @@
-open Hdf5_caml
+open Hdf5_raw
 
 let _SPACE1_DIM = 4
 let _DSET_VLSTR_NAME = "vlstr_type"

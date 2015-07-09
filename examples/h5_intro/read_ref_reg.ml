@@ -1,5 +1,5 @@
 open Bigarray
-open Hdf5_caml
+open Hdf5_raw
 
 let _FILE2       = "trefer2.h5"
 let _NPOINTS     = 10

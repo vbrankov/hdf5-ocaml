@@ -1,3 +1,5 @@
+open Hdf5_raw
+
 module Type = struct
   type t =
   | Int

@@ -1,5 +1,5 @@
 open Bigarray
-open Hdf5_caml
+open Hdf5_raw
 
 let _FILE        = "Select.h5"
 let _MSPACE1_DIM = 50

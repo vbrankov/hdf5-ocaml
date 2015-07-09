@@ -1,4 +1,4 @@
-open Hdf5_caml
+open Hdf5_raw
 
 let _NRECORDS     = 8
 let _NRECORDS_ADD = 2

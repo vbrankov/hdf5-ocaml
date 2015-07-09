@@ -1,5 +1,5 @@
 open Bigarray
-open Hdf5_caml
+open Hdf5_raw
 
 let () =
   let data = Array2.of_array int32 c_layout
