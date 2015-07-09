@@ -1,5 +1,3 @@
-open Hdf5_raw
-
 module Type = struct
   type t =
   | Int
@@ -43,6 +41,7 @@ module Make(S : S) = struct
       field_offset) S.fields
     |> Array.of_list
   let field_types =
+    let module H5t = Hdf5_raw.H5t in
     List.map (fun field ->
       match field.Field.type_ with
       | Type.Int | Type.Int64 -> H5t.native_long
@@ -398,17 +397,20 @@ module Make(S : S) = struct
 
     let unsafe_blit t t' = Array2.blit (Obj.magic t) (Obj.magic t')
 
-    let make_table t ?title ?chunk_size ?(compress = true) loc dset_name =
+    module H5tb = Hdf5_raw.H5tb
+
+    let make_table t ?title ?chunk_size ?(compress = true) h5 dset_name =
       let title = match title with Some t -> t | None -> dset_name in
       let chunk_size = match chunk_size with Some s -> s | None -> length t in
-      H5tb.make_table title loc dset_name ~nrecords:(t.Mem.dim / size64) ~type_size:size
-        ~field_names ~field_offset ~field_types ~chunk_size ~compress t
+      H5tb.make_table title (H5.hid h5) dset_name ~nrecords:(t.Mem.dim / size64)
+        ~type_size:size ~field_names ~field_offset ~field_types ~chunk_size ~compress t
 
-    let append_records t loc dset_name =
-      H5tb.append_records loc dset_name ~nrecords:(t.Mem.dim / size64) ~type_size:size
-        ~field_offset ~field_sizes t
+    let append_records t h5 dset_name =
+      H5tb.append_records (H5.hid h5) dset_name ~nrecords:(t.Mem.dim / size64)
+        ~type_size:size ~field_offset ~field_sizes t
 
-    let read_table loc table_name =
+    let read_table h5 table_name =
+      let loc = H5.hid h5 in
       let nrecords = H5tb.get_table_info loc table_name in
       let t = create nrecords in
       H5tb.read_table loc table_name ~dst_size:size ~dst_offset:field_offset

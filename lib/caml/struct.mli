@@ -1,5 +1,3 @@
-open Hdf5_raw
-
 module Type : sig
   type t =
   | Int
@@ -27,7 +25,6 @@ module Make(S : S) : sig
   val size : int
   val field_names : string array
   val field_offset : int array
-  val field_types : Hid.t array
   val field_sizes : int array
   
   type t
@@ -164,10 +161,10 @@ module Make(S : S) : sig
     val iter : t -> f:(e -> unit) -> unit
     val iteri : t -> f:(int -> e -> unit) -> unit
 
-    val make_table : t -> ?title:string -> ?chunk_size:int -> ?compress:bool -> Hid.t
+    val make_table : t -> ?title:string -> ?chunk_size:int -> ?compress:bool -> H5.t
       -> string -> unit
-    val append_records : t -> Hid.t -> string -> unit
-    val read_table : Hid.t -> string -> t
+    val append_records : t -> H5.t -> string -> unit
+    val read_table : H5.t -> string -> t
   end
 
   val mem : t -> Array.t
