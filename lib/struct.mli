@@ -30,15 +30,11 @@ module Make(S : S) : sig
   
   type t
 
-  val create : unit -> t
-
-  val unsafe_next : t -> unit
-  val unsafe_move : t -> int -> unit
-  val seek_to_float64 : t -> column:int -> float -> unit
-
   val get_string : t -> int -> int -> string
   val set_string : t -> int -> int -> string -> unit
   
+  val get_int : t -> int -> int
+  val set_int : t -> int -> int -> unit
   val get_int_0  : t -> int
   val get_int_1  : t -> int
   val get_int_2  : t -> int
@@ -72,6 +68,8 @@ module Make(S : S) : sig
   val set_int_14 : t -> int -> unit
   val set_int_15 : t -> int -> unit
 
+  val get_int64 : t -> int -> int64
+  val set_int64 : t -> int -> int64 -> unit
   val get_int64_0  : t -> int64
   val get_int64_1  : t -> int64
   val get_int64_2  : t -> int64
@@ -105,6 +103,8 @@ module Make(S : S) : sig
   val set_int64_14 : t -> int64 -> unit
   val set_int64_15 : t -> int64 -> unit
 
+  val get_float64 : t -> int -> float
+  val set_float64 : t -> int -> float -> unit
   val get_float64_0  : t -> float
   val get_float64_1  : t -> float
   val get_float64_2  : t -> float
@@ -138,8 +138,18 @@ module Make(S : S) : sig
   val set_float64_14 : t -> float -> unit
   val set_float64_15 : t -> float -> unit
 
-  val get_float64 : t -> int -> float
-  val set_float64 : t -> int -> float -> unit
+  val create : unit -> t
+
+  val unsafe_next : t -> unit
+  val next        : t -> unit
+  val unsafe_prev : t -> unit
+  val prev        : t -> unit
+  val unsafe_move : t -> int -> unit
+  val move        : t -> int -> unit
+
+  val seek_to_int     : t -> column:int -> int   -> unit
+  val seek_to_int64   : t -> column:int -> int64 -> unit
+  val seek_to_float64 : t -> column:int -> float -> unit
 
   module Array : sig
     type e = t
@@ -148,10 +158,14 @@ module Make(S : S) : sig
     val create : int -> t
     val length : t -> int
     val unsafe_get : t -> int -> e
+    val get : t -> int -> e
+    val iter : t -> f:(e -> unit) -> unit
+    val iteri : t -> f:(int -> e -> unit) -> unit
+
     val make_table : t -> ?title:string -> ?chunk_size:int -> ?compress:bool -> Hid.t
       -> string -> unit
+    val append_records : t -> Hid.t -> string -> unit
     val read_table : Hid.t -> string -> t
-    val iter : t -> (e -> unit) -> unit
   end
 
   val mem : t -> Array.t

@@ -193,35 +193,62 @@ module Make(S : S) = struct
   let set_float64_14 t v = Array.unsafe_set (Obj.magic t.ptr : float array) 14 v
   let set_float64_15 t v = Array.unsafe_set (Obj.magic t.ptr : float array) 15 v
 
+  let get_int t i   = Int64.to_int (Obj.magic (t.ptr - (i - 1) * 4) : int64)
+  let set_int t i v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) i (Int64.of_int v)
+  let get_int64 t i   = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) i
+  let set_int64 t i v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) i v
   let get_float64 t i   = Array.unsafe_get (Obj.magic t.ptr : float array) i
   let set_float64 t i v = Array.unsafe_set (Obj.magic t.ptr : float array) i v
 
-  let unsafe_next t   = t.ptr <- t.ptr + size64
+  let unsafe_next t = t.ptr <- t.ptr + size64
+
+  let next t =
+    t.ptr <- t.ptr + size64;
+    if t.ptr > t.mem.Mem.data + t.mem.Mem.dim then begin
+      t.ptr <- t.ptr - size64;
+      raise (Invalid_argument "index out of bounds")
+    end
+
+  let unsafe_prev t = t.ptr <- t.ptr - size64
+
+  let prev t =
+    t.ptr <- t.ptr - size64;
+    if t.ptr < t.mem.Mem.data then begin
+      t.ptr <- t.ptr + size64;
+      raise (Invalid_argument "index out of bounds")
+    end
+
   let unsafe_move t i = t.ptr <- t.mem.Mem.data + size64 * i
+
+  let move t i =
+    let ptr = t.mem.Mem.data + size64 * i in
+    if ptr < t.mem.Mem.data || ptr > t.mem.Mem.data + t.mem.Mem.dim then
+      raise (Invalid_argument "index out of bounds");
+    t.ptr <- ptr
 
   let seek_to_float64 t ~column ~min ~max v =
     let mid = ref min in
     let min = ref min in
     let max = ref max in
-    let data = t.mem.Mem.data in
+    let data = t.mem.Mem.data + column * 4 in
     let v' = ref 0. in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
-      v' := Array.unsafe_get (Obj.magic (data + !mid * size64) : float array) column;
+      v' := Array.unsafe_get (Obj.magic (data + !mid * size64) : float array) 0;
       if !v' < v then
         min := !mid
       else
         max := !mid
     done;
-    let v' = Array.unsafe_get (Obj.magic (data + !min * size64) : float array) column in
+    let v' = Array.unsafe_get (Obj.magic (data + !min * size64) : float array) 0 in
     if v' >= v then !min else !max
 
   let seek_to_float64 t ~column v =
-    let data = t.mem.Mem.data in
+    let data = t.mem.Mem.data + column * 4 in
     let len = t.mem.Mem.dim / size64 in
     let size64 = size64 in
     let pos = (t.ptr - data) / size64 in
-    let v' = Array.unsafe_get (Obj.magic (data + pos * size64) : float array) column in
+    let v' = Array.unsafe_get (Obj.magic (data + pos * size64) : float array) 0 in
     let min = ref pos in
     let max = ref pos in
     let step = ref 1 in
@@ -231,7 +258,7 @@ module Make(S : S) = struct
         max := !min
       end;
       while !max < len
-        && Array.unsafe_get (Obj.magic (data + !max * size64)) column < v do
+        && Array.unsafe_get (Obj.magic (data + !max * size64)) 0 < v do
         max := !max + !step;
         step := !step * 2
       done;
@@ -241,7 +268,7 @@ module Make(S : S) = struct
         decr min;
         max := !min
       end;
-      while !min > 0 && Array.unsafe_get (Obj.magic (data + !min * size64)) column > v do
+      while !min > 0 && Array.unsafe_get (Obj.magic (data + !min * size64)) 0 > v do
         min := !min - !step;
         step := !step * 2
       done;
@@ -250,23 +277,134 @@ module Make(S : S) = struct
     unsafe_move t (
       if !max > !min then seek_to_float64 t ~column ~min:!min ~max:!max v else !max)
 
+  let seek_to_int t ~column ~min ~max v =
+    let mid = ref min in
+    let min = ref min in
+    let max = ref max in
+    let data = t.mem.Mem.data + (column - 1) * 4 in
+    let v' = ref 0 in
+    while !max > !min + 1 do
+      mid := (!min + !max) asr 1;
+      v' := Int64.to_int (Obj.magic (data + !mid * size64));
+      if !v' < v then
+        min := !mid
+      else
+        max := !mid
+    done;
+    let v' = Int64.to_int (Obj.magic (data + !min * size64)) in
+    if v' >= v then !min else !max
+
+  let seek_to_int t ~column v =
+    let data = t.mem.Mem.data in
+    let len = t.mem.Mem.dim / size64 in
+    let size64 = size64 in
+    let pos = (t.ptr - data) / size64 in
+    let v' = Int64.to_int (Obj.magic (data + pos * size64)) in
+    let min = ref pos in
+    let max = ref pos in
+    let step = ref 1 in
+    if v' < v then begin
+      if !max < len - 1 then begin
+        incr min;
+        max := !min
+      end;
+      while !max < len && Int64.to_int (Obj.magic (data + !max * size64)) < v do
+        max := !max + !step;
+        step := !step * 2
+      done;
+      if !max >= len then max := len - 1
+    end else if v' > v then begin
+      if !min > 0 then begin
+        decr min;
+        max := !min
+      end;
+      while !min > 0 && Int64.to_int (Obj.magic (data + !min * size64)) > v do
+        min := !min - !step;
+        step := !step * 2
+      done;
+      if !min < 0 then min := 0
+    end;
+    unsafe_move t (
+      if !max > !min then seek_to_int t ~column ~min:!min ~max:!max v else !max)
+
+  let seek_to_int64 t ~column ~min ~max v =
+    let mid = ref min in
+    let min = ref min in
+    let max = ref max in
+    let data = t.mem.Mem.data + (column - 1) * 4 in
+    let v' = ref 0L in
+    while !max > !min + 1 do
+      mid := (!min + !max) asr 1;
+      v' := Obj.magic (data + !mid * size64);
+      if !v' < v then
+        min := !mid
+      else
+        max := !mid
+    done;
+    let v' = Obj.magic (data + !min * size64) in
+    if v' >= v then !min else !max
+
+  let seek_to_int64 t ~column v =
+    let data = t.mem.Mem.data in
+    let len = t.mem.Mem.dim / size64 in
+    let size64 = size64 in
+    let pos = (t.ptr - data) / size64 in
+    let v' = Obj.magic (data + pos * size64) in
+    let min = ref pos in
+    let max = ref pos in
+    let step = ref 1 in
+    if v' < v then begin
+      if !max < len - 1 then begin
+        incr min;
+        max := !min
+      end;
+      while !max < len && Obj.magic (data + !max * size64) < v do
+        max := !max + !step;
+        step := !step * 2
+      done;
+      if !max >= len then max := len - 1
+    end else if v' > v then begin
+      if !min > 0 then begin
+        decr min;
+        max := !min
+      end;
+      while !min > 0 && Obj.magic (data + !min * size64) > v do
+        min := !min - !step;
+        step := !step * 2
+      done;
+      if !min < 0 then min := 0
+    end;
+    unsafe_move t (
+      if !max > !min then seek_to_int64 t ~column ~min:!min ~max:!max v else !max)
+
   module Array = struct
     type e = t
     type t = Mem.t
 
     let create len = (Obj.magic (Array1.create Char C_layout (len * size)) : Mem.t)
 
-    let length t = t.Mem.dim / size
+    let length t = t.Mem.dim / size64
 
-    let unsafe_get t i = { ptr = t.Mem.data + i * size64; mem = t }
+    let unsafe_get t i =
+      { ptr = t.Mem.data + i * size64; mem = t }
+
+    let get t i =
+      let ptr = t.Mem.data + i * size64 in
+      if i < 0 || ptr > t.Mem.data + t.Mem.dim then
+        raise (Invalid_argument "index out of bounds");
+      { ptr; mem = t }
 
     let unsafe_blit t t' = Array2.blit (Obj.magic t) (Obj.magic t')
 
     let make_table t ?title ?chunk_size ?(compress = true) loc dset_name =
       let title = match title with Some t -> t | None -> dset_name in
       let chunk_size = match chunk_size with Some s -> s | None -> length t in
-      H5tb.make_table title loc dset_name ~nrecords:(t.Mem.dim / size) ~type_size:size
+      H5tb.make_table title loc dset_name ~nrecords:(t.Mem.dim / size64) ~type_size:size
         ~field_names ~field_offset ~field_types ~chunk_size ~compress t
+
+    let append_records t loc dset_name =
+      H5tb.append_records loc dset_name ~nrecords:(t.Mem.dim / size64) ~type_size:size
+        ~field_offset ~field_sizes t
 
     let read_table loc table_name =
       let nrecords = H5tb.get_table_info loc table_name in
@@ -275,10 +413,17 @@ module Make(S : S) = struct
         ~dst_sizes:field_sizes t;
       t
 
-    let iter t f =
+    let iter t ~f =
       let e = unsafe_get t 0 in
       for _ = 0 to length t - 1 do
         f e;
+        unsafe_next e
+      done
+
+    let iteri t ~f =
+      let e = unsafe_get t 0 in
+      for i = 0 to length t - 1 do
+        f i e;
         unsafe_next e
       done
   end
