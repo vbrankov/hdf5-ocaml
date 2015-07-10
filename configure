@@ -36,6 +36,14 @@ else
   HDF5_HL_LIB=hdf5_hl
 fi
 
+COMPILER_LIBS=$(ocamlfind query compiler-libs)
+if [[ $? != 0 ]]
+then
+  echo "compiler-libs cannot be found"
+  exit 1
+fi
+
 echo "HDF5_H_DIR=${HDF5_H_DIR}" > Makefile.config
 echo "HDF5_LIB=${HDF5_LIB}" >> Makefile.config
 echo "HDF5_HL_LIB=${HDF5_HL_LIB}" >> Makefile.config
+echo "COMPILER_LIBS=${COMPILER_LIBS}" >> Makefile.config

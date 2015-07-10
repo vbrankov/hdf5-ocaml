@@ -227,11 +227,11 @@ module Make(S : S) = struct
       raise (Invalid_argument "index out of bounds");
     t.ptr <- ptr
 
-  let seek_to_float64 t ~column ~min ~max v =
+  let seek_float64 t pos ~min ~max v =
     let mid = ref min in
     let min = ref min in
     let max = ref max in
-    let data = t.mem.Mem.data + column * 4 in
+    let data = t.mem.Mem.data + pos * 4 in
     let v' = ref 0. in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
@@ -244,14 +244,14 @@ module Make(S : S) = struct
     let v' = Array.unsafe_get (Obj.magic (data + !min * size64) : float array) 0 in
     if v' >= v then !min else !max
 
-  let seek_to_float64 t ~column v =
-    let data = t.mem.Mem.data + column * 4 in
+  let seek_float64 t pos v =
+    let data = t.mem.Mem.data + pos * 4 in
     let len = t.mem.Mem.dim / size64 in
     let size64 = size64 in
-    let pos = (t.ptr - data) / size64 in
+    let i = (t.ptr - data) / size64 in
     let v' = Array.unsafe_get (Obj.magic (data + pos * size64) : float array) 0 in
-    let min = ref pos in
-    let max = ref pos in
+    let min = ref i in
+    let max = ref i in
     let step = ref 1 in
     if v' < v then begin
       if !max < len - 1 then begin
@@ -276,13 +276,13 @@ module Make(S : S) = struct
       if !min < 0 then min := 0
     end;
     unsafe_move t (
-      if !max > !min then seek_to_float64 t ~column ~min:!min ~max:!max v else !max)
+      if !max > !min then seek_float64 t pos ~min:!min ~max:!max v else !max)
 
-  let seek_to_int t ~column ~min ~max v =
+  let seek_int t pos ~min ~max v =
     let mid = ref min in
     let min = ref min in
     let max = ref max in
-    let data = t.mem.Mem.data + (column - 1) * 4 in
+    let data = t.mem.Mem.data + (pos - 1) * 4 in
     let v' = ref 0 in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
@@ -295,14 +295,14 @@ module Make(S : S) = struct
     let v' = Int64.to_int (Obj.magic (data + !min * size64)) in
     if v' >= v then !min else !max
 
-  let seek_to_int t ~column v =
+  let seek_int t pos v =
     let data = t.mem.Mem.data in
     let len = t.mem.Mem.dim / size64 in
     let size64 = size64 in
-    let pos = (t.ptr - data) / size64 in
+    let i = (t.ptr - data) / size64 in
     let v' = Int64.to_int (Obj.magic (data + pos * size64)) in
-    let min = ref pos in
-    let max = ref pos in
+    let min = ref i in
+    let max = ref i in
     let step = ref 1 in
     if v' < v then begin
       if !max < len - 1 then begin
@@ -326,13 +326,13 @@ module Make(S : S) = struct
       if !min < 0 then min := 0
     end;
     unsafe_move t (
-      if !max > !min then seek_to_int t ~column ~min:!min ~max:!max v else !max)
+      if !max > !min then seek_int t pos ~min:!min ~max:!max v else !max)
 
-  let seek_to_int64 t ~column ~min ~max v =
+  let seek_int64 t pos ~min ~max v =
     let mid = ref min in
     let min = ref min in
     let max = ref max in
-    let data = t.mem.Mem.data + (column - 1) * 4 in
+    let data = t.mem.Mem.data + (pos - 1) * 4 in
     let v' = ref 0L in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
@@ -345,14 +345,14 @@ module Make(S : S) = struct
     let v' = Obj.magic (data + !min * size64) in
     if v' >= v then !min else !max
 
-  let seek_to_int64 t ~column v =
+  let seek_int64 t pos v =
     let data = t.mem.Mem.data in
     let len = t.mem.Mem.dim / size64 in
     let size64 = size64 in
-    let pos = (t.ptr - data) / size64 in
+    let i = (t.ptr - data) / size64 in
     let v' = Obj.magic (data + pos * size64) in
-    let min = ref pos in
-    let max = ref pos in
+    let min = ref i in
+    let max = ref i in
     let step = ref 1 in
     if v' < v then begin
       if !max < len - 1 then begin
@@ -376,7 +376,7 @@ module Make(S : S) = struct
       if !min < 0 then min := 0
     end;
     unsafe_move t (
-      if !max > !min then seek_to_int64 t ~column ~min:!min ~max:!max v else !max)
+      if !max > !min then seek_int64 t pos ~min:!min ~max:!max v else !max)
 
   module Array = struct
     type e = t

@@ -146,9 +146,9 @@ module Make(S : S) : sig
   val unsafe_move : t -> int -> unit
   val move        : t -> int -> unit
 
-  val seek_to_int     : t -> column:int -> int   -> unit
-  val seek_to_int64   : t -> column:int -> int64 -> unit
-  val seek_to_float64 : t -> column:int -> float -> unit
+  val seek_int     : t -> int -> int   -> unit
+  val seek_int64   : t -> int -> int64 -> unit
+  val seek_float64 : t -> int -> float -> unit
 
   module Array : sig
     type e = t

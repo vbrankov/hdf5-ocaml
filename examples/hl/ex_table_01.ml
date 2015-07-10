@@ -4,34 +4,12 @@ let _NRECORDS   = 8
 let _TABLE_NAME = "table"
 
 module Particle = struct
-  open Struct
-  include Make(struct
-    let fields = [
-      Field.create "Name"        (Type.String 16);
-      Field.create "Latitude"    Type.Int;
-      Field.create "Longitude"   Type.Int;
-      Field.create "Pressure"    Type.Float64;
-      Field.create "Temperature" Type.Float64;
-    ]
-  end)
-
-  let     name        t   = get_string t 0 16
-  let set_name        t v = set_string t 0 16 v
-  let     lati        t   = get_int_2 t
-  let set_lati        t v = set_int_2 t v
-  let     longi       t   = get_int_3 t
-  let set_longi       t v = set_int_3 t v
-  let     pressure    t   = get_float64_4 t
-  let set_pressure    t v = set_float64_4 t v
-  let     temperature t   = get_float64_5 t
-  let set_temperature t v = set_float64_5 t v
-
-  let set t name lati longi pressure temperature =
-    set_name t name;
-    set_lati t lati;
-    set_longi t longi;
-    set_pressure t pressure;
-    set_temperature t temperature
+  [%h5struct
+    name        "Name"        (String 16);
+    lati        "Latitude"    Int;
+    longi       "Longitude"   Int;
+    pressure    "Pressure"    Float64;
+    temperature "Temperature" Float64]
 end
 
 let () =
@@ -45,7 +23,7 @@ let () =
   Particle.(set (Vector.append p_data) "five"  50 50 5. 50.);
   Particle.(set (Vector.append p_data) "six"   60 60 6. 60.);
   Particle.(set (Vector.append p_data) "seven" 70 70 7. 70.);
-  let p_data = Particle.Vector.compact p_data in
+  let p_data = Particle.Vector.to_array p_data in
 
   let string_type = H5t.copy H5t.c_s1 in
   H5t.set_size string_type 16;
