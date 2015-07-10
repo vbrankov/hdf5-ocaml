@@ -1,4 +1,3 @@
-open Bigarray
 open Hdf5_raw
 
 let _FILE = "group.h5"
@@ -34,8 +33,8 @@ let () =
   Printf.printf "\"/Data_new/Compressed_Data\" dataset is open \n%!";
   H5d.close dataset;
 
-  H5g.iterate file "/" file_info ();
+  let _ = H5g.iterate file "/" file_info () in
   H5g.unlink file "Data";
   Printf.printf "\"Data\" is unlinked \n";
-  H5g.iterate file "/" file_info ();
+  let _ = H5g.iterate file "/" file_info () in
   H5f.close file
