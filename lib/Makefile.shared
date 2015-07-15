@@ -36,7 +36,7 @@ clean::
 	$(CAMLC) -c $(COMPFLAGS) $<
 
 .ml.cmx:
-	$(CAMLOPT) -for-pack $(FOR_PACK_NAME) $(COMPFLAGS) -c $<
+	$(CAMLOPT) -for-pack $(FOR_PACK_NAME) $(COMPFLAGS) -inline 20 -c $<
 
 .c.o:
 	$(CAMLOPT) $(CFLAGS) -c $<

@@ -15,6 +15,33 @@ module Field : sig
   val create : string -> Type.t -> t
 end
 
+module Mem : sig
+  type t = {
+    ops      : int;
+    data     : int;
+    num_dims : int;
+    flags    : int;
+    proxy    : int;
+    dim      : int;
+  }
+end
+
+module Ptr : sig
+  type t = {
+    mutable ptr : int;
+    mem         : Mem.t;
+    begin_      : int;
+    end_        : int;
+  }
+
+  val unsafe_next : _ -> int -> unit
+  val unsafe_prev : _ -> int -> unit
+  val unsafe_move : _ -> int -> int -> unit
+  val next : _ -> int -> unit
+  val prev : _ -> int -> unit
+  val move : _ -> int -> int -> unit
+end
+
 module type S = sig
   val fields : Field.t list
 end
@@ -155,6 +182,7 @@ module Make(S : S) : sig
     type t
 
     val create : int -> t
+    val init : int -> (int -> e -> unit) -> t
     val length : t -> int
     val unsafe_get : t -> int -> e
     val get : t -> int -> e

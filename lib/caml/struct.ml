@@ -23,6 +23,61 @@ module type S = sig
   val fields : Field.t list
 end
 
+module Mem = struct
+  type t = {
+    ops      : int;
+    data     : int;
+    num_dims : int;
+    flags    : int;
+    proxy    : int;
+    dim      : int;
+  }
+end
+
+module Ptr = struct
+  type t = {
+    mutable ptr : int;
+    mem         : Mem.t;
+    begin_      : int;
+    end_        : int;
+  }
+
+  let unsafe_next t size =
+    let t = Obj.magic t in
+    let ptr = t.ptr + size in
+    t.ptr <- ptr
+
+  let unsafe_prev t size =
+    let t = Obj.magic t in
+    let ptr = t.ptr - size in
+    t.ptr <- ptr
+
+  let unsafe_move t i size =
+    let t = Obj.magic t in
+    t.ptr <- t.begin_ + i * size
+
+  let next t size =
+    let t = Obj.magic t in
+    let ptr = t.ptr + size in
+    if ptr > t.end_
+    then raise (Invalid_argument "index out of bounds")
+    else t.ptr <- ptr
+
+  let prev t size =
+    let t = Obj.magic t in
+    let ptr = t.ptr - size in
+    if ptr < t.begin_
+    then raise (Invalid_argument "index out of bounds")
+    else t.ptr <- ptr
+
+  let move t i size =
+    let t = Obj.magic t in
+    let ptr = t.begin_ + i * size in
+    if i < 0 || ptr > t.end_
+    then raise (Invalid_argument "index out of bounds")
+    else t.ptr <- ptr
+end
+
 module Make(S : S) = struct
   include S
 
@@ -55,21 +110,7 @@ module Make(S : S) = struct
     List.map (fun field -> Type.size field.Field.type_) S.fields
     |> Array.of_list
 
-  module Mem = struct
-    type t = {
-      ops      : int;
-      data     : int;
-      num_dims : int;
-      flags    : int;
-      proxy    : int;
-      dim      : int;
-    }
-  end
-
-  type t = {
-    mutable ptr : int;
-    mem         : Mem.t;
-  }
+  include Ptr
 
   external unsafe_fill : bytes -> int -> int -> char -> unit
                        = "caml_fill_string" "noalloc"
@@ -201,23 +242,27 @@ module Make(S : S) = struct
   let get_float64 t i   = Array.unsafe_get (Obj.magic t.ptr : float array) i
   let set_float64 t i v = Array.unsafe_set (Obj.magic t.ptr : float array) i v
 
-  let unsafe_next t = t.ptr <- t.ptr + size64
+  let unsafe_next t =
+    let ptr = t.ptr + size64 in
+    t.ptr <- ptr
 
   let next t =
-    t.ptr <- t.ptr + size64;
-    if t.ptr > t.mem.Mem.data + t.mem.Mem.dim then begin
-      t.ptr <- t.ptr - size64;
+    let ptr = t.ptr + size64 in
+    if ptr > t.mem.Mem.data + t.mem.Mem.dim then
       raise (Invalid_argument "index out of bounds")
-    end
+    else
+      t.ptr <- ptr
 
-  let unsafe_prev t = t.ptr <- t.ptr - size64
+  let unsafe_prev t =
+    let ptr = t.ptr - size64 in
+    t.ptr <- ptr
 
   let prev t =
-    t.ptr <- t.ptr - size64;
-    if t.ptr < t.mem.Mem.data then begin
-      t.ptr <- t.ptr + size64;
+    let ptr = t.ptr - size64 in
+    if ptr < t.mem.Mem.data then
       raise (Invalid_argument "index out of bounds")
-    end
+    else
+      t.ptr <- ptr
 
   let unsafe_move t i = t.ptr <- t.mem.Mem.data + size64 * i
 
@@ -387,13 +432,25 @@ module Make(S : S) = struct
     let length t = t.Mem.dim / size64
 
     let unsafe_get t i =
-      { ptr = t.Mem.data + i * size64; mem = t }
+      let data = t.Mem.data in
+      { ptr = data + i * size64; mem = t; begin_ = data; end_ = data + t.Mem.dim }
+
+    let init len f =
+      let t = create len in
+      let e = unsafe_get t 0 in
+      for i = 0 to len - 2 do
+        f i e;
+        unsafe_next e
+      done;
+      f (len - 1) e;
+      t
 
     let get t i =
       let ptr = t.Mem.data + i * size64 in
-      if i < 0 || ptr > t.Mem.data + t.Mem.dim then
+      let data = t.Mem.data in
+      if i < 0 || ptr > data + t.Mem.dim then
         raise (Invalid_argument "index out of bounds");
-      { ptr; mem = t }
+      { ptr; mem = t; begin_ = data; end_ = data + t.Mem.dim }
 
     let unsafe_blit t t' = Array2.blit (Obj.magic t) (Obj.magic t')
 
@@ -473,7 +530,7 @@ module Make(S : S) = struct
 
     let unsafe_get (t : t) i = Array.unsafe_get t.mem i
 
-    let iter t ~f =
+    let iter (t : t) ~f =
       let ptr = t.end_ in
       unsafe_move ptr 0;
       for _ = 0 to t.length - 1 do

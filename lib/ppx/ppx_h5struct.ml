@@ -215,6 +215,30 @@ let construct_set_all_fields fields loc =
       (Exp.fun_ ~loc Nolabel None (Pat.var ~loc { txt = "t"; loc })
         (construct_funs fields)) ]
 
+let construct_size_dependent_fun name ~bsize ~index loc =
+  let call =
+    Exp.apply ~loc
+      (Exp.ident ~loc
+        { txt = Longident.parse ("Hdf5_caml.Struct.Ptr." ^ name); loc })
+      ( [ Nolabel,
+            Exp.apply ~loc (Exp.ident ~loc { txt = Longident.parse "Obj.magic"; loc })
+              [ Nolabel, Exp.ident ~loc { txt = Longident.parse "t"; loc } ]]
+        @ (
+          if index
+          then [ Nolabel, Exp.ident ~loc { txt = Longident.parse "i"; loc } ]
+          else [])
+        @ [ Nolabel, Exp.constant ~loc (Const_int (bsize / 2)) ])
+  in
+  Str.value ~loc Nonrecursive [
+    Vb.mk ~loc (Pat.var ~loc { txt = name; loc })
+      (Exp.fun_ ~loc Nolabel None
+        (Pat.constraint_ ~loc
+          (Pat.var ~loc { txt = "t"; loc })
+          (Typ.constr ~loc { txt = Longident.parse "t"; loc } []))
+        ( if index
+          then Exp.fun_ ~loc Nolabel None (Pat.var ~loc { txt = "i"; loc }) call
+          else call )) ]
+
 let rec map_structure mapper = function
 | [] -> []
 | { pstr_desc = Pstr_eval ({
@@ -254,7 +278,15 @@ let rec map_structure mapper = function
       functions) fields
     |> List.concat
   in
-  include_ :: functions @ construct_set_all_fields fields loc
+  let bsize = !pos * 8 in
+  include_ :: functions
+    @ construct_set_all_fields fields loc
+    :: construct_size_dependent_fun "unsafe_next" ~bsize ~index:false loc
+    :: construct_size_dependent_fun "unsafe_prev" ~bsize ~index:false loc
+    :: construct_size_dependent_fun "unsafe_move" ~bsize ~index:true  loc
+    :: construct_size_dependent_fun "next"        ~bsize ~index:false loc
+    :: construct_size_dependent_fun "prev"        ~bsize ~index:false loc
+    :: construct_size_dependent_fun "move"        ~bsize ~index:true  loc
     :: map_structure mapper structure
 | s :: structure -> mapper.structure_item mapper s :: map_structure mapper structure
   

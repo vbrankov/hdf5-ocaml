@@ -1,2 +1,2 @@
-DIRS=h5_intro hl misc-examples examples-by-api examples test
+DIRS=bench examples examples-by-api h5_intro hl misc-examples test
 include ../Makefile.shared

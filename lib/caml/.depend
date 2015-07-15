@@ -1,7 +1,7 @@
-h5.cmi : h5.cmi
-struct.cmi :
+h5.cmi :
+struct.cmi : h5.cmi
 h5.cmo : h5.cmi
 h5.cmx : h5.cmi
-struct.cmo : struct.cmi
-struct.cmx : struct.cmi
+struct.cmo : h5.cmi struct.cmi
+struct.cmx : h5.cmx struct.cmi
 SRC_ML=h5.ml struct.ml 

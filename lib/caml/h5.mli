@@ -21,7 +21,8 @@ val close : t -> unit
 val exists : t -> string -> bool
 
 (** Returns all subdirectories and data sets. *)
-val ls : t -> ?index:H5.Index.t -> ?order:H5.Iter_order.t -> string -> string list
+val ls : t -> ?index:Hdf5_raw.H5.Index.t -> ?order:Hdf5_raw.H5.Iter_order.t -> string
+  -> string list
 
 (** Returns the HDF5 handle *)
 val hid : t -> Hid.t
