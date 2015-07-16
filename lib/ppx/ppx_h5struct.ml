@@ -16,6 +16,10 @@ module Type = struct
   | Int      -> "Int"
   | Int64    -> "Int64"
   | String _ -> "String"
+
+  let wsize = function
+  | Float64 | Int | Int64 -> 1
+  | String length -> (length + 7) / 8
 end
 
 module Field = struct
@@ -81,13 +85,7 @@ let rec extract_fields expression =
       let seek = ref false in
       List.iter (fun (_, expression) ->
         match expression.pexp_desc with
-        | Pexp_construct ({ txt = Lident "Seek"; _ }, None) ->
-          begin match type_ with
-          | Type.String _ ->
-            raise (Location.Error (Location.error ~loc:expression.pexp_loc (Printf.sprintf
-              "[%%h5struct] invalid field %s, String does not support Seek" id)))
-          | _ -> seek := true
-          end
+        | Pexp_construct ({ txt = Lident "Seek"; _ }, None) -> seek := true
         | _ ->
           raise (Location.Error (Location.error ~loc:expression.pexp_loc (Printf.sprintf
             "[%%h5struct] invalid field %s, unexpected modifiers" id)))) expressions;
@@ -127,7 +125,13 @@ let construct_function ~loc name args body =
   let rec construct_args = function
   | [] -> body
   | arg :: args ->
-    Exp.fun_ ~loc Nolabel None (Pat.var ~loc { txt = arg; loc }) (construct_args args)
+    let var = Pat.var ~loc { txt = arg; loc } in
+    Exp.fun_ ~loc Nolabel None
+      ( if arg = "t" then
+          Pat.constraint_ ~loc var
+            (Typ.constr ~loc { txt = Longident.Lident "t"; loc } [] )
+        else var )
+      (construct_args args)
   in
   Str.value ~loc Nonrecursive [
     Vb.mk ~loc
@@ -184,7 +188,14 @@ let construct_field_seek field ~bsize pos loc =
           | Type.Int      -> "seek_int"
           | Type.Int64    -> "seek_int64"
           | Type.String _ -> "seek_string" )))
-      [ `Var "t"; `Int (bsize / 2); `Int pos; `Var "v" ])
+      ( [ `Var "t"; `Int (bsize / 2) ]
+        @ (
+          match field.Field.type_ with
+          | Type.Float64
+          | Type.Int
+          | Type.Int64 -> [ `Int pos ]
+          | Type.String len -> [ `Int (pos * 8); `Int len ] )
+        @ [ `Var "v" ] ))
 
 let construct_set_all_fields fields loc =
   let rec construct_sets = function
@@ -262,12 +273,17 @@ let rec map_structure mapper = function
               Vb.mk ~loc (Pat.var ~loc { txt = "fields"; loc })
                 (construct_fields_list fields loc)]])))
   in
+  let bsize = 8 *
+    List.fold_left (fun sum field -> sum + Type.wsize field.Field.type_) 0 fields in
   let pos = ref 0 in
   let functions =
     List.map (fun field ->
       let functions =
         [ construct_field_get field !pos loc;
-          construct_field_set field !pos loc ] in
+          construct_field_set field !pos loc ]
+        @ (
+          if field.Field.seek then [ construct_field_seek field ~bsize !pos loc ]
+          else [] ) in
       pos := !pos + (
         match field.Field.type_ with
         | Type.Float64 | Type.Int | Type.Int64 -> 1
@@ -275,12 +291,6 @@ let rec map_structure mapper = function
       functions) fields
     |> List.concat
   in
-  let bsize = !pos * 8 in
-  let functions = functions @ (
-    List.map (fun field ->
-      if field.Field.seek then [ construct_field_seek field ~bsize !pos loc ] else []
-    ) fields
-    |> List.concat) in
   include_ :: functions
     @ construct_set_all_fields fields loc
     :: construct_size_dependent_fun "unsafe_next" ~bsize ~index:false loc

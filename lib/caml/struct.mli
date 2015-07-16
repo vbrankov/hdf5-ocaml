@@ -55,6 +55,7 @@ module Ptr : sig
   val seek_int     : _ -> int -> int -> int   -> unit
   val seek_int64   : _ -> int -> int -> int64 -> unit
   val seek_float64 : _ -> int -> int -> float -> unit
+  val seek_string  : _ -> int -> int -> int -> string -> unit
 end
 
 module type S = sig
@@ -84,7 +85,7 @@ module Make(S : S) : sig
     type e = t
     type t
 
-    val create : int -> t
+    val make : int -> t
     val init : int -> (int -> e -> unit) -> t
     val length : t -> int
     val unsafe_get : t -> int -> e

@@ -88,7 +88,7 @@ module Ptr = struct
   let get_float64 t i   = Array.unsafe_get (Obj.magic (Obj.magic t).ptr : float array) i
   let set_float64 t i v = Array.unsafe_set (Obj.magic (Obj.magic t).ptr : float array) i v
   let get_int t i =
-    Int64.to_int (Obj.magic (Obj.magic (Obj.magic t).ptr - (i - 1) * 4) : int64)
+    Int64.to_int (Obj.magic (Obj.magic (Obj.magic t).ptr + (i - 1) * 4) : int64)
   let set_int t i v =
     let a : (int64, int64_elt, c_layout) Array1.t = Obj.magic (Obj.magic t - 4) in
     Array1.unsafe_set a i (Int64.of_int v)
@@ -233,11 +233,11 @@ module Ptr = struct
     unsafe_move t (
       if !max > !min then seek_int t size pos ~min:!min ~max:!max v else !max) size
 
-  let seek_int64 t size pos ~min ~max v =
+  let seek_int64 t size pos ~min ~max (v : int64) =
     let mid = ref min in
     let min = ref min in
     let max = ref max in
-    let data = t.mem.Mem.data + (pos - 1) * 4 in
+    let data = t.mem.Mem.data + pos * 4 - 4 in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
       let v' = Obj.magic (data + !mid * size) in
@@ -257,9 +257,8 @@ module Ptr = struct
     if data + t.i * size <> t.ptr then
       t.i <- (t.ptr - data) / size;
     let i = t.i in
-    let pos4 = pos * 4 in
-    let data = data + pos4 in
-    let v' = Obj.magic (t.ptr + pos4) in
+    let data = data + pos * 4 - 4 in
+    let v' = Obj.magic (data + i * size) in
     let min = ref i in
     let max = ref i in
     let step = ref 1 in
@@ -286,6 +285,9 @@ module Ptr = struct
     end;
     unsafe_move t (
       if !max > !min then seek_int64 t size pos ~min:!min ~max:!max v else !max) size
+
+  let seek_string _t _size _pos _len _v =
+    failwith "[seek_string] not implemented"
 end
 
 module Make(S : S) = struct
@@ -358,7 +360,7 @@ module Make(S : S) = struct
     type e = t
     type t = Mem.t
 
-    let create len = (Obj.magic (Array1.create Char C_layout (len * size)) : Mem.t)
+    let make len = (Obj.magic (Array1.create Char C_layout (len * size)) : Mem.t)
 
     let length t = t.Mem.dim / size64
 
@@ -368,7 +370,7 @@ module Make(S : S) = struct
         len = -1; i }
 
     let init len f =
-      let t = create len in
+      let t = make len in
       let e = unsafe_get t 0 in
       for i = 0 to len - 2 do
         f i e;
@@ -401,7 +403,7 @@ module Make(S : S) = struct
     let read_table h5 table_name =
       let loc = H5.hid h5 in
       let nrecords = H5tb.get_table_info loc table_name in
-      let t = create nrecords in
+      let t = make nrecords in
       H5tb.read_table loc table_name ~dst_size:size ~dst_offset:field_offset
         ~dst_sizes:field_sizes t;
       t
@@ -421,7 +423,7 @@ module Make(S : S) = struct
       done
   end
 
-  let create () = Array.unsafe_get (Array.create 1) 0
+  let create () = Array.unsafe_get (Array.make 1) 0
   let mem t = t.mem
 
   module Vector = struct
@@ -434,17 +436,17 @@ module Make(S : S) = struct
     }
 
     let create ?(capacity = 16) () =
-      let mem = Array.create capacity in
+      let mem = Array.make capacity in
       { mem; capacity; length = 0; end_ = Array.unsafe_get mem (-1) }
 
     let resize t capacity =
       if t.capacity > capacity then begin
-        let mem = Array.create capacity in
+        let mem = Array.make capacity in
         Array.unsafe_blit (Array1.sub (Obj.magic t.mem) 0 (capacity * size))
           (Obj.magic mem);
         t.mem <- mem
       end else if t.capacity < capacity then begin
-        let mem = Array.create capacity in
+        let mem = Array.make capacity in
         Array.unsafe_blit (Obj.magic t.mem)
           (Array1.sub (Obj.magic mem) 0 (t.capacity * size));
         t.mem <- mem
@@ -472,7 +474,7 @@ module Make(S : S) = struct
       unsafe_move ptr t.length
 
     let to_array t =
-      let mem = Array.create t.length in
+      let mem = Array.make t.length in
       Array.unsafe_blit (Array1.sub (Obj.magic t.mem) 0 (t.length * size)) mem;
       (Obj.magic mem : Mem.t)
   end

@@ -13,7 +13,7 @@ module Particle = struct
 end
 
 let () =
-  let dst_buf = Particle.Array.create _NRECORDS in
+  let dst_buf = Particle.Array.make _NRECORDS in
   let p_data = Particle.Vector.create () in
   Particle.(set (Vector.append p_data) "zero"   0  0 0.  0.);
   Particle.(set (Vector.append p_data) "one"   10 10 1. 10.);

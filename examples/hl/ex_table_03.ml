@@ -14,7 +14,7 @@ module Particle = struct
 end
 
 let () =
-  let dst_buf = Particle.Array.create _NRECORDS in
+  let dst_buf = Particle.Array.make _NRECORDS in
   let fill_data = Particle.create () in
   Particle.set fill_data "no_data" (-1) (-1) (-99.0) (-99.0);
   let fill_data = Particle.mem fill_data in
