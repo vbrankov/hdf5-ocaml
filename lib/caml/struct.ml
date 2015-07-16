@@ -129,11 +129,10 @@ module Ptr = struct
     let min = ref min in
     let max = ref max in
     let data = t.mem.Mem.data + pos * 4 in
-    let v' = ref 0. in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
-      v' := Array.unsafe_get (Obj.magic (data + !mid * size) : float array) 0;
-      if !v' < v then
+      let v' = Array.unsafe_get (Obj.magic (data + !mid * size) : float array) 0 in
+      if v' < v then
         min := !mid
       else
         max := !mid
@@ -185,11 +184,10 @@ module Ptr = struct
     let min = ref min in
     let max = ref max in
     let data = t.mem.Mem.data + (pos - 1) * 4 in
-    let v' = ref 0 in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
-      v' := Int64.to_int (Obj.magic (data + !mid * size));
-      if !v' < v then
+      let v' = Int64.to_int (Obj.magic (data + !mid * size)) in
+      if v' < v then
         min := !mid
       else
         max := !mid
@@ -240,11 +238,10 @@ module Ptr = struct
     let min = ref min in
     let max = ref max in
     let data = t.mem.Mem.data + (pos - 1) * 4 in
-    let v' = ref 0L in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
-      v' := Obj.magic (data + !mid * size);
-      if !v' < v then
+      let v' = Obj.magic (data + !mid * size) in
+      if v' < v then
         min := !mid
       else
         max := !mid

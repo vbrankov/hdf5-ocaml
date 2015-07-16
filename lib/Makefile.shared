@@ -30,13 +30,13 @@ depend::
 	$(CAMLDEP) -sort *.ml >> .depend
 
 clean::
-	rm -f *.cm* *.a *.lib *.o *.so *.omc
+	rm -f *.cm* *.a *.lib *.o *.so *.omc *.s
 
 .mli.cmi:
 	$(CAMLC) -c $(COMPFLAGS) $<
 
 .ml.cmx:
-	$(CAMLOPT) -for-pack $(FOR_PACK_NAME) $(COMPFLAGS) -inline 20 -c $<
+	$(CAMLOPT) -for-pack $(FOR_PACK_NAME) $(COMPFLAGS) -inline 200 -c $<
 
 .c.o:
 	$(CAMLOPT) $(CFLAGS) -c $<
