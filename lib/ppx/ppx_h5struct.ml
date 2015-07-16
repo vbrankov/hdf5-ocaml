@@ -175,7 +175,7 @@ let construct_field_set field pos loc =
             | Type.String length -> [ `Int (pos * 8); `Int length ] )
         @ [ `Var "v" ] ))
 
-let construct_field_seek field pos loc =
+let construct_field_seek field ~bsize pos loc =
   construct_function ~loc ("seek_" ^ field.Field.id) [ "t"; "v" ]
     (construct_function_call ~loc
       Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
@@ -184,7 +184,7 @@ let construct_field_seek field pos loc =
           | Type.Int      -> "seek_int"
           | Type.Int64    -> "seek_int64"
           | Type.String _ -> "seek_string" )))
-      [ `Var "v"; `Int pos; `Var "v" ])
+      [ `Var "t"; `Int (bsize / 2); `Int pos; `Var "v" ])
 
 let construct_set_all_fields fields loc =
   let rec construct_sets = function
@@ -267,9 +267,7 @@ let rec map_structure mapper = function
     List.map (fun field ->
       let functions =
         [ construct_field_get field !pos loc;
-          construct_field_set field !pos loc ]
-        @ (if field.Field.seek then [ construct_field_seek field !pos loc ] else [])
-      in
+          construct_field_set field !pos loc ] in
       pos := !pos + (
         match field.Field.type_ with
         | Type.Float64 | Type.Int | Type.Int64 -> 1
@@ -278,6 +276,11 @@ let rec map_structure mapper = function
     |> List.concat
   in
   let bsize = !pos * 8 in
+  let functions = functions @ (
+    List.map (fun field ->
+      if field.Field.seek then [ construct_field_seek field ~bsize !pos loc ] else []
+    ) fields
+    |> List.concat) in
   include_ :: functions
     @ construct_set_all_fields fields loc
     :: construct_size_dependent_fun "unsafe_next" ~bsize ~index:false loc

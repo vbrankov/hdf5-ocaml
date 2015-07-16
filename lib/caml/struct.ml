@@ -40,6 +40,8 @@ module Ptr = struct
     mem         : Mem.t;
     begin_      : int;
     end_        : int;
+    mutable len : int;
+    mutable i   : int;
   }
 
   let unsafe_next t size =
@@ -54,7 +56,8 @@ module Ptr = struct
 
   let unsafe_move t i size =
     let t = Obj.magic t in
-    t.ptr <- t.begin_ + i * size
+    t.ptr <- t.begin_ + i * size;
+    t.i <- i
 
   let next t size =
     let t = Obj.magic t in
@@ -75,7 +78,10 @@ module Ptr = struct
     let ptr = t.begin_ + i * size in
     if i < 0 || ptr > t.end_
     then raise (Invalid_argument "index out of bounds")
-    else t.ptr <- ptr
+    else begin
+      t.ptr <- ptr;
+      t.i <- i
+    end
 
   open Bigarray
 
@@ -117,6 +123,172 @@ module Ptr = struct
     let mlen = if len < vlen then len else vlen in
     unsafe_blit_string v 0 (Obj.magic t.ptr) pos mlen;
     unsafe_fill (Obj.magic t.ptr) (pos + mlen) (len - mlen) '\000'
+
+  let seek_float64 t size pos ~min ~max v =
+    let mid = ref min in
+    let min = ref min in
+    let max = ref max in
+    let data = t.mem.Mem.data + pos * 4 in
+    let v' = ref 0. in
+    while !max > !min + 1 do
+      mid := (!min + !max) asr 1;
+      v' := Array.unsafe_get (Obj.magic (data + !mid * size) : float array) 0;
+      if !v' < v then
+        min := !mid
+      else
+        max := !mid
+    done;
+    let v' = Array.unsafe_get (Obj.magic (data + !min * size) : float array) 0 in
+    if v' >= v then !min else !max
+
+  let seek_float64 t size pos v =
+    let t = Obj.magic t in
+    let data = t.mem.Mem.data in
+    if t.len < 0 then t.len <- t.mem.Mem.dim / size;
+    let len = t.len in
+    if data + t.i * size <> t.ptr then
+      t.i <- (t.ptr - data) / size;
+    let i = t.i in
+    let pos4 = pos * 4 in
+    let data = data + pos4 in
+    let v' = Array.unsafe_get (Obj.magic (t.ptr + pos4) : float array) 0 in
+    let min = ref i in
+    let max = ref i in
+    let step = ref 1 in
+    if v' < v then begin
+      if !max < len - 1 then begin
+        incr min;
+        max := !min
+      end;
+      while !max < len
+        && Array.unsafe_get (Obj.magic (data + !max * size)) 0 < v do
+        max := !max + !step;
+        step := !step * 2
+      done;
+      if !max >= len then max := len - 1
+    end else if v' > v then begin
+      if !min > 0 then begin
+        decr min;
+        max := !min
+      end;
+      while !min > 0 && Array.unsafe_get (Obj.magic (data + !min * size)) 0 > v do
+        min := !min - !step;
+        step := !step * 2
+      done;
+      if !min < 0 then min := 0
+    end;
+    unsafe_move t (
+      if !max > !min then seek_float64 t size pos ~min:!min ~max:!max v else !max) size
+
+  let seek_int t size pos ~min ~max v =
+    let mid = ref min in
+    let min = ref min in
+    let max = ref max in
+    let data = t.mem.Mem.data + (pos - 1) * 4 in
+    let v' = ref 0 in
+    while !max > !min + 1 do
+      mid := (!min + !max) asr 1;
+      v' := Int64.to_int (Obj.magic (data + !mid * size));
+      if !v' < v then
+        min := !mid
+      else
+        max := !mid
+    done;
+    let v' = Int64.to_int (Obj.magic (data + !min * size)) in
+    if v' >= v then !min else !max
+
+  let seek_int t size pos v =
+    let t = Obj.magic t in
+    let data = t.mem.Mem.data in
+    if t.len < 0 then t.len <- t.mem.Mem.dim / size;
+    let len = t.len in
+    if data + t.i * size <> t.ptr then
+      t.i <- (t.ptr - data) / size;
+    let i = t.i in
+    let pos4 = pos * 4 in
+    let data = data + pos4 in
+    let v' = Int64.to_int (Obj.magic (t.ptr + pos4)) in
+    let min = ref i in
+    let max = ref i in
+    let step = ref 1 in
+    if v' < v then begin
+      if !max < len - 1 then begin
+        incr min;
+        max := !min
+      end;
+      while !max < len && Int64.to_int (Obj.magic (data + !max * size)) < v do
+        max := !max + !step;
+        step := !step * 2
+      done;
+      if !max >= len then max := len - 1
+    end else if v' > v then begin
+      if !min > 0 then begin
+        decr min;
+        max := !min
+      end;
+      while !min > 0 && Int64.to_int (Obj.magic (data + !min * size)) > v do
+        min := !min - !step;
+        step := !step * 2
+      done;
+      if !min < 0 then min := 0
+    end;
+    unsafe_move t (
+      if !max > !min then seek_int t size pos ~min:!min ~max:!max v else !max) size
+
+  let seek_int64 t size pos ~min ~max v =
+    let mid = ref min in
+    let min = ref min in
+    let max = ref max in
+    let data = t.mem.Mem.data + (pos - 1) * 4 in
+    let v' = ref 0L in
+    while !max > !min + 1 do
+      mid := (!min + !max) asr 1;
+      v' := Obj.magic (data + !mid * size);
+      if !v' < v then
+        min := !mid
+      else
+        max := !mid
+    done;
+    let v' = Obj.magic (data + !min * size) in
+    if v' >= v then !min else !max
+
+  let seek_int64 t size pos v =
+    let t = Obj.magic t in
+    let data = t.mem.Mem.data in
+    if t.len < 0 then t.len <- t.mem.Mem.dim / size;
+    let len = t.len in
+    if data + t.i * size <> t.ptr then
+      t.i <- (t.ptr - data) / size;
+    let i = t.i in
+    let pos4 = pos * 4 in
+    let data = data + pos4 in
+    let v' = Obj.magic (t.ptr + pos4) in
+    let min = ref i in
+    let max = ref i in
+    let step = ref 1 in
+    if v' < v then begin
+      if !max < len - 1 then begin
+        incr min;
+        max := !min
+      end;
+      while !max < len && Obj.magic (data + !max * size) < v do
+        max := !max + !step;
+        step := !step * 2
+      done;
+      if !max >= len then max := len - 1
+    end else if v' > v then begin
+      if !min > 0 then begin
+        decr min;
+        max := !min
+      end;
+      while !min > 0 && Obj.magic (data + !min * size) > v do
+        min := !min - !step;
+        step := !step * 2
+      done;
+      if !min < 0 then min := 0
+    end;
+    unsafe_move t (
+      if !max > !min then seek_int64 t size pos ~min:!min ~max:!max v else !max) size
 end
 
 module Make(S : S) = struct
@@ -185,157 +357,6 @@ module Make(S : S) = struct
       raise (Invalid_argument "index out of bounds");
     t.ptr <- ptr
 
-  let seek_float64 t pos ~min ~max v =
-    let mid = ref min in
-    let min = ref min in
-    let max = ref max in
-    let data = t.mem.Mem.data + pos * 4 in
-    let v' = ref 0. in
-    while !max > !min + 1 do
-      mid := (!min + !max) asr 1;
-      v' := Array.unsafe_get (Obj.magic (data + !mid * size64) : float array) 0;
-      if !v' < v then
-        min := !mid
-      else
-        max := !mid
-    done;
-    let v' = Array.unsafe_get (Obj.magic (data + !min * size64) : float array) 0 in
-    if v' >= v then !min else !max
-
-  let seek_float64 t pos v =
-    let data = t.mem.Mem.data + pos * 4 in
-    let len = t.mem.Mem.dim / size64 in
-    let size64 = size64 in
-    let i = (t.ptr - data) / size64 in
-    let v' = Array.unsafe_get (Obj.magic (data + pos * size64) : float array) 0 in
-    let min = ref i in
-    let max = ref i in
-    let step = ref 1 in
-    if v' < v then begin
-      if !max < len - 1 then begin
-        incr min;
-        max := !min
-      end;
-      while !max < len
-        && Array.unsafe_get (Obj.magic (data + !max * size64)) 0 < v do
-        max := !max + !step;
-        step := !step * 2
-      done;
-      if !max >= len then max := len - 1
-    end else if v' > v then begin
-      if !min > 0 then begin
-        decr min;
-        max := !min
-      end;
-      while !min > 0 && Array.unsafe_get (Obj.magic (data + !min * size64)) 0 > v do
-        min := !min - !step;
-        step := !step * 2
-      done;
-      if !min < 0 then min := 0
-    end;
-    unsafe_move t (
-      if !max > !min then seek_float64 t pos ~min:!min ~max:!max v else !max)
-
-  let seek_int t pos ~min ~max v =
-    let mid = ref min in
-    let min = ref min in
-    let max = ref max in
-    let data = t.mem.Mem.data + (pos - 1) * 4 in
-    let v' = ref 0 in
-    while !max > !min + 1 do
-      mid := (!min + !max) asr 1;
-      v' := Int64.to_int (Obj.magic (data + !mid * size64));
-      if !v' < v then
-        min := !mid
-      else
-        max := !mid
-    done;
-    let v' = Int64.to_int (Obj.magic (data + !min * size64)) in
-    if v' >= v then !min else !max
-
-  let seek_int t pos v =
-    let data = t.mem.Mem.data in
-    let len = t.mem.Mem.dim / size64 in
-    let size64 = size64 in
-    let i = (t.ptr - data) / size64 in
-    let v' = Int64.to_int (Obj.magic (data + pos * size64)) in
-    let min = ref i in
-    let max = ref i in
-    let step = ref 1 in
-    if v' < v then begin
-      if !max < len - 1 then begin
-        incr min;
-        max := !min
-      end;
-      while !max < len && Int64.to_int (Obj.magic (data + !max * size64)) < v do
-        max := !max + !step;
-        step := !step * 2
-      done;
-      if !max >= len then max := len - 1
-    end else if v' > v then begin
-      if !min > 0 then begin
-        decr min;
-        max := !min
-      end;
-      while !min > 0 && Int64.to_int (Obj.magic (data + !min * size64)) > v do
-        min := !min - !step;
-        step := !step * 2
-      done;
-      if !min < 0 then min := 0
-    end;
-    unsafe_move t (
-      if !max > !min then seek_int t pos ~min:!min ~max:!max v else !max)
-
-  let seek_int64 t pos ~min ~max v =
-    let mid = ref min in
-    let min = ref min in
-    let max = ref max in
-    let data = t.mem.Mem.data + (pos - 1) * 4 in
-    let v' = ref 0L in
-    while !max > !min + 1 do
-      mid := (!min + !max) asr 1;
-      v' := Obj.magic (data + !mid * size64);
-      if !v' < v then
-        min := !mid
-      else
-        max := !mid
-    done;
-    let v' = Obj.magic (data + !min * size64) in
-    if v' >= v then !min else !max
-
-  let seek_int64 t pos v =
-    let data = t.mem.Mem.data in
-    let len = t.mem.Mem.dim / size64 in
-    let size64 = size64 in
-    let i = (t.ptr - data) / size64 in
-    let v' = Obj.magic (data + pos * size64) in
-    let min = ref i in
-    let max = ref i in
-    let step = ref 1 in
-    if v' < v then begin
-      if !max < len - 1 then begin
-        incr min;
-        max := !min
-      end;
-      while !max < len && Obj.magic (data + !max * size64) < v do
-        max := !max + !step;
-        step := !step * 2
-      done;
-      if !max >= len then max := len - 1
-    end else if v' > v then begin
-      if !min > 0 then begin
-        decr min;
-        max := !min
-      end;
-      while !min > 0 && Obj.magic (data + !min * size64) > v do
-        min := !min - !step;
-        step := !step * 2
-      done;
-      if !min < 0 then min := 0
-    end;
-    unsafe_move t (
-      if !max > !min then seek_int64 t pos ~min:!min ~max:!max v else !max)
-
   module Array = struct
     type e = t
     type t = Mem.t
@@ -346,7 +367,8 @@ module Make(S : S) = struct
 
     let unsafe_get t i =
       let data = t.Mem.data in
-      { ptr = data + i * size64; mem = t; begin_ = data; end_ = data + t.Mem.dim }
+      { ptr = data + i * size64; mem = t; begin_ = data; end_ = data + t.Mem.dim;
+        len = -1; i }
 
     let init len f =
       let t = create len in
@@ -363,7 +385,7 @@ module Make(S : S) = struct
       let data = t.Mem.data in
       if i < 0 || ptr > data + t.Mem.dim then
         raise (Invalid_argument "index out of bounds");
-      { ptr; mem = t; begin_ = data; end_ = data + t.Mem.dim }
+      { ptr; mem = t; begin_ = data; end_ = data + t.Mem.dim; len = -1; i }
 
     let unsafe_blit t t' = Array2.blit (Obj.magic t) (Obj.magic t')
 

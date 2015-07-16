@@ -32,6 +32,8 @@ module Ptr : sig
     mem         : Mem.t;
     begin_      : int;
     end_        : int;
+    mutable len : int;
+    mutable i   : int;
   }
 
   val unsafe_next : _ -> int -> unit
@@ -49,6 +51,10 @@ module Ptr : sig
   val set_int64   : _ -> int -> int64 -> unit
   val get_string  : _ -> int -> int -> string
   val set_string  : _ -> int -> int -> string -> unit
+
+  val seek_int     : _ -> int -> int -> int   -> unit
+  val seek_int64   : _ -> int -> int -> int64 -> unit
+  val seek_float64 : _ -> int -> int -> float -> unit
 end
 
 module type S = sig
@@ -73,10 +79,6 @@ module Make(S : S) : sig
   val prev        : t -> unit
   val unsafe_move : t -> int -> unit
   val move        : t -> int -> unit
-
-  val seek_int     : t -> int -> int   -> unit
-  val seek_int64   : t -> int -> int64 -> unit
-  val seek_float64 : t -> int -> float -> unit
 
   module Array : sig
     type e = t

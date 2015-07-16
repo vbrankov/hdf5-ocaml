@@ -4,14 +4,14 @@ module A = Array
 
 module Particle = struct
   [%h5struct
-    pressure    "Pressure"    Float64;
+    pressure    "Pressure"    Float64 Seek;
     lati        "Latitude"    Float64;
     longi       "Longitude"   Float64;
     temperature "Temperature" Float64]
 end
 
 let bench s loops f =
-  let nreps = 100 in
+  let nreps = 1000 in
   let t0 = Unix.gettimeofday () in
   for i = 1 to nreps do
     let _ = f () in ()
@@ -116,6 +116,44 @@ let () =
     let temperature = ref 0. in
     for i = 0 to len - 2 do
       Particle.move e i;
+      lati        := !lati        +. Particle.lati        e;
+      longi       := !longi       +. Particle.longi       e;
+      pressure    := !pressure    +. Particle.pressure    e;
+      temperature := !temperature +. Particle.temperature e
+    done;
+    !lati +. !longi +. !pressure +. !temperature);
+  bench "seek sequential" len (fun () ->
+    let a = a in
+    let e = Particle.Array.get a 0 in
+    let lati        = ref 0. in
+    let longi       = ref 0. in
+    let pressure    = ref 0. in
+    let temperature = ref 0. in
+    for i = 0 to len - 2 do
+      Particle.seek_pressure e (float_of_int i);
+      lati        := !lati        +. Particle.lati        e;
+      longi       := !longi       +. Particle.longi       e;
+      pressure    := !pressure    +. Particle.pressure    e;
+      temperature := !temperature +. Particle.temperature e
+    done;
+    !lati +. !longi +. !pressure +. !temperature);
+  let random = Array.init len float_of_int in
+  for i = 0 to len - 2 do
+    let j = i + Random.int (len - i) in
+    let random_i = random.(i) in
+    random.(i) <- random.(j);
+    random.(j) <- random_i
+  done;
+  bench "seek random" len (fun () ->
+    let random = random in
+    let a = a in
+    let e = Particle.Array.get a 0 in
+    let lati        = ref 0. in
+    let longi       = ref 0. in
+    let pressure    = ref 0. in
+    let temperature = ref 0. in
+    for i = 0 to len - 2 do
+      Particle.seek_pressure e (Array.unsafe_get random i);
       lati        := !lati        +. Particle.lati        e;
       longi       := !longi       +. Particle.longi       e;
       pressure    := !pressure    +. Particle.pressure    e;

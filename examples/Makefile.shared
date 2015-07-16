@@ -11,7 +11,10 @@ TARGETS=$(SRC:.ml=.exe)
 
 all: $(TARGETS)
 
-.ml.exe: ../../lib/raw/hdf5_raw.cmxa ../../lib/caml/hdf5_caml.cmxa
+%.exe: %.ml \
+       ../../lib/raw/hdf5_raw.cmxa \
+       ../../lib/caml/hdf5_caml.cmxa \
+       ../../lib/ppx/ppx_h5struct.ml
 	$(CAMLOPT) $(LINKFLAGS) -o $@ $<
 
 clean::
