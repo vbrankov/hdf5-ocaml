@@ -76,6 +76,47 @@ module Ptr = struct
     if i < 0 || ptr > t.end_
     then raise (Invalid_argument "index out of bounds")
     else t.ptr <- ptr
+
+  open Bigarray
+
+  let get_float64 t i   = Array.unsafe_get (Obj.magic (Obj.magic t).ptr : float array) i
+  let set_float64 t i v = Array.unsafe_set (Obj.magic (Obj.magic t).ptr : float array) i v
+  let get_int t i =
+    Int64.to_int (Obj.magic (Obj.magic (Obj.magic t).ptr - (i - 1) * 4) : int64)
+  let set_int t i v =
+    let a : (int64, int64_elt, c_layout) Array1.t = Obj.magic (Obj.magic t - 4) in
+    Array1.unsafe_set a i (Int64.of_int v)
+  let get_int64 t i =
+    let a : (int64, int64_elt, c_layout) Array1.t = Obj.magic (Obj.magic t - 4) in
+    Array1.unsafe_get a i
+  let set_int64 t i v =
+    let a : (int64, int64_elt, c_layout) Array1.t = Obj.magic (Obj.magic t - 4) in
+    Array1.unsafe_set a i v
+
+  external unsafe_fill : bytes -> int -> int -> char -> unit
+                       = "caml_fill_string" "noalloc"
+  external unsafe_blit_string : string -> int -> bytes -> int -> int -> unit
+                       = "caml_blit_string" "noalloc"
+
+  let get_string =
+    let rec index ptr c pos l len =
+      if l >= len then len
+      else if String.unsafe_get ptr pos = c then l
+      else index ptr c (pos + 1) (l + 1) len
+    in
+    fun t pos len ->
+      let t = Obj.magic t in
+      let len = index (Obj.magic t.ptr) '\000' pos 0 len in
+      let s = Bytes.create len in
+      unsafe_blit_string (Obj.magic t.ptr) pos s 0 len;
+      s
+
+  let set_string t pos len v =
+    let t = Obj.magic t in
+    let vlen = String.length v in
+    let mlen = if len < vlen then len else vlen in
+    unsafe_blit_string v 0 (Obj.magic t.ptr) pos mlen;
+    unsafe_fill (Obj.magic t.ptr) (pos + mlen) (len - mlen) '\000'
 end
 
 module Make(S : S) = struct
@@ -112,135 +153,7 @@ module Make(S : S) = struct
 
   include Ptr
 
-  external unsafe_fill : bytes -> int -> int -> char -> unit
-                       = "caml_fill_string" "noalloc"
-  external unsafe_blit_string : string -> int -> bytes -> int -> int -> unit
-                       = "caml_blit_string" "noalloc"
-
-  let get_string =
-    let rec index ptr c pos l len =
-      if l >= len then len
-      else if String.unsafe_get ptr pos = c then l
-      else index ptr c (pos + 1) (l + 1) len
-    in
-    fun t pos len ->
-      let len = index (Obj.magic t.ptr) '\000' pos 0 len in
-      let s = Bytes.create len in
-      unsafe_blit_string (Obj.magic t.ptr) pos s 0 len;
-      s
-  let set_string t pos len v =
-    let vlen = String.length v in
-    let mlen = if len < vlen then len else vlen in
-    unsafe_blit_string v 0 (Obj.magic t.ptr) pos mlen;
-    unsafe_fill (Obj.magic t.ptr) (pos + mlen) (len - mlen) '\000'
-
   open Bigarray
-
-  let get_int_0  t   = Int64.to_int (Obj.magic (t.ptr -  4) : int64)
-  let get_int_1  t   = Int64.to_int (Obj.magic (t.ptr +  0) : int64)
-  let get_int_2  t   = Int64.to_int (Obj.magic (t.ptr +  4) : int64)
-  let get_int_3  t   = Int64.to_int (Obj.magic (t.ptr +  8) : int64)
-  let get_int_4  t   = Int64.to_int (Obj.magic (t.ptr + 12) : int64)
-  let get_int_5  t   = Int64.to_int (Obj.magic (t.ptr + 16) : int64)
-  let get_int_6  t   = Int64.to_int (Obj.magic (t.ptr + 20) : int64)
-  let get_int_7  t   = Int64.to_int (Obj.magic (t.ptr + 24) : int64)
-  let get_int_8  t   = Int64.to_int (Obj.magic (t.ptr + 28) : int64)
-  let get_int_9  t   = Int64.to_int (Obj.magic (t.ptr + 32) : int64)
-  let get_int_10 t   = Int64.to_int (Obj.magic (t.ptr + 36) : int64)
-  let get_int_11 t   = Int64.to_int (Obj.magic (t.ptr + 40) : int64)
-  let get_int_12 t   = Int64.to_int (Obj.magic (t.ptr + 44) : int64)
-  let get_int_13 t   = Int64.to_int (Obj.magic (t.ptr + 48) : int64)
-  let get_int_14 t   = Int64.to_int (Obj.magic (t.ptr + 52) : int64)
-  let get_int_15 t   = Int64.to_int (Obj.magic (t.ptr + 56) : int64)
-  let set_int_0  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  0 (Int64.of_int v)
-  let set_int_1  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  1 (Int64.of_int v)
-  let set_int_2  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  2 (Int64.of_int v)
-  let set_int_3  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  3 (Int64.of_int v)
-  let set_int_4  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  4 (Int64.of_int v)
-  let set_int_5  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  5 (Int64.of_int v)
-  let set_int_6  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  6 (Int64.of_int v)
-  let set_int_7  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  7 (Int64.of_int v)
-  let set_int_8  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  8 (Int64.of_int v)
-  let set_int_9  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  9 (Int64.of_int v)
-  let set_int_10 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 10 (Int64.of_int v)
-  let set_int_11 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 11 (Int64.of_int v)
-  let set_int_12 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 12 (Int64.of_int v)
-  let set_int_13 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 13 (Int64.of_int v)
-  let set_int_14 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 14 (Int64.of_int v)
-  let set_int_15 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 15 (Int64.of_int v)
-
-  let get_int64_0  t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 0
-  let get_int64_1  t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 1
-  let get_int64_2  t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 2
-  let get_int64_3  t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 3
-  let get_int64_4  t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 4
-  let get_int64_5  t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 5
-  let get_int64_6  t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 6
-  let get_int64_7  t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 7
-  let get_int64_8  t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 8
-  let get_int64_9  t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 9
-  let get_int64_10 t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 10
-  let get_int64_11 t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 11
-  let get_int64_12 t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 12
-  let get_int64_13 t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 13
-  let get_int64_14 t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 14
-  let get_int64_15 t = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 15
-  let set_int64_0  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  0 v
-  let set_int64_1  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  1 v
-  let set_int64_2  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  2 v
-  let set_int64_3  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  3 v
-  let set_int64_4  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  4 v
-  let set_int64_5  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  5 v
-  let set_int64_6  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  6 v
-  let set_int64_7  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  7 v
-  let set_int64_8  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  8 v
-  let set_int64_9  t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t)  9 v
-  let set_int64_10 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 10 v
-  let set_int64_11 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 11 v
-  let set_int64_12 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 12 v
-  let set_int64_13 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 13 v
-  let set_int64_14 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 14 v
-  let set_int64_15 t v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) 15 v
-
-  let get_float64_0  t   = Array.unsafe_get (Obj.magic t.ptr : float array)  0
-  let get_float64_1  t   = Array.unsafe_get (Obj.magic t.ptr : float array)  1
-  let get_float64_2  t   = Array.unsafe_get (Obj.magic t.ptr : float array)  2
-  let get_float64_3  t   = Array.unsafe_get (Obj.magic t.ptr : float array)  3
-  let get_float64_4  t   = Array.unsafe_get (Obj.magic t.ptr : float array)  4
-  let get_float64_5  t   = Array.unsafe_get (Obj.magic t.ptr : float array)  5
-  let get_float64_6  t   = Array.unsafe_get (Obj.magic t.ptr : float array)  6
-  let get_float64_7  t   = Array.unsafe_get (Obj.magic t.ptr : float array)  7
-  let get_float64_8  t   = Array.unsafe_get (Obj.magic t.ptr : float array)  8
-  let get_float64_9  t   = Array.unsafe_get (Obj.magic t.ptr : float array)  9
-  let get_float64_10 t   = Array.unsafe_get (Obj.magic t.ptr : float array) 10
-  let get_float64_11 t   = Array.unsafe_get (Obj.magic t.ptr : float array) 11
-  let get_float64_12 t   = Array.unsafe_get (Obj.magic t.ptr : float array) 12
-  let get_float64_13 t   = Array.unsafe_get (Obj.magic t.ptr : float array) 13
-  let get_float64_14 t   = Array.unsafe_get (Obj.magic t.ptr : float array) 14
-  let get_float64_15 t   = Array.unsafe_get (Obj.magic t.ptr : float array) 15
-  let set_float64_0  t v = Array.unsafe_set (Obj.magic t.ptr : float array)  0 v
-  let set_float64_1  t v = Array.unsafe_set (Obj.magic t.ptr : float array)  1 v
-  let set_float64_2  t v = Array.unsafe_set (Obj.magic t.ptr : float array)  2 v
-  let set_float64_3  t v = Array.unsafe_set (Obj.magic t.ptr : float array)  3 v
-  let set_float64_4  t v = Array.unsafe_set (Obj.magic t.ptr : float array)  4 v
-  let set_float64_5  t v = Array.unsafe_set (Obj.magic t.ptr : float array)  5 v
-  let set_float64_6  t v = Array.unsafe_set (Obj.magic t.ptr : float array)  6 v
-  let set_float64_7  t v = Array.unsafe_set (Obj.magic t.ptr : float array)  7 v
-  let set_float64_8  t v = Array.unsafe_set (Obj.magic t.ptr : float array)  8 v
-  let set_float64_9  t v = Array.unsafe_set (Obj.magic t.ptr : float array)  9 v
-  let set_float64_10 t v = Array.unsafe_set (Obj.magic t.ptr : float array) 10 v
-  let set_float64_11 t v = Array.unsafe_set (Obj.magic t.ptr : float array) 11 v
-  let set_float64_12 t v = Array.unsafe_set (Obj.magic t.ptr : float array) 12 v
-  let set_float64_13 t v = Array.unsafe_set (Obj.magic t.ptr : float array) 13 v
-  let set_float64_14 t v = Array.unsafe_set (Obj.magic t.ptr : float array) 14 v
-  let set_float64_15 t v = Array.unsafe_set (Obj.magic t.ptr : float array) 15 v
-
-  let get_int t i   = Int64.to_int (Obj.magic (t.ptr - (i - 1) * 4) : int64)
-  let set_int t i v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) i (Int64.of_int v)
-  let get_int64 t i   = Array1.unsafe_get (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) i
-  let set_int64 t i v = Array1.unsafe_set (Obj.magic (Obj.magic t - 4) : (int64, int64_elt, c_layout) Array1.t) i v
-  let get_float64 t i   = Array.unsafe_get (Obj.magic t.ptr : float array) i
-  let set_float64 t i v = Array.unsafe_set (Obj.magic t.ptr : float array) i v
 
   let unsafe_next t =
     let ptr = t.ptr + size64 in

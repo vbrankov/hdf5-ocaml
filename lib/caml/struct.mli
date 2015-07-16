@@ -40,6 +40,15 @@ module Ptr : sig
   val next : _ -> int -> unit
   val prev : _ -> int -> unit
   val move : _ -> int -> int -> unit
+
+  val get_float64 : _ -> int -> float
+  val set_float64 : _ -> int -> float -> unit
+  val get_int     : _ -> int -> int
+  val set_int     : _ -> int -> int -> unit
+  val get_int64   : _ -> int -> int64
+  val set_int64   : _ -> int -> int64 -> unit
+  val get_string  : _ -> int -> int -> string
+  val set_string  : _ -> int -> int -> string -> unit
 end
 
 module type S = sig
@@ -55,114 +64,6 @@ module Make(S : S) : sig
   val field_sizes : int array
   
   type t
-
-  val get_string : t -> int -> int -> string
-  val set_string : t -> int -> int -> string -> unit
-  
-  val get_int : t -> int -> int
-  val set_int : t -> int -> int -> unit
-  val get_int_0  : t -> int
-  val get_int_1  : t -> int
-  val get_int_2  : t -> int
-  val get_int_3  : t -> int
-  val get_int_4  : t -> int
-  val get_int_5  : t -> int
-  val get_int_6  : t -> int
-  val get_int_7  : t -> int
-  val get_int_8  : t -> int
-  val get_int_9  : t -> int
-  val get_int_10 : t -> int
-  val get_int_11 : t -> int
-  val get_int_12 : t -> int
-  val get_int_13 : t -> int
-  val get_int_14 : t -> int
-  val get_int_15 : t -> int
-  val set_int_0  : t -> int -> unit
-  val set_int_1  : t -> int -> unit
-  val set_int_2  : t -> int -> unit
-  val set_int_3  : t -> int -> unit
-  val set_int_4  : t -> int -> unit
-  val set_int_5  : t -> int -> unit
-  val set_int_6  : t -> int -> unit
-  val set_int_7  : t -> int -> unit
-  val set_int_8  : t -> int -> unit
-  val set_int_9  : t -> int -> unit
-  val set_int_10 : t -> int -> unit
-  val set_int_11 : t -> int -> unit
-  val set_int_12 : t -> int -> unit
-  val set_int_13 : t -> int -> unit
-  val set_int_14 : t -> int -> unit
-  val set_int_15 : t -> int -> unit
-
-  val get_int64 : t -> int -> int64
-  val set_int64 : t -> int -> int64 -> unit
-  val get_int64_0  : t -> int64
-  val get_int64_1  : t -> int64
-  val get_int64_2  : t -> int64
-  val get_int64_3  : t -> int64
-  val get_int64_4  : t -> int64
-  val get_int64_5  : t -> int64
-  val get_int64_6  : t -> int64
-  val get_int64_7  : t -> int64
-  val get_int64_8  : t -> int64
-  val get_int64_9  : t -> int64
-  val get_int64_10 : t -> int64
-  val get_int64_11 : t -> int64
-  val get_int64_12 : t -> int64
-  val get_int64_13 : t -> int64
-  val get_int64_14 : t -> int64
-  val get_int64_15 : t -> int64
-  val set_int64_0  : t -> int64 -> unit
-  val set_int64_1  : t -> int64 -> unit
-  val set_int64_2  : t -> int64 -> unit
-  val set_int64_3  : t -> int64 -> unit
-  val set_int64_4  : t -> int64 -> unit
-  val set_int64_5  : t -> int64 -> unit
-  val set_int64_6  : t -> int64 -> unit
-  val set_int64_7  : t -> int64 -> unit
-  val set_int64_8  : t -> int64 -> unit
-  val set_int64_9  : t -> int64 -> unit
-  val set_int64_10 : t -> int64 -> unit
-  val set_int64_11 : t -> int64 -> unit
-  val set_int64_12 : t -> int64 -> unit
-  val set_int64_13 : t -> int64 -> unit
-  val set_int64_14 : t -> int64 -> unit
-  val set_int64_15 : t -> int64 -> unit
-
-  val get_float64 : t -> int -> float
-  val set_float64 : t -> int -> float -> unit
-  val get_float64_0  : t -> float
-  val get_float64_1  : t -> float
-  val get_float64_2  : t -> float
-  val get_float64_3  : t -> float
-  val get_float64_4  : t -> float
-  val get_float64_5  : t -> float
-  val get_float64_6  : t -> float
-  val get_float64_7  : t -> float
-  val get_float64_8  : t -> float
-  val get_float64_9  : t -> float
-  val get_float64_10 : t -> float
-  val get_float64_11 : t -> float
-  val get_float64_12 : t -> float
-  val get_float64_13 : t -> float
-  val get_float64_14 : t -> float
-  val get_float64_15 : t -> float
-  val set_float64_0  : t -> float -> unit
-  val set_float64_1  : t -> float -> unit
-  val set_float64_2  : t -> float -> unit
-  val set_float64_3  : t -> float -> unit
-  val set_float64_4  : t -> float -> unit
-  val set_float64_5  : t -> float -> unit
-  val set_float64_6  : t -> float -> unit
-  val set_float64_7  : t -> float -> unit
-  val set_float64_8  : t -> float -> unit
-  val set_float64_9  : t -> float -> unit
-  val set_float64_10 : t -> float -> unit
-  val set_float64_11 : t -> float -> unit
-  val set_float64_12 : t -> float -> unit
-  val set_float64_13 : t -> float -> unit
-  val set_float64_14 : t -> float -> unit
-  val set_float64_15 : t -> float -> unit
 
   val create : unit -> t
 

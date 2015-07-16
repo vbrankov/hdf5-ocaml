@@ -1,2 +1,2 @@
-DIRS=raw caml
+DIRS=raw caml ppx
 include ../Makefile.shared

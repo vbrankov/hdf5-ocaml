@@ -104,91 +104,87 @@ let rec extract_fields expression =
 
 let rec construct_fields_list fields loc =
   match fields with
-  | [] -> Exp.construct ~loc { txt = Longident.parse "[]"; loc } None;
+  | [] -> Exp.construct ~loc { txt = Longident.Lident "[]"; loc } None;
   | field :: fields ->
-    Exp.construct ~loc { txt = Longident.parse "::"; loc } (Some (
+    Exp.construct ~loc { txt = Longident.Lident "::"; loc } (Some (
       Exp.tuple ~loc [
         Exp.apply ~loc
-          (Exp.ident { txt = Longident.parse "Hdf5_caml.Struct.Field.create"; loc })
+          (Exp.ident { txt = Longident.(
+            Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Field"), "create")); loc })
           [ Nolabel, Exp.constant ~loc (Const_string (field.Field.name, None));
             Nolabel,
             Exp.construct ~loc
-              { txt = Longident.parse ("Hdf5_caml.Struct.Type." ^ (
-                  match field.Field.type_ with
-                  | Type.Float64  -> "Float64"
-                  | Type.Int      -> "Int"
-                  | Type.Int64    -> "Int64"
-                  | Type.String _ -> "String" ));
-                loc }
+              { loc; txt = Longident.(
+                  Ldot (
+                    Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Type"),
+                    Type.to_string field.Field.type_)) }
               ( match field.Field.type_ with
                 | Type.String length -> Some (Exp.constant ~loc (Const_int length))
                 | _ -> None ) ];
         construct_fields_list fields loc ]))
 
-let construct_field_get field pos loc =
+let construct_function ~loc name args body =
+  let rec construct_args = function
+  | [] -> body
+  | arg :: args ->
+    Exp.fun_ ~loc Nolabel None (Pat.var ~loc { txt = arg; loc }) (construct_args args)
+  in
   Str.value ~loc Nonrecursive [
-    Vb.mk ~loc 
-      (Pat.var ~loc { txt = field.Field.id; loc })
-      (Exp.fun_ ~loc Nolabel None
-        (Pat.var ~loc { txt = "t"; loc })
-        (Exp.apply ~loc
-          (Exp.ident ~loc { loc; txt = Longident.parse (
-            let pos = string_of_int pos in
-            match field.Field.type_ with
-            | Type.Float64  -> "get_float64_" ^ pos
-            | Type.Int      -> "get_int_" ^ pos
-            | Type.Int64    -> "get_int64_" ^ pos
-            | Type.String _ -> "get_string" ) })
-          ([ Nolabel, Exp.ident ~loc { txt = Longident.parse "t"; loc } ] @
-           ( match field.Field.type_ with
-             | Type.String length ->
-               [ Nolabel, Exp.constant ~loc (Const_int (pos * 8));
-                 Nolabel, Exp.constant ~loc (Const_int length) ]
-             | _ -> [] ))))]
+    Vb.mk ~loc
+      (Pat.var ~loc { txt = name; loc }) (construct_args args) ]
+
+let construct_function_call ~loc name args =
+  Exp.apply ~loc
+    (Exp.ident ~loc { txt = name; loc })
+    (List.map (fun arg ->
+      Nolabel,
+      match arg with
+      | `Int i -> Exp.constant ~loc (Const_int i)
+      | `Var v -> Exp.ident ~loc { txt = Longident.Lident v; loc }) args)
+
+let construct_field_get field pos loc =
+  construct_function ~loc field.Field.id [ "t" ]
+    (construct_function_call ~loc
+      Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
+        ( match field.Field.type_ with
+          | Type.Float64  -> "get_float64"
+          | Type.Int      -> "get_int"
+          | Type.Int64    -> "get_int64"
+          | Type.String _ -> "get_string" )))
+      (   [ `Var "t" ]
+        @ ( match field.Field.type_ with
+            | Type.Float64
+            | Type.Int
+            | Type.Int64 -> [ `Int pos ]
+            | Type.String length -> [ `Int (pos * 8); `Int length ] ) ))
 
 let construct_field_set field pos loc =
-  Str.value ~loc Nonrecursive [
-    Vb.mk ~loc
-      (Pat.var ~loc { txt = "set_" ^ field.Field.id; loc })
-      (Exp.fun_ ~loc Nolabel None
-        (Pat.var ~loc { txt = "t"; loc })
-        (Exp.fun_ ~loc Nolabel None
-          (Pat.var ~loc { txt = "v"; loc })
-          (Exp.apply ~loc
-            (Exp.ident ~loc { loc; txt = Longident.parse (
-              let pos = string_of_int pos in
-              match field.Field.type_ with
-              | Type.Float64  -> "set_float64_" ^ pos
-              | Type.Int      -> "set_int_" ^ pos
-              | Type.Int64    -> "set_int64_" ^ pos
-              | Type.String _ -> "set_string" ) })
-            ( [ Nolabel, Exp.ident ~loc { txt = Longident.parse "t"; loc } ]
-              @ (
-                match field.Field.type_ with
-                | Type.String length ->
-                  [ Nolabel, Exp.constant ~loc (Const_int (pos * 8));
-                    Nolabel, Exp.constant ~loc (Const_int length) ]
-                | _ -> [])
-              @ [ Nolabel, Exp.ident ~loc { txt = Longident.parse "v"; loc } ] ))))]
+  construct_function ~loc ("set_" ^ field.Field.id) [ "t"; "v" ]
+    (construct_function_call ~loc
+      Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
+        ( match field.Field.type_ with
+          | Type.Float64  -> "set_float64"
+          | Type.Int      -> "set_int"
+          | Type.Int64    -> "set_int64"
+          | Type.String _ -> "set_string" )))
+      (   [ `Var "t" ]
+        @ ( match field.Field.type_ with
+            | Type.Float64
+            | Type.Int
+            | Type.Int64 -> [ `Int pos ]
+            | Type.String length -> [ `Int (pos * 8); `Int length ] )
+        @ [ `Var "v" ] ))
 
 let construct_field_seek field pos loc =
-  Str.value ~loc Nonrecursive [
-    Vb.mk ~loc
-      (Pat.var ~loc { txt = "seek_" ^ field.Field.id; loc })
-      (Exp.fun_ ~loc Nolabel None
-        (Pat.var ~loc { txt = "t"; loc })
-        (Exp.fun_ ~loc Nolabel None
-          (Pat.var ~loc { txt = "v"; loc })
-          (Exp.apply ~loc
-            (Exp.ident ~loc { loc; txt = Longident.parse (
-              match field.Field.type_ with
-              | Type.Float64  -> "seek_float64"
-              | Type.Int      -> "seek_int"
-              | Type.Int64    -> "seek_int64"
-              | Type.String _ -> invalid_arg "String seek not supported") })
-            [ Nolabel, Exp.ident ~loc { txt = Longident.parse "t"; loc };
-              Nolabel, Exp.constant ~loc (Const_int pos);
-              Nolabel, Exp.ident ~loc { txt = Longident.parse "v"; loc } ])))]
+  construct_function ~loc ("seek_" ^ field.Field.id) [ "t"; "v" ]
+    (construct_function_call ~loc
+      Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
+        ( match field.Field.type_ with
+          | Type.Float64  -> "seek_float64"
+          | Type.Int      -> "seek_int"
+          | Type.Int64    -> "seek_int64"
+          | Type.String _ -> "seek_string" )))
+      [ `Var "v"; `Int pos; `Var "v" ])
 
 let construct_set_all_fields fields loc =
   let rec construct_sets = function
@@ -196,9 +192,9 @@ let construct_set_all_fields fields loc =
   | field :: fields ->
     let set =
       Exp.apply ~loc
-        (Exp.ident ~loc { txt = Longident.parse ("set_" ^ field.Field.id); loc })
-        [ Nolabel, Exp.ident ~loc { txt = Longident.parse "t"; loc };
-          Nolabel, Exp.ident ~loc { txt = Longident.parse field.Field.id; loc } ] in
+        (Exp.ident ~loc { txt = Longident.Lident ("set_" ^ field.Field.id); loc })
+        [ Nolabel, Exp.ident ~loc { txt = Longident.Lident "t"; loc };
+          Nolabel, Exp.ident ~loc { txt = Longident.Lident field.Field.id; loc } ] in
     match fields with
     | [] -> set
     | _ -> Exp.sequence ~loc set (construct_sets fields)
@@ -219,13 +215,15 @@ let construct_size_dependent_fun name ~bsize ~index loc =
   let call =
     Exp.apply ~loc
       (Exp.ident ~loc
-        { txt = Longident.parse ("Hdf5_caml.Struct.Ptr." ^ name); loc })
+        { loc; txt =
+            Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"), name)) })
       ( [ Nolabel,
-            Exp.apply ~loc (Exp.ident ~loc { txt = Longident.parse "Obj.magic"; loc })
-              [ Nolabel, Exp.ident ~loc { txt = Longident.parse "t"; loc } ]]
+            Exp.apply ~loc
+              (Exp.ident ~loc { txt = Longident.(Ldot (Lident "Obj", "magic")); loc })
+              [ Nolabel, Exp.ident ~loc { txt = Longident.Lident "t"; loc } ]]
         @ (
           if index
-          then [ Nolabel, Exp.ident ~loc { txt = Longident.parse "i"; loc } ]
+          then [ Nolabel, Exp.ident ~loc { txt = Longident.Lident "i"; loc } ]
           else [])
         @ [ Nolabel, Exp.constant ~loc (Const_int (bsize / 2)) ])
   in
@@ -234,7 +232,7 @@ let construct_size_dependent_fun name ~bsize ~index loc =
       (Exp.fun_ ~loc Nolabel None
         (Pat.constraint_ ~loc
           (Pat.var ~loc { txt = "t"; loc })
-          (Typ.constr ~loc { txt = Longident.parse "t"; loc } []))
+          (Typ.constr ~loc { txt = Longident.Lident "t"; loc } []))
         ( if index
           then Exp.fun_ ~loc Nolabel None (Pat.var ~loc { txt = "i"; loc }) call
           else call )) ]
@@ -257,7 +255,8 @@ let rec map_structure mapper = function
     Str.include_ ~loc (
       Incl.mk ~loc
         (Mod.apply ~loc
-          (Mod.ident ~loc { txt = Longident.parse "Hdf5_caml.Struct.Make"; loc })
+          (Mod.ident ~loc { loc; txt = Longident.(
+            Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Make")) })
           (Mod.structure ~loc [
             Str.value ~loc Nonrecursive [
               Vb.mk ~loc (Pat.var ~loc { txt = "fields"; loc })
