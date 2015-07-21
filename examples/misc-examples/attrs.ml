@@ -121,7 +121,7 @@ let () =
   let dataset = H5d.open_ file "Dataset" in
 
   Printf.printf "\nAttributes for 'Dataset' are:\n";
-  H5a.iterate dataset attr_info ();
+  let _ = H5a.iterate dataset attr_info () in
 
   H5d.close dataset;
   H5f.close file

@@ -93,10 +93,17 @@ module Make(S : S) : sig
     val iter : t -> f:(e -> unit) -> unit
     val iteri : t -> f:(int -> e -> unit) -> unit
 
+    (** Creates and writes a table. *)
     val make_table : t -> ?title:string -> ?chunk_size:int -> ?compress:bool -> H5.t
       -> string -> unit
+    (** Adds records to the end of the table. *)
     val append_records : t -> H5.t -> string -> unit
+    (** Ovewrites records. *)
+    val write_records : t -> H5.t -> start:int -> string -> unit
+    (** Reads a table. *)
     val read_table : H5.t -> string -> t
+    (** Reads records. *)
+    val read_records : H5.t -> start:int -> nrecords:int -> string -> t
   end
 
   val mem : t -> Array.t
@@ -110,6 +117,7 @@ module Make(S : S) : sig
     val append : t -> e
     val unsafe_get : t -> int -> e
     val iter : t -> f:(e -> unit) -> unit
+    val of_array : Array.t -> t
     val to_array : t -> Array.t
   end
 end

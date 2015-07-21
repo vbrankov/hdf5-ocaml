@@ -15,6 +15,9 @@ let create_trunc name =
 let open_rdonly name =
   File (H5f.open_ name H5f.Acc.([ RDONLY ]))
 
+let open_rdwr name =
+  File (H5f.open_ name H5f.Acc.([ RDWR ]))
+
 let open_dir t name =
   let t = hid t in
   Group (if name = "." || H5l.exists t name then H5g.open_ t name else H5g.create t name)

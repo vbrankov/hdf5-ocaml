@@ -2,10 +2,12 @@
 
 size_t unsigned_int_array_val(value, unsigned int**);
 size_t size_t_array_val(value, size_t**);
+value val_size_t_array(size_t, size_t*);
 size_t hsize_t_array_val(value, hsize_t**);
 size_t hsize_t_array_opt_val(value, hsize_t**);
 value val_hsize_t_array(size_t, hsize_t*);
 size_t string_array_val(value, char***);
+value val_string_array(size_t, const char**);
 H5_iter_order_t H5_iter_order_val(value);
 H5_iter_order_t H5_iter_order_opt_val(value);
 value Val_h5_iter_order(H5_iter_order_t);

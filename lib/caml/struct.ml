@@ -400,11 +400,22 @@ module Make(S : S) = struct
       H5tb.append_records (H5.hid h5) dset_name ~nrecords:(t.Mem.dim / size64)
         ~type_size:size ~field_offset ~field_sizes t
 
+    let write_records t h5 ~start dset_name =
+      H5tb.write_records (H5.hid h5) dset_name ~start ~nrecords:(t.Mem.dim / size64)
+        ~type_size:size ~field_offset ~field_sizes t
+
     let read_table h5 table_name =
       let loc = H5.hid h5 in
       let nrecords = H5tb.get_table_info loc table_name in
       let t = make nrecords in
       H5tb.read_table loc table_name ~dst_size:size ~dst_offset:field_offset
+        ~dst_sizes:field_sizes t;
+      t
+
+    let read_records h5 ~start ~nrecords table_name =
+      let loc = H5.hid h5 in
+      let t = make nrecords in
+      H5tb.read_records loc table_name ~start ~nrecords ~type_size:size ~field_offset
         ~dst_sizes:field_sizes t;
       t
 
@@ -472,6 +483,10 @@ module Make(S : S) = struct
         unsafe_next ptr
       done;
       unsafe_move ptr t.length
+
+    let of_array a =
+      let len = Array.length a in
+      { mem = a; capacity = len; length = len; end_ = Array.unsafe_get a (len - 1) }
 
     let to_array t =
       let mem = Array.make t.length in

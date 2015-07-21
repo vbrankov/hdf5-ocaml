@@ -10,6 +10,9 @@ val create_trunc : string -> t
 (** Opens the named file for reading and returns the root directory. *)
 val open_rdonly : string -> t
 
+(** Opens the named file for reading and writing and returns the root directory. *)
+val open_rdwr : string -> t
+
 (** Opens the named subdirectory.  The subdirectory is created if it does not already
     exists. *)
 val open_dir : t -> string -> t

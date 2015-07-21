@@ -41,6 +41,18 @@ size_t size_t_array_val(value v, size_t **a)
   return length;
 }
 
+value val_size_t_array(size_t length, size_t *a)
+{
+  CAMLparam0();
+  CAMLlocal1(a_v);
+  size_t i;
+
+  a_v = caml_alloc_tuple(length);
+  for (i = 0; i < length; i++)
+    Field(a_v, i) = Val_int(a[i]);
+  CAMLreturn(a_v);
+}
+
 size_t hsize_t_array_val(value v, hsize_t **a)
 {
   long i, length, e;
@@ -103,6 +115,18 @@ size_t string_array_val(value v, char ***a)
     (*a)[i] = av;
   }
   return length;
+}
+
+value val_string_array(size_t length, const char **a)
+{
+  CAMLparam0();
+  CAMLlocal1(a_v);
+  size_t i;
+
+  a_v = caml_alloc_tuple(length);
+  for (i = 0; i < length; i++)
+    Store_field(a_v, i, caml_copy_string(a[i]));
+  CAMLreturn(a_v);
 }
 
 H5_iter_order_t H5_iter_order_val(value iter_order)
