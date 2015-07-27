@@ -15,14 +15,14 @@ end
 let () =
   let dst_buf = Particle.Array.make _NRECORDS in
   let p_data = Particle.Vector.create () in
-  Particle.(set (Vector.append p_data) "zero"   0  0 0.  0.);
-  Particle.(set (Vector.append p_data) "one"   10 10 1. 10.);
-  Particle.(set (Vector.append p_data) "two"   20 20 2. 20.);
-  Particle.(set (Vector.append p_data) "three" 30 30 3. 30.);
-  Particle.(set (Vector.append p_data) "four"  40 40 4. 40.);
-  Particle.(set (Vector.append p_data) "five"  50 50 5. 50.);
-  Particle.(set (Vector.append p_data) "six"   60 60 6. 60.);
-  Particle.(set (Vector.append p_data) "seven" 70 70 7. 70.);
+  Particle.(set (Vector.append p_data) ~name:"zero"  ~lati: 0 ~longi: 0 ~pressure:0. ~temperature: 0.);
+  Particle.(set (Vector.append p_data) ~name:"one"   ~lati:10 ~longi:10 ~pressure:1. ~temperature:10.);
+  Particle.(set (Vector.append p_data) ~name:"two"   ~lati:20 ~longi:20 ~pressure:2. ~temperature:20.);
+  Particle.(set (Vector.append p_data) ~name:"three" ~lati:30 ~longi:30 ~pressure:3. ~temperature:30.);
+  Particle.(set (Vector.append p_data) ~name:"four"  ~lati:40 ~longi:40 ~pressure:4. ~temperature:40.);
+  Particle.(set (Vector.append p_data) ~name:"five"  ~lati:50 ~longi:50 ~pressure:5. ~temperature:50.);
+  Particle.(set (Vector.append p_data) ~name:"six"   ~lati:60 ~longi:60 ~pressure:6. ~temperature:60.);
+  Particle.(set (Vector.append p_data) ~name:"seven" ~lati:70 ~longi:70 ~pressure:7. ~temperature:70.);
   let p_data = Particle.Vector.to_array p_data in
 
   let string_type = H5t.copy H5t.c_s1 in
@@ -43,7 +43,7 @@ let () =
     ~dst_sizes:[| 16; 8; 8; 8; 8 |]
     dst_buf;
   let p = Particle.Array.unsafe_get dst_buf 0 in
-  for i = 0 to _NRECORDS - 1 do
+  for _ = 0 to _NRECORDS - 1 do
     Printf.printf "%-5s %-5d %-5d %-5f %-5f\n%!"
       (Particle.name p) (Particle.lati p) (Particle.longi p) (Particle.pressure p)
       (Particle.temperature p);

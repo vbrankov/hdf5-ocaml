@@ -15,7 +15,7 @@ let _DATA = "records"
 
 let () =
   let data = Record.Array.init _LEN (fun i e ->
-    Record.set e (float_of_int i) i (Int64.of_int i) (string_of_int i)) in
+    Record.set e ~f64:(float_of_int i) ~i ~i64:(Int64.of_int i) ~s:(string_of_int i)) in
   let file = H5.create_trunc _FILE in
   Record.Array.make_table data file _DATA;
   H5.close file;
@@ -31,7 +31,7 @@ let () =
     assert (Record.s   e = string_of_int i));
   let new_data = Record.Array.init _LEN (fun i e ->
     let i = i + _LEN in
-    Record.set e (float_of_int i) i (Int64.of_int i) (string_of_int i)) in
+    Record.set e ~f64:(float_of_int i) ~i ~i64:(Int64.of_int i) ~s:(string_of_int i)) in
   Record.Array.append_records new_data file _DATA;
   H5.close file;
 
@@ -45,7 +45,7 @@ let () =
     assert (Record.i64 e = Int64.of_int i);
     assert (Record.s   e = string_of_int i));
   let new_data = Record.Array.init _LEN (fun i e ->
-    Record.set e (float_of_int i) i (Int64.of_int i) (string_of_int i)) in
+    Record.set e ~f64:(float_of_int i) ~i ~i64:(Int64.of_int i) ~s:(string_of_int i)) in
   Record.Array.write_records new_data file ~start:(_LEN / 2) _DATA;
   H5.close file;
 

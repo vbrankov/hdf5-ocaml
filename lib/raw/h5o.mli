@@ -55,6 +55,7 @@ module Msg_crt_idx : sig
   type t = int
 end
 
+external set_comment : Hid.t -> string -> unit = "hdf5_h5o_set_comment"
 external get_info : Hid.t -> Info.t = "hdf5_h5o_get_info"
 external get_info_by_name : Hid.t -> ?lapl:Hid.t -> string -> Info.t
   = "hdf5_h5o_get_info_by_name"

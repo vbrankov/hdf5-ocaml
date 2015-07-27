@@ -16,12 +16,12 @@ end
 let () =
   let dst_buf = Particle.Array.make _NRECORDS in
   let fill_data = Particle.create () in
-  Particle.set fill_data "no_data" (-1) (-1) (-99.0) (-99.0);
+  Particle.set fill_data ~name:"no_data" ~lati:(-1) ~longi:(-1) ~pressure:(-99.0) ~temperature:(-99.0);
   let fill_data = Particle.mem fill_data in
 
   let particle_in = Particle.Vector.create () in
-  Particle.(set (Vector.append particle_in) "zero"  0  0 0.  0.);
-  Particle.(set (Vector.append particle_in) "one"  10 10 1. 10.);
+  Particle.(set (Vector.append particle_in) ~name:"zero"  ~lati: 0 ~longi: 0 ~pressure:0. ~temperature: 0.);
+  Particle.(set (Vector.append particle_in) ~name:"one"   ~lati:10 ~longi:10 ~pressure:1. ~temperature:10.);
   let particle_in = Particle.Vector.to_array particle_in in
 
   let string_type = H5t.copy H5t.c_s1 in
@@ -48,7 +48,7 @@ let () =
     ~dst_sizes:[| 16; 8; 8; 8; 8 |]
     dst_buf;
   let p = Particle.Array.unsafe_get dst_buf 0 in
-  for i = 0 to _NRECORDS - 1 do
+  for _ = 0 to _NRECORDS - 1 do
     Printf.printf "%-5s %-5d %-5d %-5f %-5f\n%!"
       (Particle.name p) (Particle.lati p) (Particle.longi p) (Particle.pressure p)
       (Particle.temperature p);

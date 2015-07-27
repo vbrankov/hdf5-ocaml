@@ -1,5 +1,3 @@
-open Hdf5_caml
-
 module A = Array
 
 module Particle = struct
@@ -13,7 +11,7 @@ end
 let bench s loops f =
   let nreps = 1000 in
   let t0 = Unix.gettimeofday () in
-  for i = 1 to nreps do
+  for _ = 1 to nreps do
     let _ = f () in ()
   done;
   let t1 = Unix.gettimeofday () in
@@ -41,7 +39,7 @@ let () =
     let longi       = ref 0. in
     let pressure    = ref 0. in
     let temperature = ref 0. in
-    for i = 0 to len - 2 do
+    for _ = 0 to len - 2 do
       lati        := !lati        +. Particle.lati        e;
       longi       := !longi       +. Particle.longi       e;
       pressure    := !pressure    +. Particle.pressure    e;
@@ -56,7 +54,7 @@ let () =
     let longi       = ref 0. in
     let pressure    = ref 0. in
     let temperature = ref 0. in
-    for i = 0 to len - 2 do
+    for _ = 0 to len - 2 do
       lati        := !lati        +. Particle.lati        e;
       longi       := !longi       +. Particle.longi       e;
       pressure    := !pressure    +. Particle.pressure    e;
@@ -70,7 +68,7 @@ let () =
     let longi       = ref 0. in
     let pressure    = ref 0. in
     let temperature = ref 0. in
-    for i = 0 to len - 2 do
+    for _ = 0 to len - 2 do
       lati        := !lati        +. Particle.lati        e;
       longi       := !longi       +. Particle.longi       e;
       pressure    := !pressure    +. Particle.pressure    e;
@@ -85,7 +83,7 @@ let () =
     let longi       = ref 0. in
     let pressure    = ref 0. in
     let temperature = ref 0. in
-    for i = 0 to len - 2 do
+    for _ = 0 to len - 2 do
       lati        := !lati        +. Particle.lati        e;
       longi       := !longi       +. Particle.longi       e;
       pressure    := !pressure    +. Particle.pressure    e;

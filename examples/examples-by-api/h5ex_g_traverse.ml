@@ -17,7 +17,7 @@ let rec group_check od target_addr =
     | None -> false
     | Some prev -> group_check prev target_addr
 
-let rec op_func loc_id name info od =
+let rec op_func loc_id name _info od =
   let return_val = ref H5.Iter.CONT in
   let spaces = 2 * (od.Opdata.recurs + 1) in
   let infobuf = H5o.get_info_by_name loc_id name in
@@ -40,7 +40,7 @@ let rec op_func loc_id name info od =
     Printf.printf "Dataset: %s\n%!" name
   | H5o.Type.NAMED_DATATYPE ->
     Printf.printf "Datatype: %s\n%!" name
-  | _ ->
+  | H5o.Type.NTYPES ->
     Printf.printf "Unknown: %s\n%!" name
   end;
   !return_val

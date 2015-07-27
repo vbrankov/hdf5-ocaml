@@ -114,6 +114,13 @@ value Val_h5o_info(const H5O_info_t *info)
   CAMLreturn(info_v);
 }
 
+void hdf5_h5o_set_comment(value object_v, value comment_v)
+{
+  CAMLparam2(object_v, comment_v);
+  raise_if_fail(H5Oset_comment(Hid_val(object_v), String_val(comment_v)));
+  CAMLreturn0;
+}
+
 value hdf5_h5o_get_info(value object_v)
 {
   CAMLparam1(object_v);
