@@ -28,8 +28,9 @@ static struct custom_operations h5g_ops = {
 
 static value alloc_h5g(hid_t id, bool close)
 {
+  value v;
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5g_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
+  v = caml_alloc_custom(&h5g_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5G_val(v) = id;
   H5G_closed(v) = !close;
   return v;
@@ -61,11 +62,11 @@ value Val_h5g_storage_type(H5G_storage_type_t st)
 H5G_info_t H5G_info_val(value info_v)
 {
   CAMLparam1(info_v);
-  H5G_info_t info = {
-    H5G_storage_type_val(Field(info_v, 0)),
-    Int_val(Field(info_v, 1)),
-    Int_val(Field(info_v, 2)),
-    Bool_val(Field(info_v, 3)) };
+  H5G_info_t info;
+  info.storage_type = H5G_storage_type_val(Field(info_v, 0));
+  info.nlinks       = Int_val(Field(info_v, 1));
+  info.max_corder   = Int_val(Field(info_v, 2));
+  info.mounted      = Bool_val(Field(info_v, 3));
   CAMLreturnT(H5G_info_t, info);
 }
 
@@ -156,12 +157,15 @@ struct operator_data {
 herr_t hdf5_h5g_operator(hid_t group, const char *name, void *op_data)
 {
   CAMLparam0();
-  CAMLlocal1(ret);
-  CAMLlocalN(args, 3);
+  CAMLlocal4(ret, args0, args1, args2);
+  value args[3];
   struct operator_data *operator_data = op_data;
-  args[0] = alloc_h5g(group, false);
-  args[1] = caml_copy_string(name);
-  args[2] = *operator_data->operator_data;
+  args0 = alloc_h5g(group, false);
+  args1 = caml_copy_string(name);
+  args2 = *operator_data->operator_data;
+  args[0] = args0;
+  args[1] = args1;
+  args[2] = args2;
   ret = caml_callbackN_exn(*operator_data->callback, 3, args);
   if (Is_exception_result(ret))
   {
@@ -177,8 +181,12 @@ value hdf5_h5g_iterate(value loc_id_v, value name_v, value idx_v, value operator
   CAMLparam5(loc_id_v, name_v, idx_v, operator_v, operator_data_v);
   CAMLlocal1(exception);
 
-  struct operator_data operator_data = { &operator_v, &operator_data_v, &exception };
-  int idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0, ret;
+  struct operator_data operator_data;
+  int idx, ret;
+  operator_data.callback = &operator_v;
+  operator_data.operator_data = &operator_data_v;
+  operator_data.exception = &exception;
+  idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0;
   exception = Val_unit;
 
   ret = H5Giterate(Hid_val(loc_id_v), String_val(name_v),

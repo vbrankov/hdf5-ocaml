@@ -6,7 +6,7 @@ MKLIB=ocamlmklib
 include ../../Makefile.config
 
 CFLAGS=-I $(HDF5_H_DIR) -ccopt "-Wall -pedantic -Wextra -Wunused -Werror \
-  -Wno-long-long -std=c99 -DCAML_NAME_SPACE -fPIC"
+  -Wno-long-long -DCAML_NAME_SPACE -fPIC -O2 -fomit-frame-pointer"
 
 SRC_C=$(wildcard *.c)
 COMPFLAGS=-w @a $(EXTRA_COMPFLAGS)

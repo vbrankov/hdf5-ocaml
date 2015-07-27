@@ -17,8 +17,9 @@ static struct custom_operations hid_ops = {
 
 value alloc_hid(hid_t id)
 {
+  value v;
   raise_if_fail(id);
-  value v = caml_alloc_custom(&hid_ops, sizeof(hid_t), 0, 1);
+  v = caml_alloc_custom(&hid_ops, sizeof(hid_t), 0, 1);
   Hid_val(v) = id;
   return v;
 }

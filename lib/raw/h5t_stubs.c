@@ -25,8 +25,9 @@ static struct custom_operations h5t_ops = {
 
 value alloc_h5t(hid_t id)
 {
+  value v;
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5t_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
+  v = caml_alloc_custom(&h5t_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5T_val(v) = id;
   H5T_closed(v) = false;
   return v;
@@ -262,11 +263,11 @@ value Val_h5t_bkg(H5T_bkg_t bkg)
 H5T_cdata_t H5T_cdata_val(value cdata_v)
 {
   CAMLparam1(cdata_v);
-  H5T_cdata_t cdata = {
-    H5T_cmd_val(Field(cdata_v, 0)),
-    H5T_bkg_val(Field(cdata_v, 1)),
-    Int_val(Field(cdata_v, 2)),
-    (void*) Int64_val(Field(cdata_v, 3)) };
+  H5T_cdata_t cdata;
+  cdata.command  = H5T_cmd_val(Field(cdata_v, 0));
+  cdata.need_bkg = H5T_bkg_val(Field(cdata_v, 1));
+  cdata.recalc   = Int_val(Field(cdata_v, 2));
+  cdata.priv     = (void*) Int64_val(Field(cdata_v, 3));
   CAMLreturnT(H5T_cdata_t, cdata);
 }
 
@@ -387,38 +388,140 @@ value hdf5_h5t_get_variable(value unit_v)
 value hdf5_h5t_datatypes(value unit_v)
 {
   CAMLparam1(unit_v);
-  int i;
-
+  int i, len;
+  hid_t datatypes[128];
   CAMLlocal1(v);
-  hid_t datatypes[] = { H5T_IEEE_F32BE, H5T_IEEE_F32LE, H5T_IEEE_F64BE,
-    H5T_IEEE_F64LE, H5T_STD_I8BE, H5T_STD_I8LE, H5T_STD_I16BE, H5T_STD_I16LE,
-    H5T_STD_I32BE, H5T_STD_I32LE, H5T_STD_I64BE, H5T_STD_I64LE, H5T_STD_U8BE,
-    H5T_STD_U8LE, H5T_STD_U16BE, H5T_STD_U16LE, H5T_STD_U32BE, H5T_STD_U32LE,
-    H5T_STD_U64BE, H5T_STD_U64LE, H5T_STD_B8BE, H5T_STD_B8LE, H5T_STD_B16BE,
-    H5T_STD_B16LE, H5T_STD_B32BE, H5T_STD_B32LE, H5T_STD_B64BE, H5T_STD_B64LE,
-    H5T_STD_REF_OBJ, H5T_STD_REF_DSETREG, H5T_UNIX_D32BE, H5T_UNIX_D32LE, H5T_UNIX_D64BE,
-    H5T_UNIX_D64LE, H5T_C_S1, H5T_FORTRAN_S1, H5T_INTEL_I8, H5T_INTEL_I16, H5T_INTEL_I32,
-    H5T_INTEL_I64, H5T_INTEL_U8, H5T_INTEL_U16, H5T_INTEL_U32, H5T_INTEL_U64,
-    H5T_INTEL_B8, H5T_INTEL_B16, H5T_INTEL_B32, H5T_INTEL_B64, H5T_INTEL_F32,
-    H5T_INTEL_F64, H5T_ALPHA_I8, H5T_ALPHA_I16, H5T_ALPHA_I32, H5T_ALPHA_I64,
-    H5T_ALPHA_U8, H5T_ALPHA_U16, H5T_ALPHA_U32, H5T_ALPHA_U64, H5T_ALPHA_B8,
-    H5T_ALPHA_B16, H5T_ALPHA_B32, H5T_ALPHA_B64, H5T_ALPHA_F32, H5T_ALPHA_F64,
-    H5T_MIPS_I8, H5T_MIPS_I16, H5T_MIPS_I32, H5T_MIPS_I64, H5T_MIPS_U8, H5T_MIPS_U16,
-    H5T_MIPS_U32, H5T_MIPS_U64, H5T_MIPS_B8, H5T_MIPS_B16, H5T_MIPS_B32, H5T_MIPS_B64,
-    H5T_MIPS_F32, H5T_MIPS_F64, H5T_VAX_F32, H5T_VAX_F64, H5T_NATIVE_CHAR,
-    H5T_NATIVE_SCHAR, H5T_NATIVE_UCHAR, H5T_NATIVE_SHORT, H5T_NATIVE_USHORT,
-    H5T_NATIVE_INT, H5T_NATIVE_UINT, H5T_NATIVE_LONG, H5T_NATIVE_ULONG, H5T_NATIVE_LLONG,
-    H5T_NATIVE_ULLONG, H5T_NATIVE_FLOAT, H5T_NATIVE_DOUBLE, H5T_NATIVE_LDOUBLE,
-    H5T_NATIVE_B8, H5T_NATIVE_B16, H5T_NATIVE_B32, H5T_NATIVE_B64, H5T_NATIVE_OPAQUE,
-    H5T_NATIVE_HADDR, H5T_NATIVE_HSIZE, H5T_NATIVE_HSSIZE, H5T_NATIVE_HERR,
-    H5T_NATIVE_HBOOL, H5T_NATIVE_INT8, H5T_NATIVE_UINT8, H5T_NATIVE_INT_LEAST8,
-    H5T_NATIVE_UINT_LEAST8, H5T_NATIVE_INT_FAST8, H5T_NATIVE_UINT_FAST8, H5T_NATIVE_INT16,
-    H5T_NATIVE_UINT16, H5T_NATIVE_INT_LEAST16, H5T_NATIVE_UINT_LEAST16,
-    H5T_NATIVE_INT_FAST16, H5T_NATIVE_UINT_FAST16, H5T_NATIVE_INT32, H5T_NATIVE_UINT32,
-    H5T_NATIVE_INT_LEAST32, H5T_NATIVE_UINT_LEAST32, H5T_NATIVE_INT_FAST32,
-    H5T_NATIVE_UINT_FAST32, H5T_NATIVE_INT64, H5T_NATIVE_UINT64, H5T_NATIVE_INT_LEAST64,
-    H5T_NATIVE_UINT_LEAST64, H5T_NATIVE_INT_FAST64, H5T_NATIVE_UINT_FAST64 };
-  int len = sizeof(datatypes) / sizeof(hid_t);
+
+  datatypes[  0] = H5T_IEEE_F32BE;
+  datatypes[  1] = H5T_IEEE_F32LE;
+  datatypes[  2] = H5T_IEEE_F64BE;
+  datatypes[  3] = H5T_IEEE_F64LE;
+  datatypes[  4] = H5T_STD_I8BE;
+  datatypes[  5] = H5T_STD_I8LE;
+  datatypes[  6] = H5T_STD_I16BE;
+  datatypes[  7] = H5T_STD_I16LE;
+  datatypes[  8] = H5T_STD_I32BE;
+  datatypes[  9] = H5T_STD_I32LE;
+  datatypes[ 10] = H5T_STD_I64BE;
+  datatypes[ 11] = H5T_STD_I64LE;
+  datatypes[ 12] = H5T_STD_U8BE;
+  datatypes[ 13] = H5T_STD_U8LE;
+  datatypes[ 14] = H5T_STD_U16BE;
+  datatypes[ 15] = H5T_STD_U16LE;
+  datatypes[ 16] = H5T_STD_U32BE;
+  datatypes[ 17] = H5T_STD_U32LE;
+  datatypes[ 18] = H5T_STD_U64BE;
+  datatypes[ 19] = H5T_STD_U64LE;
+  datatypes[ 20] = H5T_STD_B8BE;
+  datatypes[ 21] = H5T_STD_B8LE;
+  datatypes[ 22] = H5T_STD_B16BE;
+  datatypes[ 23] = H5T_STD_B16LE;
+  datatypes[ 24] = H5T_STD_B32BE;
+  datatypes[ 25] = H5T_STD_B32LE;
+  datatypes[ 26] = H5T_STD_B64BE;
+  datatypes[ 27] = H5T_STD_B64LE;
+  datatypes[ 28] = H5T_STD_REF_OBJ;
+  datatypes[ 29] = H5T_STD_REF_DSETREG;
+  datatypes[ 30] = H5T_UNIX_D32BE;
+  datatypes[ 31] = H5T_UNIX_D32LE;
+  datatypes[ 32] = H5T_UNIX_D64BE;
+  datatypes[ 33] = H5T_UNIX_D64LE;
+  datatypes[ 34] = H5T_C_S1;
+  datatypes[ 35] = H5T_FORTRAN_S1;
+  datatypes[ 36] = H5T_INTEL_I8;
+  datatypes[ 37] = H5T_INTEL_I16;
+  datatypes[ 38] = H5T_INTEL_I32;
+  datatypes[ 39] = H5T_INTEL_I64;
+  datatypes[ 40] = H5T_INTEL_U8;
+  datatypes[ 41] = H5T_INTEL_U16;
+  datatypes[ 42] = H5T_INTEL_U32;
+  datatypes[ 43] = H5T_INTEL_U64;
+  datatypes[ 44] = H5T_INTEL_B8;
+  datatypes[ 45] = H5T_INTEL_B16;
+  datatypes[ 46] = H5T_INTEL_B32;
+  datatypes[ 47] = H5T_INTEL_B64;
+  datatypes[ 48] = H5T_INTEL_F32;
+  datatypes[ 49] = H5T_INTEL_F64;
+  datatypes[ 50] = H5T_ALPHA_I8;
+  datatypes[ 51] = H5T_ALPHA_I16;
+  datatypes[ 52] = H5T_ALPHA_I32;
+  datatypes[ 53] = H5T_ALPHA_I64;
+  datatypes[ 54] = H5T_ALPHA_U8;
+  datatypes[ 55] = H5T_ALPHA_U16;
+  datatypes[ 56] = H5T_ALPHA_U32;
+  datatypes[ 57] = H5T_ALPHA_U64;
+  datatypes[ 58] = H5T_ALPHA_B8;
+  datatypes[ 59] = H5T_ALPHA_B16;
+  datatypes[ 60] = H5T_ALPHA_B32;
+  datatypes[ 61] = H5T_ALPHA_B64;
+  datatypes[ 62] = H5T_ALPHA_F32;
+  datatypes[ 63] = H5T_ALPHA_F64;
+  datatypes[ 64] = H5T_MIPS_I8;
+  datatypes[ 65] = H5T_MIPS_I16;
+  datatypes[ 66] = H5T_MIPS_I32;
+  datatypes[ 67] = H5T_MIPS_I64;
+  datatypes[ 68] = H5T_MIPS_U8;
+  datatypes[ 69] = H5T_MIPS_U16;
+  datatypes[ 70] = H5T_MIPS_U32;
+  datatypes[ 71] = H5T_MIPS_U64;
+  datatypes[ 72] = H5T_MIPS_B8;
+  datatypes[ 73] = H5T_MIPS_B16;
+  datatypes[ 74] = H5T_MIPS_B32;
+  datatypes[ 75] = H5T_MIPS_B64;
+  datatypes[ 76] = H5T_MIPS_F32;
+  datatypes[ 77] = H5T_MIPS_F64;
+  datatypes[ 78] = H5T_VAX_F32;
+  datatypes[ 79] = H5T_VAX_F64;
+  datatypes[ 80] = H5T_NATIVE_CHAR;
+  datatypes[ 81] = H5T_NATIVE_SCHAR;
+  datatypes[ 82] = H5T_NATIVE_UCHAR;
+  datatypes[ 83] = H5T_NATIVE_SHORT;
+  datatypes[ 84] = H5T_NATIVE_USHORT;
+  datatypes[ 85] = H5T_NATIVE_INT;
+  datatypes[ 86] = H5T_NATIVE_UINT;
+  datatypes[ 87] = H5T_NATIVE_LONG;
+  datatypes[ 88] = H5T_NATIVE_ULONG;
+  datatypes[ 89] = H5T_NATIVE_LLONG;
+  datatypes[ 90] = H5T_NATIVE_ULLONG;
+  datatypes[ 91] = H5T_NATIVE_FLOAT;
+  datatypes[ 92] = H5T_NATIVE_DOUBLE;
+  datatypes[ 93] = H5T_NATIVE_LDOUBLE;
+  datatypes[ 94] = H5T_NATIVE_B8;
+  datatypes[ 95] = H5T_NATIVE_B16;
+  datatypes[ 96] = H5T_NATIVE_B32;
+  datatypes[ 97] = H5T_NATIVE_B64;
+  datatypes[ 98] = H5T_NATIVE_OPAQUE;
+  datatypes[ 99] = H5T_NATIVE_HADDR;
+  datatypes[100] = H5T_NATIVE_HSIZE;
+  datatypes[101] = H5T_NATIVE_HSSIZE;
+  datatypes[102] = H5T_NATIVE_HERR;
+  datatypes[103] = H5T_NATIVE_HBOOL;
+  datatypes[104] = H5T_NATIVE_INT8;
+  datatypes[105] = H5T_NATIVE_UINT8;
+  datatypes[106] = H5T_NATIVE_INT_LEAST8;
+  datatypes[107] = H5T_NATIVE_UINT_LEAST8;
+  datatypes[108] = H5T_NATIVE_INT_FAST8;
+  datatypes[109] = H5T_NATIVE_UINT_FAST8;
+  datatypes[110] = H5T_NATIVE_INT16;
+  datatypes[111] = H5T_NATIVE_UINT16;
+  datatypes[112] = H5T_NATIVE_INT_LEAST16;
+  datatypes[113] = H5T_NATIVE_UINT_LEAST16;
+  datatypes[114] = H5T_NATIVE_INT_FAST16;
+  datatypes[115] = H5T_NATIVE_UINT_FAST16;
+  datatypes[116] = H5T_NATIVE_INT32;
+  datatypes[117] = H5T_NATIVE_UINT32;
+  datatypes[118] = H5T_NATIVE_INT_LEAST32;
+  datatypes[119] = H5T_NATIVE_UINT_LEAST32;
+  datatypes[120] = H5T_NATIVE_INT_FAST32;
+  datatypes[121] = H5T_NATIVE_UINT_FAST32;
+  datatypes[122] = H5T_NATIVE_INT64;
+  datatypes[123] = H5T_NATIVE_UINT64;
+  datatypes[124] = H5T_NATIVE_INT_LEAST64;
+  datatypes[125] = H5T_NATIVE_UINT_LEAST64;
+  datatypes[126] = H5T_NATIVE_INT_FAST64;
+  datatypes[127] = H5T_NATIVE_UINT_FAST64;
+
+  len = sizeof(datatypes) / sizeof(hid_t);
 
   v = caml_alloc_tuple(len);
   for (i = 0; i < len; i++)

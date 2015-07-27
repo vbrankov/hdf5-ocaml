@@ -47,8 +47,9 @@ static struct custom_operations h5p_ops = {
 
 value alloc_h5p(hid_t id)
 {
+  value v;
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5p_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
+  v = caml_alloc_custom(&h5p_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5P_val(v) = id;
   H5P_closed(v) = false;
   return v;

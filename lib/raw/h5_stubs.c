@@ -215,9 +215,9 @@ value Val_h5_index(H5_index_t index)
 H5_ih_info_t H5_ih_info_val(value ih_info_v)
 {
   CAMLparam1(ih_info_v);
-  H5_ih_info_t ih_info = {
-    Int_val(Field(ih_info_v, 0)),
-    Int_val(Field(ih_info_v, 1)) };
+  H5_ih_info_t ih_info;
+  ih_info.index_size = Int_val(Field(ih_info_v, 0));
+  ih_info.heap_size  = Int_val(Field(ih_info_v, 1));
   CAMLreturnT(H5_ih_info_t, ih_info);
 }
 

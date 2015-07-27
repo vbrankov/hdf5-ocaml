@@ -60,8 +60,9 @@ static struct custom_operations h5l_ops = {
 
 static value alloc_h5l(hid_t id)
 {
+  value v;
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5l_ops, sizeof(hid_t), 0, 1);
+  v = caml_alloc_custom(&h5l_ops, sizeof(hid_t), 0, 1);
   H5L_val(v) = id;
   return v;
 }
@@ -138,14 +139,19 @@ herr_t hdf5_h5l_operator(hid_t group, const char *name, const H5L_info_t *info,
   void *op_data)
 {
   CAMLparam0();
-  CAMLlocal3(ret, info_v, address_v);
-  CAMLlocalN(args, 4);
+  CAMLlocal5(ret, info_v, address_v, args0, args1);
+  CAMLlocal2(args2, args3);
+  value args[4];
 
   struct operator_data *operator_data = op_data;
-  args[0] = alloc_h5l(group);
-  args[1] = caml_copy_string(name);
-  args[2] = Val_h5l_info(info);
-  args[3] = *operator_data->operator_data;
+  args0 = alloc_h5l(group);
+  args1 = caml_copy_string(name);
+  args2 = Val_h5l_info(info);
+  args3 = *operator_data->operator_data;
+  args[0] = args0;
+  args[1] = args1;
+  args[2] = args2;
+  args[3] = args3;
   ret = caml_callbackN_exn(*operator_data->callback, 4, args);
   if (Is_exception_result(ret))
   {
@@ -162,8 +168,12 @@ value hdf5_h5l_iterate(value group_v, value index_type_v, value order_v, value i
   CAMLxparam1(op_data_v);
   CAMLlocal1(exception);
 
-  struct operator_data op_data = { &op_v, &op_data_v, &exception };
-  hsize_t idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0, ret;
+  struct operator_data op_data;
+  hsize_t idx, ret;
+  op_data.callback      = &op_v;
+  op_data.operator_data = &op_data_v;
+  op_data.exception     = &exception;
+  idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0;
   exception = Val_unit;
 
   ret = H5Literate(Hid_val(group_v), H5_index_val(index_type_v),
@@ -189,8 +199,12 @@ value hdf5_h5l_iterate_by_name(value loc_v, value group_name_v, value index_type
   CAMLxparam3(op_v, lapl_v, op_data_v);
   CAMLlocal1(exception);
 
-  struct operator_data op_data = { &op_v, &op_data_v, &exception };
-  hsize_t idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0, ret;
+  struct operator_data op_data;
+  hsize_t idx, ret;
+  op_data.callback      = &op_v;
+  op_data.operator_data = &op_data_v;
+  op_data.exception     = &exception;
+  idx = Is_block(idx_v) ? Int_val(Field(Field(idx_v, 0), 0)) : 0;
   exception = Val_unit;
 
   ret = H5Literate_by_name(Hid_val(loc_v), String_val(group_name_v),

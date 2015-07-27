@@ -33,19 +33,19 @@ H5O_hdr_info_t H5O_hdr_info_val(value hdr_info_v)
 {
   CAMLparam1(hdr_info_v);
   CAMLlocal2(space_v, mesg_v);
+  H5O_hdr_info_t hdr_info;
   space_v = Field(hdr_info_v, 4);
   mesg_v  = Field(hdr_info_v, 5);
-  H5O_hdr_info_t hdr_info = {
-    Int_val(Field(hdr_info_v, 0)),
-    Int_val(Field(hdr_info_v, 1)),
-    Int_val(Field(hdr_info_v, 2)),
-    Int_val(Field(hdr_info_v, 3)),
-    { Int_val(Field(space_v, 0)),
-      Int_val(Field(space_v, 1)),
-      Int_val(Field(space_v, 2)),
-      Int_val(Field(space_v, 3)) },
-    { Int_val(Field(mesg_v, 0)),
-      Int_val(Field(mesg_v, 1)) } };
+  hdr_info.version = Int_val(Field(hdr_info_v, 0));
+  hdr_info.nmesgs  = Int_val(Field(hdr_info_v, 1));
+  hdr_info.nchunks = Int_val(Field(hdr_info_v, 2));
+  hdr_info.flags   = Int_val(Field(hdr_info_v, 3));
+  hdr_info.space.total = Int_val(Field(space_v, 0));
+  hdr_info.space.meta  = Int_val(Field(space_v, 1));
+  hdr_info.space.mesg  = Int_val(Field(space_v, 2));
+  hdr_info.space.free  = Int_val(Field(space_v, 3));
+  hdr_info.mesg.present = Int_val(Field(mesg_v, 0));
+  hdr_info.mesg.shared  = Int_val(Field(mesg_v, 1));
   CAMLreturnT(H5O_hdr_info_t, hdr_info);
 }
 
@@ -75,20 +75,20 @@ H5O_info_t H5O_info_val(value info_v)
 {
   CAMLparam1(info_v);
   CAMLlocal1(meta_size_v);
-  meta_size_v = Field(info_v, 10);
-  H5O_info_t info = {
-    Int_val(Field(info_v, 0)),
-    Hid_val(Field(info_v, 1)),
-    H5O_type_val(Field(info_v, 2)),
-    Int_val(Field(info_v, 3)),
-    Int64_val(Field(info_v, 4)),
-    Int64_val(Field(info_v, 5)),
-    Int64_val(Field(info_v, 6)),
-    Int64_val(Field(info_v, 7)),
-    Int_val(Field(info_v, 8)),
-    H5O_hdr_info_val(Field(info_v, 9)),
-    { H5_ih_info_val(Field(meta_size_v, 0)),
-      H5_ih_info_val(Field(meta_size_v, 1)) } };
+  H5O_info_t info;
+  meta_size_v         = Field(info_v, 10);
+  info.fileno         = Int_val(Field(info_v, 0));
+  info.addr           = Hid_val(Field(info_v, 1));
+  info.type           = H5O_type_val(Field(info_v, 2));
+  info.rc             = Int_val(Field(info_v, 3));
+  info.atime          = Int64_val(Field(info_v, 4));
+  info.mtime          = Int64_val(Field(info_v, 5));
+  info.ctime          = Int64_val(Field(info_v, 6));
+  info.btime          = Int64_val(Field(info_v, 7));
+  info.num_attrs      = Int_val(Field(info_v, 8));
+  info.hdr            = H5O_hdr_info_val(Field(info_v, 9));
+  info.meta_size.obj  = H5_ih_info_val(Field(meta_size_v, 0));
+  info.meta_size.attr = H5_ih_info_val(Field(meta_size_v, 1));
   CAMLreturnT(H5O_info_t, info);
 }
 

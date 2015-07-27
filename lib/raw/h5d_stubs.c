@@ -26,8 +26,9 @@ static struct custom_operations h5d_ops = {
 
 static value alloc_h5d(hid_t id)
 {
+  value v;
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5d_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
+  v = caml_alloc_custom(&h5d_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5D_val(v) = id;
   H5D_closed(v) = false;
   return v;

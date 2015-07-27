@@ -29,8 +29,9 @@ static struct custom_operations h5f_ops = {
 
 static value alloc_h5f(hid_t id)
 {
+  value v;
   raise_if_fail(id);
-  value v = caml_alloc_custom(&h5f_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
+  v = caml_alloc_custom(&h5f_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
   H5F_val(v) = id;
   H5F_closed(v) = false;
   return v;
@@ -227,8 +228,9 @@ value hdf5_h5f_get_obj_ids(value file_v, value types_v)
   hid_t file_id = Hid_val(file_v);
   unsigned int types = obj_val(types_v);
   ssize_t max_objs = H5Fget_obj_count(file_id, types), ret;
+  hid_t *obj_id_list;
   raise_if_fail(max_objs);
-  hid_t *obj_id_list = (hid_t*) calloc(max_objs, sizeof(hid_t));
+  obj_id_list = (hid_t*) calloc(max_objs, sizeof(hid_t));
   if (obj_id_list == NULL)
     caml_raise_out_of_memory();
   ret = H5Fget_obj_ids(file_id, types, max_objs, obj_id_list);
