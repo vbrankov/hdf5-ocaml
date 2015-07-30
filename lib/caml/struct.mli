@@ -74,12 +74,7 @@ module Make(S : S) : sig
 
   val create : unit -> t
 
-  val unsafe_next : t -> unit
-  val next        : t -> unit
-  val unsafe_prev : t -> unit
-  val prev        : t -> unit
-  val unsafe_move : t -> int -> unit
-  val move        : t -> int -> unit
+  val pos : t -> int
 
   module Array : sig
     type e = t
@@ -96,12 +91,16 @@ module Make(S : S) : sig
     (** Creates and writes a table. *)
     val make_table : t -> ?title:string -> ?chunk_size:int -> ?compress:bool -> H5.t
       -> string -> unit
+
     (** Adds records to the end of the table. *)
     val append_records : t -> H5.t -> string -> unit
+
     (** Ovewrites records. *)
     val write_records : t -> H5.t -> start:int -> string -> unit
+
     (** Reads a table. *)
     val read_table : H5.t -> string -> t
+
     (** Reads records. *)
     val read_records : H5.t -> start:int -> nrecords:int -> string -> t
   end

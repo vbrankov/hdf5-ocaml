@@ -326,35 +326,9 @@ module Make(S : S) = struct
 
   open Bigarray
 
-  let unsafe_next t =
-    let ptr = t.ptr + size64 in
-    t.ptr <- ptr
-
-  let next t =
-    let ptr = t.ptr + size64 in
-    if ptr > t.mem.Mem.data + t.mem.Mem.dim then
-      raise (Invalid_argument "index out of bounds")
-    else
-      t.ptr <- ptr
-
-  let unsafe_prev t =
-    let ptr = t.ptr - size64 in
-    t.ptr <- ptr
-
-  let prev t =
-    let ptr = t.ptr - size64 in
-    if ptr < t.mem.Mem.data then
-      raise (Invalid_argument "index out of bounds")
-    else
-      t.ptr <- ptr
-
-  let unsafe_move t i = t.ptr <- t.mem.Mem.data + size64 * i
-
-  let move t i =
-    let ptr = t.mem.Mem.data + size64 * i in
-    if ptr < t.mem.Mem.data || ptr > t.mem.Mem.data + t.mem.Mem.dim then
-      raise (Invalid_argument "index out of bounds");
-    t.ptr <- ptr
+  let pos t = t.Ptr.i
+  let unsafe_next t = Ptr.unsafe_next t size64
+  let unsafe_move t i = Ptr.unsafe_move t i size64 
 
   module Array = struct
     type e = t
