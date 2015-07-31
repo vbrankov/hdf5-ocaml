@@ -27,6 +27,9 @@ val exists : t -> string -> bool
 val ls : t -> ?index:Hdf5_raw.H5.Index.t -> ?order:Hdf5_raw.H5.Iter_order.t -> string
   -> string list
 
+(** Copies data. *)
+val copy : src:t -> src_name:string -> dst:t -> dst_name:string -> unit
+
 (** Returns the HDF5 handle *)
 val hid : t -> Hid.t
 

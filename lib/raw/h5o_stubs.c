@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <caml/alloc.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
@@ -112,6 +113,22 @@ value Val_h5o_info(const H5O_info_t *info)
   Store_field(meta_size_v, 0, Val_h5_ih_info(info->meta_size.obj));
   Store_field(meta_size_v, 1, Val_h5_ih_info(info->meta_size.attr));
   CAMLreturn(info_v);
+}
+
+void hdf5_h5o_copy(value src_loc_v, value src_name_v, value dst_loc_v, value ocpypl_v,
+  value lcpl_v, value dst_name_v)
+{
+  CAMLparam5(src_loc_v, src_name_v, dst_loc_v, ocpypl_v, lcpl_v);
+  CAMLxparam1(dst_name_v);
+  raise_if_fail(H5Ocopy(Hid_val(src_loc_v), String_val(src_name_v), Hid_val(dst_loc_v),
+    String_val(dst_name_v), H5P_opt_val(ocpypl_v), H5P_opt_val(lcpl_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5o_copy_bytecode(value *argv, int argn)
+{
+  assert(argn == 6);
+  hdf5_h5o_copy(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
 void hdf5_h5o_set_comment(value object_v, value comment_v)

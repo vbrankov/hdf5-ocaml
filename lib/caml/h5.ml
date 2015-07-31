@@ -38,6 +38,9 @@ let ls t ?(index = Hdf5_raw.H5.Index.NAME) ?(order = Hdf5_raw.H5.Iter_order.NATI
   close t;
   List.rev !links
 
+let copy ~src ~src_name ~dst ~dst_name =
+  H5o.copy (hid src) src_name (hid dst) dst_name
+
 let write_data t datatype dims name ?(deflate = 6) data =
   let dataspace = H5s.create_simple dims in
   let dcpl =
