@@ -2,7 +2,7 @@ CAMLDEP=ocamldep.opt
 CAMLOPT=ocamlopt.opt
 
 COMPFLAGS=-I ../../lib/raw -I ../../lib/caml -ppx ../../lib/ppx/ppx_h5struct.exe \
-	  -inline 20 -w @a-3-4-44
+	  -inline 20 -w @a-3-4-44 $(EXTRA_COMPFLAGS)
 LINKFLAGS=$(COMPFLAGS) $(EXTRA_LINKFLAGS) bigarray.cmxa hdf5_raw.cmxa hdf5_caml.cmxa
 SRC=$(wildcard *.ml)
 TARGETS=$(SRC:.ml=.exe)

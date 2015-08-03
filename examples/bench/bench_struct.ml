@@ -8,6 +8,33 @@ module Particle = struct
     temperature "Temperature" Float64]
 end
 
+module Record = struct
+  [%h5struct
+   a "a" Float64;
+   b "b" Float64;
+   c "c" Float64;
+   d "d" Float64;
+   e "e" Int;
+   f "f" Int;
+   g "g" Int;
+   h "h" Int;
+   i "i" Float64]
+end
+
+module Record_t = struct
+  type t = {
+    a : float;
+    b : float;
+    c : float;
+    d : float;
+    e : int;
+    f : int;
+    g : int;
+    h : int;
+    i : float;
+  }
+end
+
 let bench s loops f =
   let nreps = 1000 in
   let t0 = Unix.gettimeofday () in
@@ -157,4 +184,11 @@ let () =
       pressure    := !pressure    +. Particle.pressure    e;
       temperature := !temperature +. Particle.temperature e
     done;
-    !lati +. !longi +. !pressure +. !temperature)
+    !lati +. !longi +. !pressure +. !temperature);
+  bench "Array.init" len (fun () ->
+    let _ = Array.init len (fun i -> { Record_t.
+      a = 0.; b = 0.; c = 0.; d = 0.; e = i; f = 0; g = 0; h = 0; i = 0. }) in ());
+  bench "init" len (fun () ->
+    let _ = Record.Array.init len (fun i r ->
+      Record.set r ~a:0. ~b:0. ~c:0. ~d:0. ~e:i ~f:0 ~g:0 ~h:0 ~i:0.) in ())
+
