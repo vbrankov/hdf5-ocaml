@@ -75,6 +75,8 @@ module Make(S : S) : sig
   val create : unit -> t
 
   val pos : t -> int
+  val has_next : t -> bool
+  val has_prev : t -> bool
 
   module Array : sig
     type e = t

@@ -327,6 +327,8 @@ module Make(S : S) = struct
   open Bigarray
 
   let pos t = t.Ptr.i
+  let has_next t = t.Ptr.ptr < t.Ptr.end_
+  let has_prev t = t.Ptr.i > 0
   let unsafe_next t = Ptr.unsafe_next t size64
   let unsafe_move t i = Ptr.unsafe_move t i size64 
 
