@@ -5,7 +5,7 @@ let _NRECORDS_WRITE = 2
 let _TABLE_NAME     = "table"
 
 module Particle = struct
-  [%h5struct
+  [%%h5struct
     name        "Name"        (String 16);
     lati        "Latitude"    Int;
     longi       "Longitude"   Int;

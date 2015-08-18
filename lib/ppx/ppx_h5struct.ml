@@ -250,9 +250,6 @@ let construct_size_dependent_fun name ~bsize ~index loc =
 
 let rec map_structure_item mapper structure_item =
   match structure_item with
-  | { pstr_desc = Pstr_eval ({
-        pexp_desc = Pexp_extension ({txt = "h5struct"; _}, payload); _ }, _);
-      pstr_loc = loc }
   | { pstr_desc = Pstr_extension (({txt = "h5struct"; _}, payload), _); pstr_loc = loc }
     ->
     let fields =

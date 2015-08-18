@@ -2,7 +2,7 @@ open Hdf5_raw
 open Hdf5_caml
 
 module Record = struct
-  [%h5struct
+  [%%h5struct
     f64 "F64" Float64;
     i   "I"   Int;
     i64 "I64" Int64;

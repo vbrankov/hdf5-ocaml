@@ -1,7 +1,7 @@
 module A = Array
 
 module Particle = struct
-  [%h5struct
+  [%%h5struct
     pressure    "Pressure"    Float64 Seek;
     lati        "Latitude"    Float64;
     longi       "Longitude"   Float64;
@@ -9,7 +9,7 @@ module Particle = struct
 end
 
 module Record = struct
-  [%h5struct
+  [%%h5struct
    a "a" Float64;
    b "b" Float64;
    c "c" Float64;

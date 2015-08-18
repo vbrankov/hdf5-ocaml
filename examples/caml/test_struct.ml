@@ -1,5 +1,5 @@
 module Record = struct
-  [%h5struct
+  [%%h5struct
     sf64 "sf64" Float64     Seek;
     si   "si"   Int         Seek;
     si64 "si64" Int64       Seek;
