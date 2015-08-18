@@ -35,7 +35,7 @@ let rec extract_fields expression =
   match expression.pexp_desc with
   | Pexp_sequence (expression1, expression2) ->
     extract_fields expression1 @ extract_fields expression2
-  | Pexp_apply ({ pexp_desc = Pexp_ident { txt = id; _ }; pexp_loc }, expressions) ->
+  | Pexp_apply ({ pexp_desc = Pexp_ident { txt = id; _ }; pexp_loc; _ }, expressions) ->
     let id =
       match id with
       | Lident id -> id
@@ -55,7 +55,7 @@ let rec extract_fields expression =
       in
       let type_ =
         match type_ with
-        | { pexp_desc = Pexp_construct (type_, expression_opt); pexp_loc = loc } ->
+        | { pexp_desc = Pexp_construct (type_, expression_opt); pexp_loc = loc; _ } ->
           begin match type_.txt with
           | Lident type_ ->
             begin match type_ with
@@ -248,7 +248,7 @@ let construct_size_dependent_fun name ~bsize ~index loc =
           then Exp.fun_ ~loc Nolabel None (Pat.var ~loc { txt = "i"; loc }) call
           else call )) ]
 
-let rec map_structure_item mapper structure_item =
+let map_structure_item mapper structure_item =
   match structure_item with
   | { pstr_desc = Pstr_extension (({txt = "h5struct"; _}, payload), _); pstr_loc = loc }
     ->
@@ -301,6 +301,6 @@ let rec map_structure_item mapper structure_item =
         construct_size_dependent_fun "move"        ~bsize ~index:true  loc])))
   | s -> default_mapper.structure_item mapper s
   
-let h5struct_mapper argv = { default_mapper with structure_item = map_structure_item }
+let h5struct_mapper _ = { default_mapper with structure_item = map_structure_item }
 
 let () = register "h5struct" h5struct_mapper
