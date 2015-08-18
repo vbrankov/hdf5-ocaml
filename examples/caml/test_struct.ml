@@ -1,5 +1,3 @@
-open Hdf5_caml
-
 module Record = struct
   [%h5struct
     sf64 "sf64" Float64     Seek;

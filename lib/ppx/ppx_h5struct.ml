@@ -248,60 +248,62 @@ let construct_size_dependent_fun name ~bsize ~index loc =
           then Exp.fun_ ~loc Nolabel None (Pat.var ~loc { txt = "i"; loc }) call
           else call )) ]
 
-let rec map_structure mapper = function
-| [] -> []
-| { pstr_desc = Pstr_eval ({
-      pexp_desc = Pexp_extension ({txt = "h5struct"; _}, payload); _ }, _);
-    pstr_loc = loc } :: structure ->
-  let fields =
-    match payload with
-    | PStr [{ pstr_desc = Pstr_eval (expression, _); _ }] ->
-      extract_fields expression
-    | _ ->
-      raise (Location.Error (Location.error ~loc
-        "[%h5struct] accepts a list of fields, \
-          e.g. [%h5struct time \"Time\" Int; price \"Price\" Float64]"))
-  in
-  let include_ =
-    Str.include_ ~loc (
-      Incl.mk ~loc
-        (Mod.apply ~loc
-          (Mod.ident ~loc { loc; txt = Longident.(
-            Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Make")) })
-          (Mod.structure ~loc [
-            Str.value ~loc Nonrecursive [
-              Vb.mk ~loc (Pat.var ~loc { txt = "fields"; loc })
-                (construct_fields_list fields loc)]])))
-  in
-  let bsize = 8 *
-    List.fold_left (fun sum field -> sum + Type.wsize field.Field.type_) 0 fields in
-  let pos = ref 0 in
-  let functions =
-    List.map (fun field ->
-      let functions =
-        [ construct_field_get field !pos loc;
-          construct_field_set field !pos loc ]
-        @ (
-          if field.Field.seek then [ construct_field_seek field ~bsize !pos loc ]
-          else [] ) in
-      pos := !pos + (
-        match field.Field.type_ with
-        | Type.Float64 | Type.Int | Type.Int64 -> 1
-        | Type.String length -> (length + 7) / 8);
-      functions) fields
-    |> List.concat
-  in
-  include_ :: functions
-    @ construct_set_all_fields fields loc
-    :: construct_size_dependent_fun "unsafe_next" ~bsize ~index:false loc
-    :: construct_size_dependent_fun "unsafe_prev" ~bsize ~index:false loc
-    :: construct_size_dependent_fun "unsafe_move" ~bsize ~index:true  loc
-    :: construct_size_dependent_fun "next"        ~bsize ~index:false loc
-    :: construct_size_dependent_fun "prev"        ~bsize ~index:false loc
-    :: construct_size_dependent_fun "move"        ~bsize ~index:true  loc
-    :: map_structure mapper structure
-| s :: structure -> mapper.structure_item mapper s :: map_structure mapper structure
+let rec map_structure_item mapper structure_item =
+  match structure_item with
+  | { pstr_desc = Pstr_eval ({
+        pexp_desc = Pexp_extension ({txt = "h5struct"; _}, payload); _ }, _);
+      pstr_loc = loc }
+  | { pstr_desc = Pstr_extension (({txt = "h5struct"; _}, payload), _); pstr_loc = loc }
+    ->
+    let fields =
+      match payload with
+      | PStr [{ pstr_desc = Pstr_eval (expression, _); _ }] ->
+        extract_fields expression
+      | _ ->
+        raise (Location.Error (Location.error ~loc
+          "[%h5struct] accepts a list of fields, \
+            e.g. [%h5struct time \"Time\" Int; price \"Price\" Float64]"))
+    in
+    let include_ =
+      Str.include_ ~loc (
+        Incl.mk ~loc
+          (Mod.apply ~loc
+            (Mod.ident ~loc { loc; txt = Longident.(
+              Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Make")) })
+            (Mod.structure ~loc [
+              Str.value ~loc Nonrecursive [
+                Vb.mk ~loc (Pat.var ~loc { txt = "fields"; loc })
+                  (construct_fields_list fields loc)]])))
+    in
+    let bsize = 8 *
+      List.fold_left (fun sum field -> sum + Type.wsize field.Field.type_) 0 fields in
+    let pos = ref 0 in
+    let functions =
+      List.map (fun field ->
+        let functions =
+          [ construct_field_get field !pos loc;
+            construct_field_set field !pos loc ]
+          @ (
+            if field.Field.seek then [ construct_field_seek field ~bsize !pos loc ]
+            else [] ) in
+        pos := !pos + (
+          match field.Field.type_ with
+          | Type.Float64 | Type.Int | Type.Int64 -> 1
+          | Type.String length -> (length + 7) / 8);
+        functions) fields
+      |> List.concat
+    in
+    Str.include_ ~loc (Incl.mk ~loc (Mod.structure ~loc (
+      include_ :: functions @ [
+        construct_set_all_fields fields loc;
+        construct_size_dependent_fun "unsafe_next" ~bsize ~index:false loc;
+        construct_size_dependent_fun "unsafe_prev" ~bsize ~index:false loc;
+        construct_size_dependent_fun "unsafe_move" ~bsize ~index:true  loc;
+        construct_size_dependent_fun "next"        ~bsize ~index:false loc;
+        construct_size_dependent_fun "prev"        ~bsize ~index:false loc;
+        construct_size_dependent_fun "move"        ~bsize ~index:true  loc])))
+  | s -> default_mapper.structure_item mapper s
   
-let h5struct_mapper argv = { default_mapper with structure = map_structure }
+let h5struct_mapper argv = { default_mapper with structure_item = map_structure_item }
 
 let () = register "h5struct" h5struct_mapper
