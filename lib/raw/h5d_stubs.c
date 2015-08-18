@@ -9,9 +9,9 @@
 
 void h5d_finalize(value v)
 {
-  if (!H5D_closed(v))
-    H5Dclose(H5D_val(v));
-  H5D_closed(v) = true;
+  if (!Hid_closed(v))
+    H5Dclose(Hid_val(v));
+  Hid_closed(v) = true;
 }
 
 static struct custom_operations h5d_ops = {
@@ -29,8 +29,8 @@ static value alloc_h5d(hid_t id)
   value v;
   raise_if_fail(id);
   v = caml_alloc_custom(&h5d_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
-  H5D_val(v) = id;
-  H5D_closed(v) = false;
+  Hid_val(v) = id;
+  Hid_closed(v) = false;
   return v;
 }
 
@@ -68,8 +68,8 @@ value hdf5_h5d_create(value loc_id_v, value name_v, value dtype_id_v, value lcpl
   CAMLreturn(alloc_h5d(H5Dcreate2(
     Hid_val(loc_id_v),
     String_val(name_v),
-    H5T_val(dtype_id_v),
-    H5S_val(space_id_v),
+    Hid_val(dtype_id_v),
+    Hid_val(space_id_v),
     H5P_opt_val(lcpl_id_v),
     H5P_opt_val(dcpl_id_v),
     H5P_opt_val(dapl_id_v))));
@@ -93,27 +93,27 @@ value hdf5_h5d_open(value loc_id_v, value dapl_id_v, value name_v)
 void hdf5_h5d_close(value dataset_v)
 {
   CAMLparam1(dataset_v);
-  raise_if_fail(H5Dclose(H5D_val(dataset_v)));
-  H5D_closed(dataset_v) = true;
+  raise_if_fail(H5Dclose(Hid_val(dataset_v)));
+  Hid_closed(dataset_v) = true;
   CAMLreturn0;
 }
 
 value hdf5_h5d_get_space(value dataset_id_v)
 {
   CAMLparam1(dataset_id_v);
-  CAMLreturn(alloc_h5s(H5Dget_space(H5D_val(dataset_id_v))));
+  CAMLreturn(alloc_h5s(H5Dget_space(Hid_val(dataset_id_v))));
 }
 
 value hdf5_h5d_get_type(value dataset_id_v)
 {
   CAMLparam1(dataset_id_v);
-  CAMLreturn(alloc_h5t(H5Dget_type(H5D_val(dataset_id_v))));
+  CAMLreturn(alloc_h5t(H5Dget_type(Hid_val(dataset_id_v))));
 }
 
 value hdf5_h5d_get_create_plist(value dataset_id_v)
 {
   CAMLparam1(dataset_id_v);
-  CAMLreturn(alloc_h5p(H5Dget_create_plist(H5D_val(dataset_id_v))));
+  CAMLreturn(alloc_h5p(H5Dget_create_plist(Hid_val(dataset_id_v))));
 }
 
 void hdf5_h5d_read(value dataset_id_v, value mem_type_id_v, value mem_space_id_v,
@@ -131,10 +131,10 @@ void hdf5_h5d_read(value dataset_id_v, value mem_type_id_v, value mem_space_id_v
     buf = (void*) buf_v;
 
   raise_if_fail(H5Dread(
-    H5D_val(dataset_id_v),
-    H5T_val(mem_type_id_v),
-    H5S_val(mem_space_id_v),
-    H5S_val(file_space_id_v),
+    Hid_val(dataset_id_v),
+    Hid_val(mem_type_id_v),
+    Hid_val(mem_space_id_v),
+    Hid_val(file_space_id_v),
     H5P_opt_val(xfer_plist_id_v),
     buf));
 
@@ -162,10 +162,10 @@ void hdf5_h5d_write(value dataset_id_v, value mem_type_id_v, value mem_space_id_
     buf = (const void*) buf_v;
 
   raise_if_fail(H5Dwrite(
-    H5D_val(dataset_id_v),
-    H5T_val(mem_type_id_v),
-    H5S_val(mem_space_id_v),
-    H5S_val(file_space_id_v),
+    Hid_val(dataset_id_v),
+    Hid_val(mem_type_id_v),
+    Hid_val(mem_space_id_v),
+    Hid_val(file_space_id_v),
     H5P_opt_val(xfer_plist_id_v),
     buf));
 
@@ -187,7 +187,7 @@ void hdf5_h5d_set_extent(value dset_id_v, value size_v)
   (void) hsize_t_array_val(size_v, &size);
   if (size == NULL)
     caml_raise_out_of_memory();
-  err = H5Dset_extent(H5D_val(dset_id_v), size);
+  err = H5Dset_extent(Hid_val(dset_id_v), size);
   free(size);
   raise_if_fail(err);
  

@@ -8,9 +8,9 @@
 
 void h5s_finalize(value v)
 {
-  if (!H5S_closed(v))
-    H5Sclose(H5S_val(v));
-  H5S_closed(v) = true;
+  if (!Hid_closed(v))
+    H5Sclose(Hid_val(v));
+  Hid_closed(v) = true;
 }
 
 static struct custom_operations h5s_ops = {
@@ -28,8 +28,8 @@ value alloc_h5s(hid_t id)
   value v;
   raise_if_fail(id);
   v = caml_alloc_custom(&h5s_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
-  H5S_val(v) = id;
-  H5S_closed(v) = false;
+  Hid_val(v) = id;
+  Hid_closed(v) = false;
   return v;
 }
 
@@ -85,8 +85,8 @@ value hdf5_h5s_create(value type_v)
 void hdf5_h5s_close(value space_v)
 {
   CAMLparam1(space_v);
-  raise_if_fail(H5Sclose(H5S_val(space_v)));
-  H5P_closed(space_v) = true;
+  raise_if_fail(H5Sclose(Hid_val(space_v)));
+  Hid_closed(space_v) = true;
   CAMLreturn0;
 }
 
@@ -125,7 +125,7 @@ value hdf5_h5s_get_simple_extent_dims(value space_id_v)
   CAMLparam1(space_id_v);
 
   CAMLlocal3(dims_v, maxdims_v, ret);
-  hid_t space_id = H5S_val(space_id_v);
+  hid_t space_id = Hid_val(space_id_v);
   hsize_t *dims, *maxdims;
 
   int ndims = H5Sget_simple_extent_ndims(space_id);
@@ -157,13 +157,13 @@ value hdf5_h5s_get_simple_extent_dims(value space_id_v)
 value hdf5_h5s_get_simple_extent_npoints(value space_id_v)
 {
   CAMLparam1(space_id_v);
-  CAMLreturn(Val_int(H5Sget_simple_extent_npoints(H5S_val(space_id_v))));
+  CAMLreturn(Val_int(H5Sget_simple_extent_npoints(Hid_val(space_id_v))));
 }
 
 value hdf5_h5s_get_simple_extent_type(value space_id_v)
 {
   CAMLparam1(space_id_v);
-  CAMLreturn(Val_h5s_class(H5Sget_simple_extent_type(H5S_val(space_id_v))));
+  CAMLreturn(Val_h5s_class(H5Sget_simple_extent_type(Hid_val(space_id_v))));
 }
 
 void hdf5_h5s_set_extent_simple(value space_id_v, value maximum_size_v,
@@ -190,7 +190,7 @@ void hdf5_h5s_set_extent_simple(value space_id_v, value maximum_size_v,
     free(current_size);
     caml_raise_out_of_memory();
   }
-  err = H5Sset_extent_simple(H5S_val(space_id_v), rank, current_size, maximum_size);
+  err = H5Sset_extent_simple(Hid_val(space_id_v), rank, current_size, maximum_size);
   free(current_size);
   free(maximum_size);
   raise_if_fail(err);
@@ -200,7 +200,7 @@ void hdf5_h5s_set_extent_simple(value space_id_v, value maximum_size_v,
 value hdf5_h5s_get_select_npoints(value space_id_v)
 {
   CAMLparam1(space_id_v);
-  hssize_t v = H5Sget_select_npoints(H5S_val(space_id_v));
+  hssize_t v = H5Sget_select_npoints(Hid_val(space_id_v));
   if (v < 0) fail();
   CAMLreturn(Val_int(v));
 }
@@ -213,7 +213,7 @@ value hdf5_h5s_get_select_hyper_blocklist(value startblock_opt_v, value numblock
   hsize_t startblock = Int_opt_val(startblock_opt_v, 0), numblocks, *buf;
   hssize_t nblocks;
   herr_t err;
-  hid_t space_id = H5S_val(space_id_v);
+  hid_t space_id = Hid_val(space_id_v);
   int ndims = H5Sget_simple_extent_ndims(space_id);
   if (Is_block(numblocks_opt_v))
     numblocks = Int_val(Field(numblocks_opt_v, 0));
@@ -245,7 +245,7 @@ value hdf5_h5s_get_select_elem_pointlist(value startblock_opt_v, value numpoints
   hsize_t startblock = Int_opt_val(startblock_opt_v, 0), numpoints, *buf;
   hssize_t npoints;
   herr_t err;
-  hid_t space_id = H5S_val(space_id_v);
+  hid_t space_id = Hid_val(space_id_v);
   int ndims = H5Sget_simple_extent_ndims(space_id);
   if (Is_block(numpoints_opt_v))
     numpoints = Int_val(Field(numpoints_opt_v, 0));
@@ -274,7 +274,7 @@ value hdf5_h5s_get_select_bounds(value space_id_v)
   CAMLparam1(space_id_v);
   CAMLlocal1(v);
   hsize_t start, end;
-  raise_if_fail(H5Sget_select_bounds(H5S_val(space_id_v), &start, &end));
+  raise_if_fail(H5Sget_select_bounds(Hid_val(space_id_v), &start, &end));
   v = caml_alloc_tuple(2);
   Store_field(v, 0, Val_int(start));
   Store_field(v, 1, Val_int(end));
@@ -285,7 +285,7 @@ void hdf5_h5s_select_elements(value space_id_v, value op_v, value coord_v)
 {
   CAMLparam3(space_id_v, op_v, coord_v);
 
-  hid_t space_id = H5S_val(space_id_v);
+  hid_t space_id = Hid_val(space_id_v);
   int ndims, coord_len;
   size_t num_elements;
   hsize_t *coord;
@@ -310,7 +310,7 @@ void hdf5_h5s_select_elements(value space_id_v, value op_v, value coord_v)
 void hdf5_h5s_select_none(value space_id_v)
 {
   CAMLparam1(space_id_v);
-  raise_if_fail(H5Sselect_none(H5S_val(space_id_v)));
+  raise_if_fail(H5Sselect_none(Hid_val(space_id_v)));
   CAMLreturn0;
 }
 
@@ -320,7 +320,7 @@ void hdf5_h5s_select_hyperslab(value space_id_v, value op_v, value start_v,
   CAMLparam5(space_id_v, op_v, start_v, stride_v, count_v);
   CAMLxparam2(block_v, unit_v);
 
-  hid_t space_id = H5S_val(space_id_v);
+  hid_t space_id = Hid_val(space_id_v);
   size_t ndims;
   hsize_t *start, *stride, *count, *block;
   herr_t err;

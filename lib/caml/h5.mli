@@ -30,6 +30,9 @@ val ls : t -> ?index:Hdf5_raw.H5.Index.t -> ?order:Hdf5_raw.H5.Iter_order.t -> s
 (** Copies data. *)
 val copy : src:t -> src_name:string -> dst:t -> dst_name:string -> unit
 
+(** Merges the source into the destination. *)
+val merge : src:t -> dst:t -> unit
+
 (** Returns the HDF5 handle *)
 val hid : t -> Hid.t
 

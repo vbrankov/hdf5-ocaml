@@ -8,9 +8,9 @@
 
 void h5t_finalize(value v)
 {
-  if (!H5T_closed(v))
-    H5Tclose(H5T_val(v));
-  H5T_closed(v) = true;
+  if (!Hid_closed(v))
+    H5Tclose(Hid_val(v));
+  Hid_closed(v) = true;
 }
 
 static struct custom_operations h5t_ops = {
@@ -28,8 +28,8 @@ value alloc_h5t(hid_t id)
   value v;
   raise_if_fail(id);
   v = caml_alloc_custom(&h5t_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
-  H5T_val(v) = id;
-  H5T_closed(v) = false;
+  Hid_val(v) = id;
+  Hid_closed(v) = false;
   return v;
 }
 
@@ -541,7 +541,7 @@ void hdf5_h5t_commit(value loc_id_v, value name_v, value lcpl_id_v, value tcpl_i
 {
   CAMLparam5(loc_id_v, name_v, lcpl_id_v, tcpl_id_v, tapl_id_v);
   CAMLxparam1(dtype_id_v);
-  raise_if_fail(H5Tcommit2(Hid_val(loc_id_v), String_val(name_v), H5T_val(dtype_id_v),
+  raise_if_fail(H5Tcommit2(Hid_val(loc_id_v), String_val(name_v), Hid_val(dtype_id_v),
     H5P_opt_val(lcpl_id_v), H5P_opt_val(tcpl_id_v), H5P_opt_val(tapl_id_v)));
   CAMLreturn0;
 }
@@ -555,86 +555,86 @@ void hdf5_h5t_commit_bytecode(value *argv, int argn)
 value hdf5_h5t_copy(value id_v)
 {
   CAMLparam1(id_v);
-  CAMLreturn(alloc_h5t(H5Tcopy(H5T_val(id_v))));
+  CAMLreturn(alloc_h5t(H5Tcopy(Hid_val(id_v))));
 }
 
 value hdf5_h5t_equal(value dtype_id1_v, value dtype_id2_v)
 {
   CAMLparam2(dtype_id1_v, dtype_id2_v);
-  CAMLreturn(Val_htri(H5Tequal(H5T_val(dtype_id1_v), H5T_val(dtype_id2_v))));
+  CAMLreturn(Val_htri(H5Tequal(Hid_val(dtype_id1_v), Hid_val(dtype_id2_v))));
 }
 
 value hdf5_h5t_get_class(value dtype_id_v)
 {
   CAMLparam1(dtype_id_v);
-  CAMLreturn(Val_h5t_class(H5Tget_class(H5T_val(dtype_id_v))));
+  CAMLreturn(Val_h5t_class(H5Tget_class(Hid_val(dtype_id_v))));
 }
 
 void hdf5_h5t_set_size(value dtype_id_v, value size_v)
 {
   CAMLparam2(dtype_id_v, size_v);
-  raise_if_fail(H5Tset_size(H5T_val(dtype_id_v), Int_val(size_v)));
+  raise_if_fail(H5Tset_size(Hid_val(dtype_id_v), Int_val(size_v)));
   CAMLreturn0;
 }
 
 value hdf5_h5t_get_size(value dtype_id_v)
 {
   CAMLparam1(dtype_id_v);
-  CAMLreturn(Val_int(H5Tget_size(H5T_val(dtype_id_v))));
+  CAMLreturn(Val_int(H5Tget_size(Hid_val(dtype_id_v))));
 }
 
 value hdf5_h5t_get_native_type(value dtype_id_v, value direction_v)
 {
   CAMLparam2(dtype_id_v, direction_v);
-  CAMLreturn(alloc_h5t(H5Tget_native_type(H5T_val(dtype_id_v),
+  CAMLreturn(alloc_h5t(H5Tget_native_type(Hid_val(dtype_id_v),
     H5T_direction_val(direction_v))));
 }
 
 void hdf5_h5t_close(value dtype_v)
 {
   CAMLparam1(dtype_v);
-  raise_if_fail(H5Tclose(H5T_val(dtype_v)));
-  H5T_closed(dtype_v) = true;
+  raise_if_fail(H5Tclose(Hid_val(dtype_v)));
+  Hid_closed(dtype_v) = true;
   CAMLreturn0;
 }
 
 value hdf5_h5t_get_order(value dtype_id_v)
 {
   CAMLparam1(dtype_id_v);
-  CAMLreturn(Val_h5t_order(H5Tget_order(H5T_val(dtype_id_v))));
+  CAMLreturn(Val_h5t_order(H5Tget_order(Hid_val(dtype_id_v))));
 }
 
 void hdf5_h5t_set_order(value id_v, value order_v)
 {
   CAMLparam2(id_v, order_v);
 
-  raise_if_fail(H5Tset_order(H5T_val(id_v), H5T_order_val(order_v)));
+  raise_if_fail(H5Tset_order(Hid_val(id_v), H5T_order_val(order_v)));
   CAMLreturn0;
 }
 
 value hdf5_h5t_get_strpad(value dtype_id_v)
 {
   CAMLparam1(dtype_id_v);
-  CAMLreturn(Val_h5t_str(H5Tget_strpad(H5T_val(dtype_id_v))));
+  CAMLreturn(Val_h5t_str(H5Tget_strpad(Hid_val(dtype_id_v))));
 }
 
 void hdf5_h5t_set_strpad(value id_v, value strpad_v)
 {
   CAMLparam2(id_v, strpad_v);
-  raise_if_fail(H5Tset_strpad(H5T_val(id_v), H5T_str_val(strpad_v)));
+  raise_if_fail(H5Tset_strpad(Hid_val(id_v), H5T_str_val(strpad_v)));
   CAMLreturn0;
 }
 
 value hdf5_h5t_is_variable_str(value dtype_id_v)
 {
   CAMLparam1(dtype_id_v);
-  CAMLreturn(Val_htri(H5Tis_variable_str(H5T_val(dtype_id_v))));
+  CAMLreturn(Val_htri(H5Tis_variable_str(Hid_val(dtype_id_v))));
 }
 
 value hdf5_h5t_get_nmembers(value dtype_id_v)
 {
   CAMLparam1(dtype_id_v);
-  int v = H5Tget_nmembers(H5T_val(dtype_id_v));
+  int v = H5Tget_nmembers(Hid_val(dtype_id_v));
   if (v < 0) fail();
   CAMLreturn(Val_int(v));
 }
@@ -643,7 +643,7 @@ void hdf5_h5t_insert(value dtype_id_v, value name_v, value offset_v, value field
 {
   CAMLparam4(dtype_id_v, name_v, offset_v, field_id_v);
 
-  raise_if_fail(H5Tinsert(H5T_val(dtype_id_v), String_val(name_v), Int_val(offset_v),
-    H5T_val(field_id_v)));
+  raise_if_fail(H5Tinsert(Hid_val(dtype_id_v), String_val(name_v), Int_val(offset_v),
+    Hid_val(field_id_v)));
   CAMLreturn0;
 }

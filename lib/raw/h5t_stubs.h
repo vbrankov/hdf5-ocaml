@@ -1,9 +1,5 @@
 #include <stdbool.h>
-
-#define H5T_val(v) *((hid_t*) Data_custom_val(v))
-#define H5T_closed(v) *((bool*) ((char*) Data_custom_val(v) + sizeof(hid_t)))
 value alloc_h5t(hid_t id);
-
 H5T_class_t H5T_class_val(value);
 value Val_h5t_class(H5T_class_t);
 H5T_order_t H5T_order_val(value);

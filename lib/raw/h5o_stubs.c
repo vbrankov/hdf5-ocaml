@@ -1,9 +1,37 @@
 #include <assert.h>
 #include <caml/alloc.h>
+#include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
 #include "hdf5_caml.h"
+
+void h5o_finalize(value v)
+{
+  if (!Hid_closed(v))
+    H5Oclose(Hid_val(v));
+  Hid_closed(v) = true;
+}
+
+static struct custom_operations h5o_ops = {
+  "hdf5.h5o",
+  h5o_finalize,
+  custom_compare_default,
+  custom_compare_ext_default,
+  custom_hash_default,
+  custom_serialize_default,
+  custom_deserialize_default
+};
+
+static value alloc_h5o(hid_t id, bool close)
+{
+  value v;
+  raise_if_fail(id);
+  v = caml_alloc_custom(&h5o_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
+  Hid_val(v) = id;
+  Hid_closed(v) = !close;
+  return v;
+}
 
 H5O_type_t H5O_type_val(value type)
 {
@@ -113,6 +141,21 @@ value Val_h5o_info(const H5O_info_t *info)
   Store_field(meta_size_v, 0, Val_h5_ih_info(info->meta_size.obj));
   Store_field(meta_size_v, 1, Val_h5_ih_info(info->meta_size.attr));
   CAMLreturn(info_v);
+}
+
+value hdf5_h5o_open(value loc_v, value lapl_v, value name_v)
+{
+  CAMLparam3(loc_v, lapl_v, name_v);
+  CAMLreturn(alloc_h5o(H5Oopen(Hid_val(loc_v), String_val(name_v),
+    H5P_opt_val(lapl_v)), true));
+}
+
+void hdf5_h5o_close(value object_v)
+{
+  CAMLparam1(object_v);
+  raise_if_fail(H5Oclose(Hid_val(object_v)));
+  Hid_closed(object_v) = true;
+  CAMLreturn0;
 }
 
 void hdf5_h5o_copy(value src_loc_v, value src_name_v, value dst_loc_v, value ocpypl_v,

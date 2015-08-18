@@ -12,7 +12,7 @@ void hdf5_h5lt_make_dataset(value loc_id_v, value dset_name_v, value type_id_v,
   CAMLparam4(loc_id_v, dset_name_v, type_id_v, buffer_v);
   struct caml_ba_array *buffer = Caml_ba_array_val(buffer_v);
   raise_if_fail(H5LTmake_dataset(Hid_val(loc_id_v), String_val(dset_name_v),
-    buffer->num_dims, (const hsize_t*) buffer->dim, H5T_val(type_id_v), buffer->data));
+    buffer->num_dims, (const hsize_t*) buffer->dim, Hid_val(type_id_v), buffer->data));
   CAMLreturn0;
 }
 

@@ -55,6 +55,8 @@ module Msg_crt_idx = struct
   type t = int
 end
 
+external open_ : Hid.t -> ?apl:Hid.t -> string -> Hid.t = "hdf5_h5o_open"
+external close : Hid.t -> unit = "hdf5_h5o_close"
 external copy : Hid.t -> string -> Hid.t -> ?ocpypl:Hid.t -> ?lcpl:Hid.t -> string -> unit
   = "hdf5_h5o_copy_bytecode" "hdf5_h5o_copy"
 external set_comment : Hid.t -> string -> unit = "hdf5_h5o_set_comment"

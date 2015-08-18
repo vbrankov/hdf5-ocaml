@@ -11,9 +11,9 @@
 
 void h5a_finalize(value v)
 {
-  if (!H5A_closed(v))
-    H5Aclose(H5A_val(v));
-  H5A_closed(v) = true;
+  if (!Hid_closed(v))
+    H5Aclose(Hid_val(v));
+  Hid_closed(v) = true;
 }
 
 static struct custom_operations h5a_ops = {
@@ -31,8 +31,8 @@ static value alloc_h5a(hid_t id)
   value v;
   raise_if_fail(id);
   v = caml_alloc_custom(&h5a_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
-  H5A_val(v) = id;
-  H5A_closed(v) = false;
+  Hid_val(v) = id;
+  Hid_closed(v) = false;
   return v;
 }
 
@@ -65,7 +65,7 @@ value hdf5_h5a_create(value loc_id_v, value attr_name_v, value type_id_v, value 
   CAMLparam5(loc_id_v, attr_name_v, type_id_v, acpl_id_v, aapl_id_v);
   CAMLxparam1(space_id_v);
   CAMLreturn(alloc_h5a(H5Acreate2(Hid_val(loc_id_v), String_val(attr_name_v),
-    H5T_val(type_id_v), H5S_val(space_id_v), H5P_opt_val(acpl_id_v),
+    Hid_val(type_id_v), Hid_val(space_id_v), H5P_opt_val(acpl_id_v),
     H5P_opt_val(aapl_id_v))));
 }
 
@@ -104,7 +104,7 @@ void hdf5_h5a_write(value attr_id_v, value mem_type_id_v, value buf_v)
     buf = Caml_ba_data_val(buf_v);
   else
     buf = (const void*) buf_v;
-  raise_if_fail(H5Awrite(H5A_val(attr_id_v), H5T_val(mem_type_id_v), buf));
+  raise_if_fail(H5Awrite(Hid_val(attr_id_v), Hid_val(mem_type_id_v), buf));
   CAMLreturn0;
 }
 
@@ -118,7 +118,7 @@ void hdf5_h5a_read(value attr_id_v, value mem_type_id_v, value buf_v)
     buf = Caml_ba_data_val(buf_v);
   else
     buf = (void*) buf_v;
-  raise_if_fail(H5Aread(H5A_val(attr_id_v), H5T_val(mem_type_id_v), buf));
+  raise_if_fail(H5Aread(Hid_val(attr_id_v), Hid_val(mem_type_id_v), buf));
   CAMLreturn0;
 }
 
@@ -134,7 +134,7 @@ void hdf5_h5a_read_vl(value attr_id_v, value mem_type_id_v, value buf_v)
     caml_invalid_argument("H5a.read: bigarrays not allowed");
   else
     buf = (void*) buf_v;
-  raise_if_fail(H5Aread(H5A_val(attr_id_v), H5T_val(mem_type_id_v), buf));
+  raise_if_fail(H5Aread(Hid_val(attr_id_v), Hid_val(mem_type_id_v), buf));
   for (i = 0; i < Wosize_val(buf_v); i++)
   {
     s = ((char**) buf)[i];
@@ -147,8 +147,8 @@ void hdf5_h5a_read_vl(value attr_id_v, value mem_type_id_v, value buf_v)
 void hdf5_h5a_close(value attr_v)
 {
   CAMLparam1(attr_v);
-  raise_if_fail(H5Aclose(H5A_val(attr_v)));
-  H5A_closed(attr_v) = true;
+  raise_if_fail(H5Aclose(Hid_val(attr_v)));
+  Hid_closed(attr_v) = true;
   CAMLreturn0;
 }
 
@@ -217,11 +217,11 @@ value hdf5_h5a_iterate_bytecode(value *argv, int argn)
 value hdf5_h5a_get_space(value attr_id_v)
 {
   CAMLparam1(attr_id_v);
-  CAMLreturn(alloc_h5s(H5Aget_space(H5A_val(attr_id_v))));
+  CAMLreturn(alloc_h5s(H5Aget_space(Hid_val(attr_id_v))));
 }
 
 value hdf5_h5a_get_type(value attr_id_v)
 {
   CAMLparam1(attr_id_v);
-  CAMLreturn(alloc_h5t(H5Aget_type(H5A_val(attr_id_v))));
+  CAMLreturn(alloc_h5t(H5Aget_type(Hid_val(attr_id_v))));
 }

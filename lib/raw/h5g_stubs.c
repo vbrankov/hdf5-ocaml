@@ -11,9 +11,9 @@
 
 void h5g_finalize(value v)
 {
-  if (!H5G_closed(v))
-    H5Gclose(H5G_val(v));
-  H5G_closed(v) = true;
+  if (!Hid_closed(v))
+    H5Gclose(Hid_val(v));
+  Hid_closed(v) = true;
 }
 
 static struct custom_operations h5g_ops = {
@@ -31,8 +31,8 @@ static value alloc_h5g(hid_t id, bool close)
   value v;
   raise_if_fail(id);
   v = caml_alloc_custom(&h5g_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
-  H5G_val(v) = id;
-  H5G_closed(v) = !close;
+  Hid_val(v) = id;
+  Hid_closed(v) = !close;
   return v;
 }
 
@@ -85,8 +85,8 @@ value Val_h5g_info(H5G_info_t *info)
 void hdf5_h5g_close(value group_v)
 {
   CAMLparam1(group_v);
-  raise_if_fail(H5Gclose(H5G_val(group_v)));
-  H5G_closed(group_v) = true;
+  raise_if_fail(H5Gclose(Hid_val(group_v)));
+  Hid_closed(group_v) = true;
   CAMLreturn0;
 }
 
@@ -144,7 +144,7 @@ value hdf5_h5g_get_info(value group_v)
 {
   CAMLparam1(group_v);
   H5G_info_t group_info;
-  raise_if_fail(H5Gget_info(H5G_val(group_v), &group_info));
+  raise_if_fail(H5Gget_info(Hid_val(group_v), &group_info));
   CAMLreturn(Val_h5g_info(&group_info));
 }
 

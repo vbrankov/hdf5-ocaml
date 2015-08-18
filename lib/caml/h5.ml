@@ -41,6 +41,41 @@ let ls t ?(index = Hdf5_raw.H5.Index.NAME) ?(order = Hdf5_raw.H5.Iter_order.NATI
 let copy ~src ~src_name ~dst ~dst_name =
   H5o.copy (hid src) src_name (hid dst) dst_name
 
+let rec merge ~src ~dst =
+  let _ = H5l.iterate src Hdf5_raw.H5.Index.NAME Hdf5_raw.H5.Iter_order.NATIVE
+    (fun _ name _ () ->
+      if H5l.exists dst name then begin
+        let src = H5o.open_ src name in
+        let dst = H5o.open_ dst name in
+        begin match H5i.get_type src, H5i.get_type dst with
+        | t, t' when t <> t' ->
+          invalid_arg (Printf.sprintf
+            "Object %s not of the same type in source and destination" name)
+        | H5i.Type.FILE, _
+        | H5i.Type.GROUP, _ -> merge ~src ~dst
+        | H5i.Type.DATASET, _ -> ()
+        | H5i.Type.DATATYPE, _
+        | H5i.Type.DATASPACE, _
+        | H5i.Type.ATTR, _
+        | H5i.Type.REFERENCE, _
+        | H5i.Type.VFL, _
+        | H5i.Type.GENPROP_CLS, _
+        | H5i.Type.GENPROP_LST, _
+        | H5i.Type.ERROR_CLASS, _
+        | H5i.Type.ERROR_MSG, _
+        | H5i.Type.ERROR_STACK, _
+        | H5i.Type.NTYPES, _ ->
+          invalid_arg (Printf.sprintf "Unhandled object type %d for the object %s"
+            (Obj.magic (H5i.get_type src)) name)
+        end;
+        H5o.close src;
+        H5o.close dst
+      end else H5o.copy src name dst name;
+      Hdf5_raw.H5.Iter.CONT
+    ) () in ()
+
+let merge ~src ~dst = merge ~src:(hid src) ~dst:(hid dst)
+
 let write_data t datatype dims name ?(deflate = 6) data =
   let dataspace = H5s.create_simple dims in
   let dcpl =

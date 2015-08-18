@@ -63,7 +63,7 @@ static value alloc_h5l(hid_t id)
   value v;
   raise_if_fail(id);
   v = caml_alloc_custom(&h5l_ops, sizeof(hid_t), 0, 1);
-  H5L_val(v) = id;
+  Hid_val(v) = id;
   return v;
 }
 

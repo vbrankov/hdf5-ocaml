@@ -4,11 +4,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include "hdf5.h"
-#include "h5_stubs.h"
-#include "h5d_stubs.h"
-#include "h5i_stubs.h"
-#include "h5p_stubs.h"
-#include "h5z_stubs.h"
+#include "hdf5_caml.h"
 
 void hdf5_h5p_free_vlen_mem_manager(value id_v)
 {
@@ -17,7 +13,7 @@ void hdf5_h5p_free_vlen_mem_manager(value id_v)
   void *alloc_info, *free_info;
   herr_t err;
 
-  err = H5Pget_vlen_mem_manager(H5P_val(id_v), &alloc, &alloc_info, &free, &free_info);
+  err = H5Pget_vlen_mem_manager(Hid_val(id_v), &alloc, &alloc_info, &free, &free_info);
   if (err < 0) return;
   if (alloc != NULL)
     caml_remove_generational_global_root((value*) alloc_info);
@@ -27,11 +23,11 @@ void hdf5_h5p_free_vlen_mem_manager(value id_v)
 
 void h5p_finalize(value v)
 {
-  if (!H5P_closed(v))
+  if (!Hid_closed(v))
   {
-    H5Pclose(H5P_val(v));
+    H5Pclose(Hid_val(v));
     hdf5_h5p_free_vlen_mem_manager(v);
-    H5P_closed(v) = true;
+    Hid_closed(v) = true;
   }
 }
 
@@ -50,8 +46,8 @@ value alloc_h5p(hid_t id)
   value v;
   raise_if_fail(id);
   v = caml_alloc_custom(&h5p_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
-  H5P_val(v) = id;
-  H5P_closed(v) = false;
+  Hid_val(v) = id;
+  Hid_closed(v) = false;
   return v;
 }
 
@@ -88,22 +84,22 @@ value hdf5_h5p_create(value cls_id_v)
 void hdf5_h5p_close(value plist_v)
 {
   CAMLparam1(plist_v);
-  raise_if_fail(H5Pclose(H5P_val(plist_v)));
-  H5P_closed(plist_v) = true;
+  raise_if_fail(H5Pclose(Hid_val(plist_v)));
+  Hid_closed(plist_v) = true;
   CAMLreturn0;
 }
 
 void hdf5_h5p_set_userblock(value plist_v, value size_v)
 {
   CAMLparam2(plist_v, size_v);
-  raise_if_fail(H5Pset_userblock(H5P_val(plist_v), Int_val(size_v)));
+  raise_if_fail(H5Pset_userblock(Hid_val(plist_v), Int_val(size_v)));
   CAMLreturn0;
 }
 
 void hdf5_h5p_set_create_intermediate_group(value lcpl_v, value crt_intermed_group_v)
 {
   CAMLparam2(lcpl_v, crt_intermed_group_v);
-  raise_if_fail(H5Pset_create_intermediate_group(H5P_val(lcpl_v),
+  raise_if_fail(H5Pset_create_intermediate_group(Hid_val(lcpl_v),
     Bool_val(crt_intermed_group_v)));
   CAMLreturn0;
 }
@@ -112,14 +108,14 @@ value hdf5_h5p_get_create_intermediate_group(value lcpl_v)
 {
   CAMLparam1(lcpl_v);
   unsigned crt_intermed_group;
-  raise_if_fail(H5Pget_create_intermediate_group(H5P_val(lcpl_v), &crt_intermed_group));
+  raise_if_fail(H5Pget_create_intermediate_group(Hid_val(lcpl_v), &crt_intermed_group));
   CAMLreturn(Val_int(crt_intermed_group));
 }
 
 value hdf5_h5p_get_layout(value plist_v)
 {
   CAMLparam1(plist_v);
-  CAMLreturn(Val_h5d_layout(H5Pget_layout(H5P_val(plist_v))));
+  CAMLreturn(Val_h5d_layout(H5Pget_layout(Hid_val(plist_v))));
 }
 
 void hdf5_h5p_set_chunk(value plist_v, value dim_v)
@@ -132,7 +128,7 @@ void hdf5_h5p_set_chunk(value plist_v, value dim_v)
   ndims = hsize_t_array_val(dim_v, &dim);
   if (dim == NULL)
     caml_raise_out_of_memory();
-  err = H5Pset_chunk(H5P_val(plist_v), ndims, dim);
+  err = H5Pset_chunk(Hid_val(plist_v), ndims, dim);
   free(dim);
   raise_if_fail(err);
 
@@ -146,11 +142,11 @@ value hdf5_h5p_get_chunk(value plist_v)
   hsize_t *dims;
   CAMLlocal1(v);
 
-  max_ndims = H5Pget_chunk(H5P_val(plist_v), 0, NULL);
+  max_ndims = H5Pget_chunk(Hid_val(plist_v), 0, NULL);
   dims = calloc(max_ndims, sizeof(hsize_t));
   if (dims == NULL)
     caml_raise_out_of_memory();
-  H5Pget_chunk(H5P_val(plist_v), max_ndims, dims);
+  H5Pget_chunk(Hid_val(plist_v), max_ndims, dims);
   v = val_hsize_t_array(max_ndims, dims);
   free(dims);
   CAMLreturn(v);
@@ -159,7 +155,7 @@ value hdf5_h5p_get_chunk(value plist_v)
 void hdf5_h5p_set_deflate(value plist_id_v, value level_v)
 {
   CAMLparam2(plist_id_v, level_v);
-  raise_if_fail(H5Pset_deflate(H5P_val(plist_id_v), Int_val(level_v)));
+  raise_if_fail(H5Pset_deflate(Hid_val(plist_id_v), Int_val(level_v)));
   CAMLreturn0;
 }
 
@@ -172,7 +168,7 @@ void hdf5_h5p_set_filter(value plist_v, value filter_v, value flags_v, value cd_
   cd_nelmts = unsigned_int_array_val(cd_v, &cd_values);
   if (cd_values == NULL)
     fail();
-  err = H5Pset_filter(H5P_val(plist_v), H5Z_filter_val(filter_v), flag_val(flags_v),
+  err = H5Pset_filter(Hid_val(plist_v), H5Z_filter_val(filter_v), flag_val(flags_v),
     cd_nelmts, cd_values);
   free(cd_values);
   raise_if_fail(err);
@@ -182,21 +178,21 @@ void hdf5_h5p_set_filter(value plist_v, value filter_v, value flags_v, value cd_
 void hdf5_h5p_set_fletcher32(value plist_v)
 {
   CAMLparam1(plist_v);
-  raise_if_fail(H5Pset_fletcher32(H5P_val(plist_v)));
+  raise_if_fail(H5Pset_fletcher32(Hid_val(plist_v)));
   CAMLreturn0;
 }
 
 void hdf5_h5p_set_nbit(value plist_v)
 {
   CAMLparam1(plist_v);
-  raise_if_fail(H5Pset_nbit(H5P_val(plist_v)));
+  raise_if_fail(H5Pset_nbit(Hid_val(plist_v)));
   CAMLreturn0;
 }
 
 void hdf5_h5p_set_shuffle(value plist_v)
 {
   CAMLparam1(plist_v);
-  raise_if_fail(H5Pset_shuffle(H5P_val(plist_v)));
+  raise_if_fail(H5Pset_shuffle(Hid_val(plist_v)));
   CAMLreturn0;
 }
 
@@ -231,7 +227,7 @@ void hdf5_h5p_set_vlen_mem_manager(value plist_id_v, value alloc_v, value free_v
   caml_register_generational_global_root(alloc_info);
   *free_info = free_v;
   caml_register_generational_global_root(free_info);
-  err = H5Pset_vlen_mem_manager(H5P_val(plist_id_v), hdf5_h5p_alloc, (void*) alloc_info,
+  err = H5Pset_vlen_mem_manager(Hid_val(plist_id_v), hdf5_h5p_alloc, (void*) alloc_info,
     hdf5_h5p_free, (void*) free_info);
   if (err < 0)
   {
@@ -249,7 +245,7 @@ value hdf5_h5p_get_vlen_mem_manager(value plist_id_v)
   H5MM_free_t free;
   void *alloc_info, *free_info;
   CAMLlocal1(ret);
-  raise_if_fail(H5Pget_vlen_mem_manager(H5P_val(plist_id_v), &alloc, &alloc_info, &free,
+  raise_if_fail(H5Pget_vlen_mem_manager(Hid_val(plist_id_v), &alloc, &alloc_info, &free,
     &free_info));
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, (value) alloc_info);
