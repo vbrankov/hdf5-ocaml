@@ -26,6 +26,10 @@ let close = function
 | File f -> H5f.close f
 | Group g -> H5g.close g
 
+let flush t = H5f.flush (hid t) H5f.Scope.LOCAL
+
+let get_name t = H5f.get_name (hid t)
+
 let exists t name =
   H5l.exists (hid t) name
 

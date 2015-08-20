@@ -20,6 +20,12 @@ val open_dir : t -> string -> t
 (** Closes the given directory handle. *)
 val close : t -> unit
 
+(** Flushes all buffers associated with a file to disk. *)
+val flush : t -> unit
+
+(** Returns the name of file to which object belongs. *)
+val get_name : t -> string
+
 (** Returns whether the given subdirectory or a data set exists. *)
 val exists : t -> string -> bool
 
