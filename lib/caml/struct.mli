@@ -43,18 +43,18 @@ module Ptr : sig
   val prev : _ -> int -> unit
   val move : _ -> int -> int -> unit
 
-  val get_float64 : _ -> int -> float
-  val set_float64 : _ -> int -> float -> unit
-  val get_int     : _ -> int -> int
-  val set_int     : _ -> int -> int -> unit
-  val get_int64   : _ -> int -> int64
-  val set_int64   : _ -> int -> int64 -> unit
-  val get_string  : _ -> int -> int -> string
-  val set_string  : _ -> int -> int -> string -> unit
+  val get_float64  : _ -> int -> _
+  val set_float64  : _ -> int -> _ -> unit
+  val get_int      : _ -> int -> _
+  val set_int      : _ -> int -> _ -> unit
+  val get_int64    : _ -> int -> _
+  val set_int64    : _ -> int -> _ -> unit
+  val get_string   : _ -> int -> int -> string
+  val set_string   : _ -> int -> int -> string -> unit
 
-  val seek_int     : _ -> int -> int -> int   -> unit
-  val seek_int64   : _ -> int -> int -> int64 -> unit
-  val seek_float64 : _ -> int -> int -> float -> unit
+  val seek_int     : _ -> int -> int -> _ -> unit
+  val seek_int64   : _ -> int -> int -> _ -> unit
+  val seek_float64 : _ -> int -> int -> _ -> unit
   val seek_string  : _ -> int -> int -> int -> string -> unit
 end
 

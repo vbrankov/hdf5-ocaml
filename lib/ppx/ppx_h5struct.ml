@@ -24,10 +24,11 @@ end
 
 module Field = struct
   type t = {
-    id    : string;
-    name  : string;
-    type_ : Type.t;
-    seek  : bool;
+    id         : string;
+    name       : string;
+    type_      : Type.t;
+    ocaml_type : Longident.t;
+    seek       : bool;
   }
 end
 
@@ -53,23 +54,36 @@ let rec extract_fields expression =
           raise (Location.Error (Location.error ~loc:name.pexp_loc (Printf.sprintf
             "[%%h5struct] invalid field %s, field name must be a string constant" id)))
       in
-      let type_ =
+      let type_, ocaml_type =
         match type_ with
         | { pexp_desc = Pexp_construct (type_, expression_opt); pexp_loc = loc; _ } ->
           begin match type_.txt with
           | Lident type_ ->
             begin match type_ with
-            | "Float64" -> Type.Float64
-            | "Int"     -> Type.Int
-            | "Int64"   -> Type.Int64
-            | "String"  ->
-              begin match expression_opt with
-              | Some { pexp_desc = Pexp_constant (Const_int length); _ } ->
-                Type.String length
-              | _ ->
-                raise (Location.Error (Location.error ~loc (Printf.sprintf
-                  "[%%h5struct] invalid field %s, field type String requires length" id)))
-              end
+            | "Discrete" ->
+              let ocaml_type =
+                match expression_opt with
+                | Some { pexp_desc = Pexp_ident { txt; _ }; _ } -> txt
+                | _ ->
+                  raise (Location.Error (Location.error ~loc (Printf.sprintf
+                    "[%%h5struct] invalid field %s, field type Discrete requires type"
+                    id)))
+              in
+              Type.Int, ocaml_type
+            | "Float64"  -> Type.Float64, Longident.Lident "float"
+            | "Int"      -> Type.Int    , Longident.Lident "int"
+            | "Int64"    -> Type.Int64  , Longident.Lident "int64"
+            | "String"   ->
+              let type_ =
+                match expression_opt with
+                | Some { pexp_desc = Pexp_constant (Const_int length); _ } ->
+                  Type.String length
+                | _ ->
+                  raise (Location.Error (Location.error ~loc (Printf.sprintf
+                    "[%%h5struct] invalid field %s, field type String requires length"
+                    id)))
+              in
+              type_, Longident.Lident "string"
             | _ ->
               raise (Location.Error (Location.error ~loc (Printf.sprintf
                 "[%%h5struct] invalid field %s, unrecognized type %s" id type_)))
@@ -89,7 +103,7 @@ let rec extract_fields expression =
         | _ ->
           raise (Location.Error (Location.error ~loc:expression.pexp_loc (Printf.sprintf
             "[%%h5struct] invalid field %s, unexpected modifiers" id)))) expressions;
-      [ { Field.id; name; type_; seek = !seek } ]
+      [ { Field.id; name; type_; ocaml_type; seek = !seek } ]
     | _ ->
       raise (Location.Error (Location.error ~loc:pexp_loc (Printf.sprintf
         "[%%h5struct] invalid field %s, exactly two arguments expected: name and type"
@@ -115,7 +129,11 @@ let rec construct_fields_list fields loc =
               { loc; txt = Longident.(
                   Ldot (
                     Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Type"),
-                    Type.to_string field.Field.type_)) }
+                    match field.Field.type_ with
+                    | Type.Float64  -> "Float64"
+                    | Type.Int      -> "Int"
+                    | Type.Int64    -> "Int64"
+                    | Type.String _ -> "String")) }
               ( match field.Field.type_ with
                 | Type.String length -> Some (Exp.constant ~loc (Const_int length))
                 | _ -> None ) ];
@@ -124,13 +142,10 @@ let rec construct_fields_list fields loc =
 let construct_function ~loc name args body =
   let rec construct_args = function
   | [] -> body
-  | arg :: args ->
-    let var = Pat.var ~loc { txt = arg; loc } in
+  | (arg, typ) :: args ->
     Exp.fun_ ~loc Nolabel None
-      ( if arg = "t" then
-          Pat.constraint_ ~loc var
-            (Typ.constr ~loc { txt = Longident.Lident "t"; loc } [] )
-        else var )
+      (Pat.constraint_ ~loc (Pat.var ~loc { txt = arg; loc })
+        (Typ.constr ~loc { txt = typ; loc } []) )
       (construct_args args)
   in
   Str.value ~loc Nonrecursive [
@@ -143,34 +158,40 @@ let construct_function_call ~loc name args =
     (List.map (fun arg ->
       Nolabel,
       match arg with
+      | `Exp e -> e
       | `Int i -> Exp.constant ~loc (Const_int i)
       | `Var v -> Exp.ident ~loc { txt = Longident.Lident v; loc }) args)
 
 let construct_field_get field pos loc =
-  construct_function ~loc field.Field.id [ "t" ]
-    (construct_function_call ~loc
-      Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
-        ( match field.Field.type_ with
-          | Type.Float64  -> "get_float64"
-          | Type.Int      -> "get_int"
-          | Type.Int64    -> "get_int64"
-          | Type.String _ -> "get_string" )))
-      (   [ `Var "t" ]
-        @ ( match field.Field.type_ with
-            | Type.Float64
-            | Type.Int
-            | Type.Int64 -> [ `Int pos ]
-            | Type.String length -> [ `Int (pos * 8); `Int length ] ) ))
+  construct_function ~loc field.Field.id [ "t", Longident.Lident "t" ] (
+    Exp.constraint_ ~loc
+      (construct_function_call ~loc Longident.(Ldot (Lident "Obj", "magic"))
+        [`Exp (
+          construct_function_call ~loc
+            Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
+              ( match field.Field.type_ with
+                | Type.Float64    -> "get_float64"
+                | Type.Int        -> "get_int"
+                | Type.Int64      -> "get_int64"
+                | Type.String _   -> "get_string" )))
+            (   [ `Var "t" ]
+              @ ( match field.Field.type_ with
+                  | Type.Float64
+                  | Type.Int
+                  | Type.Int64 -> [ `Int pos ]
+                  | Type.String length -> [ `Int (pos * 8); `Int length ] ) ))])
+      (Typ.constr ~loc { txt = field.Field.ocaml_type; loc } []))
 
 let construct_field_set field pos loc =
-  construct_function ~loc ("set_" ^ field.Field.id) [ "t"; "v" ]
+  construct_function ~loc ("set_" ^ field.Field.id)
+    [ "t", Longident.Lident "t"; "v", field.Field.ocaml_type ]
     (construct_function_call ~loc
       Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
         ( match field.Field.type_ with
-          | Type.Float64  -> "set_float64"
-          | Type.Int      -> "set_int"
-          | Type.Int64    -> "set_int64"
-          | Type.String _ -> "set_string" )))
+          | Type.Float64    -> "set_float64"
+          | Type.Int        -> "set_int"
+          | Type.Int64      -> "set_int64"
+          | Type.String _   -> "set_string" )))
       (   [ `Var "t" ]
         @ ( match field.Field.type_ with
             | Type.Float64
@@ -180,14 +201,15 @@ let construct_field_set field pos loc =
         @ [ `Var "v" ] ))
 
 let construct_field_seek field ~bsize pos loc =
-  construct_function ~loc ("seek_" ^ field.Field.id) [ "t"; "v" ]
+  construct_function ~loc ("seek_" ^ field.Field.id)
+    [ "t", Longident.Lident "t"; "v", field.Field.ocaml_type ]
     (construct_function_call ~loc
       Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
         ( match field.Field.type_ with
-          | Type.Float64  -> "seek_float64"
-          | Type.Int      -> "seek_int"
-          | Type.Int64    -> "seek_int64"
-          | Type.String _ -> "seek_string" )))
+          | Type.Float64    -> "seek_float64"
+          | Type.Int        -> "seek_int"
+          | Type.Int64      -> "seek_int64"
+          | Type.String _   -> "seek_string" )))
       ( [ `Var "t"; `Int (bsize / 2) ]
         @ (
           match field.Field.type_ with
@@ -300,7 +322,7 @@ let map_structure_item mapper structure_item =
         construct_size_dependent_fun "prev"        ~bsize ~index:false loc;
         construct_size_dependent_fun "move"        ~bsize ~index:true  loc])))
   | s -> default_mapper.structure_item mapper s
-  
+
 let h5struct_mapper _ = { default_mapper with structure_item = map_structure_item }
 
 let () = register "h5struct" h5struct_mapper

@@ -85,19 +85,21 @@ module Ptr = struct
 
   open Bigarray
 
-  let get_float64 t i   = Array.unsafe_get (Obj.magic (Obj.magic t).ptr : float array) i
-  let set_float64 t i v = Array.unsafe_set (Obj.magic (Obj.magic t).ptr : float array) i v
-  let get_int t i =
-    Int64.to_int (Obj.magic (Obj.magic (Obj.magic t).ptr + (i - 1) * 4) : int64)
+  let get_float64 t i   =
+    Obj.magic (Array.unsafe_get (Obj.magic (Obj.magic t).ptr : float array) i)
+  let set_float64 t i v =
+    Array.unsafe_set (Obj.magic (Obj.magic t).ptr : float array) i (Obj.magic v)
+  let get_int t i = Obj.magic (
+    Int64.to_int (Obj.magic (Obj.magic (Obj.magic t).ptr + (i - 1) * 4) : int64))
   let set_int t i v =
     let a : (int64, int64_elt, c_layout) Array1.t = Obj.magic (Obj.magic t - 4) in
-    Array1.unsafe_set a i (Int64.of_int v)
+    Array1.unsafe_set a i (Int64.of_int (Obj.magic v))
   let get_int64 t i =
     let a : (int64, int64_elt, c_layout) Array1.t = Obj.magic (Obj.magic t - 4) in
-    Array1.unsafe_get a i
+    Obj.magic (Array1.unsafe_get a i)
   let set_int64 t i v =
     let a : (int64, int64_elt, c_layout) Array1.t = Obj.magic (Obj.magic t - 4) in
-    Array1.unsafe_set a i v
+    Array1.unsafe_set a i (Obj.magic v)
 
   external unsafe_fill : bytes -> int -> int -> char -> unit
                        = "caml_fill_string" "noalloc"
@@ -141,6 +143,7 @@ module Ptr = struct
     if v' >= v then !min else !max
 
   let seek_float64 t size pos v =
+    let v : float = Obj.magic v in
     let t = Obj.magic t in
     let data = t.mem.Mem.data in
     if t.len < 0 then t.len <- t.mem.Mem.dim / size;
@@ -196,6 +199,7 @@ module Ptr = struct
     if v' >= v then !min else !max
 
   let seek_int t size pos v =
+    let v : int = Obj.magic v in
     let t = Obj.magic t in
     let data = t.mem.Mem.data in
     if t.len < 0 then t.len <- t.mem.Mem.dim / size;
@@ -250,6 +254,7 @@ module Ptr = struct
     if v' >= v then !min else !max
 
   let seek_int64 t size pos v =
+    let v : int64 = Obj.magic v in
     let t = Obj.magic t in
     let data = t.mem.Mem.data in
     if t.len < 0 then t.len <- t.mem.Mem.dim / size;
@@ -327,7 +332,7 @@ module Make(S : S) = struct
   open Bigarray
 
   let pos t = t.Ptr.i
-  let has_next t = t.Ptr.ptr < t.Ptr.end_
+  let has_next t = t.Ptr.ptr + size64 < t.Ptr.end_
   let has_prev t = t.Ptr.i > 0
   let unsafe_next t = Ptr.unsafe_next t size64
   let unsafe_move t i = Ptr.unsafe_move t i size64 
@@ -366,7 +371,8 @@ module Make(S : S) = struct
 
     module H5tb = Hdf5_raw.H5tb
 
-    let make_table t ?title ?chunk_size ?(compress = true) h5 dset_name =
+    let make_table t ?title ?chunk_size ?(compress = true) h5
+        dset_name =
       let title = match title with Some t -> t | None -> dset_name in
       let chunk_size = match chunk_size with Some s -> s | None -> length t in
       H5tb.make_table title (H5.hid h5) dset_name ~nrecords:(t.Mem.dim / size64)

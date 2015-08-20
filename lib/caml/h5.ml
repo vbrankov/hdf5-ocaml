@@ -16,7 +16,7 @@ let open_rdonly name =
   File (H5f.open_ name H5f.Acc.([ RDONLY ]))
 
 let open_rdwr name =
-  File (H5f.open_ name H5f.Acc.([ RDWR ]))
+  File (H5f.open_ name H5f.Acc.([ CREAT; RDWR ]))
 
 let open_dir t name =
   let t = hid t in
