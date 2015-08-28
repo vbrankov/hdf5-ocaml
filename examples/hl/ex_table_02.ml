@@ -28,7 +28,7 @@ let () =
 
   let particle_in = Particle.Vector.create () in
   Particle.(set (Vector.append particle_in) ~name:"eight" ~lati:80 ~longi:80 ~pressure:8. ~temperature:80.);
-  Particle.(set (Vector.append particle_in) ~name:"ning"  ~lati:90 ~longi:90 ~pressure:9. ~temperature:90.);
+  Particle.(set (Vector.append particle_in) ~name:"nine"  ~lati:90 ~longi:90 ~pressure:9. ~temperature:90.);
   let particle_in = Particle.Vector.to_array particle_in in
 
   let string_type = H5t.copy H5t.c_s1 in
