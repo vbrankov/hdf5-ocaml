@@ -59,14 +59,14 @@ value Val_h5a_info(H5A_info_t info)
   CAMLreturn(info_v);
 }
 
-value hdf5_h5a_create(value loc_id_v, value attr_name_v, value type_id_v, value acpl_id_v,
-  value aapl_id_v, value space_id_v)
+value hdf5_h5a_create(value loc_v, value attr_name_v, value type_v, value acpl_v,
+  value aapl_v, value space_v)
 {
-  CAMLparam5(loc_id_v, attr_name_v, type_id_v, acpl_id_v, aapl_id_v);
-  CAMLxparam1(space_id_v);
-  CAMLreturn(alloc_h5a(H5Acreate2(Hid_val(loc_id_v), String_val(attr_name_v),
-    Hid_val(type_id_v), Hid_val(space_id_v), H5P_opt_val(acpl_id_v),
-    H5P_opt_val(aapl_id_v))));
+  CAMLparam5(loc_v, attr_name_v, type_v, acpl_v, aapl_v);
+  CAMLxparam1(space_v);
+  CAMLreturn(alloc_h5a(H5Acreate2(Hid_val(loc_v), String_val(attr_name_v),
+    Hid_val(type_v), Hid_val(space_v), H5P_opt_val(acpl_v),
+    H5P_opt_val(aapl_v))));
 }
 
 value hdf5_h5a_create_bytecode(value *argv, int argn)
@@ -75,28 +75,28 @@ value hdf5_h5a_create_bytecode(value *argv, int argn)
   return hdf5_h5a_create(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
-value hdf5_h5a_open(value obj_id_v, value appl_id_v, value attr_name_v)
+value hdf5_h5a_open(value obj_v, value appl_v, value attr_name_v)
 {
-  CAMLparam3(obj_id_v, appl_id_v, attr_name_v);
-  CAMLreturn(alloc_h5a(H5Aopen(Hid_val(obj_id_v), String_val(attr_name_v),
-    H5P_opt_val(appl_id_v))));
+  CAMLparam3(obj_v, appl_v, attr_name_v);
+  CAMLreturn(alloc_h5a(H5Aopen(Hid_val(obj_v), String_val(attr_name_v),
+    H5P_opt_val(appl_v))));
 }
 
-value hdf5_h5a_open_name(value loc_id_v, value name_v)
+value hdf5_h5a_open_name(value loc_v, value name_v)
 {
-  CAMLparam2(loc_id_v, name_v);
-  CAMLreturn(alloc_h5a(H5Aopen_name(Hid_val(loc_id_v), String_val(name_v))));
+  CAMLparam2(loc_v, name_v);
+  CAMLreturn(alloc_h5a(H5Aopen_name(Hid_val(loc_v), String_val(name_v))));
 }
 
-value hdf5_h5a_open_idx(value loc_id_v, value idx_v)
+value hdf5_h5a_open_idx(value loc_v, value idx_v)
 {
-  CAMLparam2(loc_id_v, idx_v);
-  CAMLreturn(alloc_h5a(H5Aopen_idx(Hid_val(loc_id_v), Int_val(idx_v))));
+  CAMLparam2(loc_v, idx_v);
+  CAMLreturn(alloc_h5a(H5Aopen_idx(Hid_val(loc_v), Int_val(idx_v))));
 }
 
-void hdf5_h5a_write(value attr_id_v, value mem_type_id_v, value buf_v)
+void hdf5_h5a_write(value attr_v, value mem_type_v, value buf_v)
 {
-  CAMLparam3(attr_id_v, mem_type_id_v, buf_v);
+  CAMLparam3(attr_v, mem_type_v, buf_v);
   const void* buf;
   if (Is_long(buf_v))
     caml_invalid_argument("H5a.write: immediate values not allowed");
@@ -104,13 +104,13 @@ void hdf5_h5a_write(value attr_id_v, value mem_type_id_v, value buf_v)
     buf = Caml_ba_data_val(buf_v);
   else
     buf = (const void*) buf_v;
-  raise_if_fail(H5Awrite(Hid_val(attr_id_v), Hid_val(mem_type_id_v), buf));
+  raise_if_fail(H5Awrite(Hid_val(attr_v), Hid_val(mem_type_v), buf));
   CAMLreturn0;
 }
 
-void hdf5_h5a_read(value attr_id_v, value mem_type_id_v, value buf_v)
+void hdf5_h5a_read(value attr_v, value mem_type_v, value buf_v)
 {
-  CAMLparam3(attr_id_v, mem_type_id_v, buf_v);
+  CAMLparam3(attr_v, mem_type_v, buf_v);
   void* buf;
   if (Is_long(buf_v))
     caml_invalid_argument("H5a.read: immediate values not allowed");
@@ -118,13 +118,13 @@ void hdf5_h5a_read(value attr_id_v, value mem_type_id_v, value buf_v)
     buf = Caml_ba_data_val(buf_v);
   else
     buf = (void*) buf_v;
-  raise_if_fail(H5Aread(Hid_val(attr_id_v), Hid_val(mem_type_id_v), buf));
+  raise_if_fail(H5Aread(Hid_val(attr_v), Hid_val(mem_type_v), buf));
   CAMLreturn0;
 }
 
-void hdf5_h5a_read_vl(value attr_id_v, value mem_type_id_v, value buf_v)
+void hdf5_h5a_read_vl(value attr_v, value mem_type_v, value buf_v)
 {
-  CAMLparam3(attr_id_v, mem_type_id_v, buf_v);
+  CAMLparam3(attr_v, mem_type_v, buf_v);
   void* buf;
   char* s;
   mlsize_t i;
@@ -134,7 +134,7 @@ void hdf5_h5a_read_vl(value attr_id_v, value mem_type_id_v, value buf_v)
     caml_invalid_argument("H5a.read: bigarrays not allowed");
   else
     buf = (void*) buf_v;
-  raise_if_fail(H5Aread(Hid_val(attr_id_v), Hid_val(mem_type_id_v), buf));
+  raise_if_fail(H5Aread(Hid_val(attr_v), Hid_val(mem_type_v), buf));
   for (i = 0; i < Wosize_val(buf_v); i++)
   {
     s = ((char**) buf)[i];
@@ -183,10 +183,10 @@ herr_t hdf5_h5a_operator(hid_t location_id, const char *attr_name,
   CAMLreturnT(herr_t, H5_iter_val(ret));
 }
 
-value hdf5_h5a_iterate(value obj_id_v, value idx_type_opt_v, value order_opt_v, value n_v,
+value hdf5_h5a_iterate(value obj_v, value idx_type_opt_v, value order_opt_v, value n_v,
   value op_v, value op_data_v)
 {
-  CAMLparam5(obj_id_v, idx_type_opt_v, order_opt_v, n_v, op_v);
+  CAMLparam5(obj_v, idx_type_opt_v, order_opt_v, n_v, op_v);
   CAMLxparam1(op_data_v);
   CAMLlocal1(exception);
   hsize_t n, ret;
@@ -198,7 +198,7 @@ value hdf5_h5a_iterate(value obj_id_v, value idx_type_opt_v, value order_opt_v, 
   n = Is_block(n_v) ? Int_val(Field(Field(n_v, 0), 0)) : 0;
   exception = Val_unit;
 
-  ret = H5Aiterate(Hid_val(obj_id_v), H5_index_opt_val(idx_type_opt_v),
+  ret = H5Aiterate(Hid_val(obj_v), H5_index_opt_val(idx_type_opt_v),
     H5_iter_order_opt_val(order_opt_v), Is_block(n_v) ? &n : NULL, hdf5_h5a_operator,
     &op);
   if (Is_block(n_v))
@@ -214,14 +214,14 @@ value hdf5_h5a_iterate_bytecode(value *argv, int argn)
   return hdf5_h5a_iterate(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
-value hdf5_h5a_get_space(value attr_id_v)
+value hdf5_h5a_get_space(value attr_v)
 {
-  CAMLparam1(attr_id_v);
-  CAMLreturn(alloc_h5s(H5Aget_space(Hid_val(attr_id_v))));
+  CAMLparam1(attr_v);
+  CAMLreturn(alloc_h5s(H5Aget_space(Hid_val(attr_v))));
 }
 
-value hdf5_h5a_get_type(value attr_id_v)
+value hdf5_h5a_get_type(value attr_v)
 {
-  CAMLparam1(attr_id_v);
-  CAMLreturn(alloc_h5t(H5Aget_type(Hid_val(attr_id_v))));
+  CAMLparam1(attr_v);
+  CAMLreturn(alloc_h5t(H5Aget_type(Hid_val(attr_v))));
 }
