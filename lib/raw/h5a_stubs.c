@@ -136,6 +136,12 @@ value hdf5_h5a_open_idx(value loc_v, value idx_v)
   CAMLreturn(alloc_h5a(H5Aopen_idx(Hid_val(loc_v), Int_val(idx_v))));
 }
 
+value hdf5_h5a_exists(value obj_v, value attr_name_v)
+{
+  CAMLparam2(obj_v, attr_name_v);
+  CAMLreturn(Val_htri(H5Aexists(Hid_val(obj_v), String_val(attr_name_v))));
+}
+
 void hdf5_h5a_write(value attr_v, value mem_type_v, value buf_v)
 {
   CAMLparam3(attr_v, mem_type_v, buf_v);

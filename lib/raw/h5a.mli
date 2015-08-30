@@ -23,6 +23,7 @@ external open_by_idx : Hid.t -> ?aapl:Hid.t -> ?lapl:Hid.t -> H5.Index.t
   -> H5.Iter_order.t -> int -> Hid.t
   = "hdf5_h5a_open_by_idx_bytecode" "hdf5_h5a_open_by_idx"
 external open_idx : Hid.t -> int -> Hid.t = "hdf5_h5a_open_idx"
+external exists : Hid.t -> string -> bool = "hdf5_h5a_exists"
 external write : Hid.t -> Hid.t -> _ -> unit = "hdf5_h5a_write"
 external read : Hid.t -> Hid.t -> _ -> unit = "hdf5_h5a_read"
 external read_vl : Hid.t -> Hid.t -> string array -> unit = "hdf5_h5a_read_vl"
