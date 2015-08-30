@@ -92,11 +92,19 @@ value hdf5_h5a_create_by_name_bytecode(value *argv, int argn)
     argv[6], argv[7]);
 }
 
-value hdf5_h5a_open(value obj_v, value appl_v, value attr_name_v)
+value hdf5_h5a_open(value obj_v, value aapl_v, value attr_name_v)
 {
-  CAMLparam3(obj_v, appl_v, attr_name_v);
+  CAMLparam3(obj_v, aapl_v, attr_name_v);
   CAMLreturn(alloc_h5a(H5Aopen(Hid_val(obj_v), String_val(attr_name_v),
-    H5P_opt_val(appl_v))));
+    H5P_opt_val(aapl_v))));
+}
+
+value hdf5_h5a_open_by_name(value loc_v, value aapl_v, value lapl_v, value obj_name_v,
+  value attr_name_v)
+{
+  CAMLparam5(loc_v, aapl_v, lapl_v, obj_name_v, attr_name_v);
+  CAMLreturn(alloc_h5a(H5Aopen_by_name(Hid_val(loc_v), String_val(obj_name_v),
+    String_val(attr_name_v), H5P_opt_val(aapl_v), H5P_opt_val(lapl_v))));
 }
 
 value hdf5_h5a_open_name(value loc_v, value name_v)
