@@ -12,6 +12,9 @@ end
 
 external create : Hid.t -> string -> Hid.t -> ?acpl:Hid.t -> ?aapl:Hid.t -> Hid.t -> Hid.t
   = "hdf5_h5a_create_bytecode" "hdf5_h5a_create"
+external create_by_name : Hid.t -> string -> string -> Hid.t -> ?acpl:Hid.t
+  -> ?aapl:Hid.t -> ?lapl:Hid.t -> Hid.t -> Hid.t
+  = "hdf5_h5a_create_by_name_bytecode" "hdf5_h5a_create_by_name"
 external open_ : Hid.t -> ?aapl:Hid.t -> string -> Hid.t = "hdf5_h5a_open"
 external open_name : Hid.t -> string -> Hid.t = "hdf5_h5a_open_name"
 external open_idx : Hid.t -> int -> Hid.t = "hdf5_h5a_open_idx"
