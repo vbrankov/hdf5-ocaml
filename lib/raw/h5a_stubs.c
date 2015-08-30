@@ -113,6 +113,23 @@ value hdf5_h5a_open_name(value loc_v, value name_v)
   CAMLreturn(alloc_h5a(H5Aopen_name(Hid_val(loc_v), String_val(name_v))));
 }
 
+value hdf5_h5a_open_by_idx(value loc_v, value aapl_v, value lapl_v, value obj_name_v,
+  value idx_type_v, value order_v, value n_v)
+{
+  CAMLparam5(loc_v, aapl_v, lapl_v, obj_name_v, idx_type_v);
+  CAMLxparam2(order_v, n_v);
+  CAMLreturn(alloc_h5a(H5Aopen_by_idx(Hid_val(loc_v), String_val(obj_name_v),
+    H5_index_val(idx_type_v), H5_iter_order_val(order_v), Int_val(n_v),
+    H5P_opt_val(aapl_v), H5P_opt_val(lapl_v))));
+}
+
+value hdf5_h5a_open_by_idx_bytecode(value *argv, int argn)
+{
+  assert(argn == 7);
+  return hdf5_h5a_open_by_idx(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5],
+    argv[6]);
+}
+
 value hdf5_h5a_open_idx(value loc_v, value idx_v)
 {
   CAMLparam2(loc_v, idx_v);
