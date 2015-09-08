@@ -13,7 +13,7 @@ OCaml arrays of records.  See `examples/bench/bench_struct.ml`.
 
 ## Store an array
 
-:::OCaml
+```
 open Hdf5_caml
 
 let () =
@@ -28,7 +28,7 @@ let () =
   H5.close input;
 
   assert (a = b)
-:::
+```
 
 ## Store a table
 
