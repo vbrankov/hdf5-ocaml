@@ -13,20 +13,22 @@ OCaml arrays of records.  See `examples/bench/bench_struct.ml`.
 
 ## Store an array
 
-    open Hdf5_caml
+:::OCaml
+open Hdf5_caml
 
-    let () =
-      let a = [| 0.; 1.; 2. |] in
+let () =
+  let a = [| 0.; 1.; 2. |] in
 
-      let output = H5.create_trunc "file.h5" in
-      H5.write_float_array output "a" a;
-      H5.close output;
+  let output = H5.create_trunc "file.h5" in
+  H5.write_float_array output "a" a;
+  H5.close output;
 
-      let input = H5.open_rdonly "file.h5" in
-      let b = H5.read_float_array "a" in
-      H5.close input;
+  let input = H5.open_rdonly "file.h5" in
+  let b = H5.read_float_array "a" in
+  H5.close input;
 
-      assert (a = b)
+  assert (a = b)
+:::
 
 ## Store a table
 
