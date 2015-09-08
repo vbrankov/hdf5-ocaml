@@ -22,7 +22,8 @@ $(LIBNAME).cmx: $(SRC_ML:.ml=.cmx)
 
 $(LIBNAME).cmxa: $(SRC_C:.c=.o) $(LIBNAME).cmx
 	$(MKLIB) -ocamlc $(CAMLC) -ocamlopt $(CAMLOPT) -o $(LIBNAME) -oc $(LIBNAME) \
-	  -l$(HDF5_LIB) -l$(HDF5_HL_LIB) $(LIBNAME).o $^
+	  -L$(HDF5_LIB_DIR) -L$(HDF5_HL_LIB_DIR) -l$(HDF5_LIB) -l$(HDF5_HL_LIB) \
+          $(LIBNAME).o $^
 
 depend::
 	$(CAMLDEP) *.mli *.ml > .depend
