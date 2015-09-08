@@ -9,7 +9,7 @@ OCaml arrays of records.  See `examples/bench/bench_struct.ml`.
     ./configure
     make
 
-# *lib/caml* - simplified HDF5 wrapper
+# `lib/caml` - simplified HDF5 wrapper
 
 ## Store an array
 
@@ -51,7 +51,7 @@ OCaml arrays of records.  See `examples/bench/bench_struct.ml`.
       Record.Array.make_table a output "Temperature";
       H5.close output
 
-# *lib/raw* - raw HDF5 wrapper
+# `lib/raw` - raw HDF5 wrapper
 
     open Bigarray
     open Hdf5_raw
