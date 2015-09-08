@@ -1,12 +1,15 @@
 This is an OCaml wrapper for HDF5 library.  It currently implements most functionality
 needed for reading and writing HDF5 files.  It is actively maintained.
 
-To build it do:
+This library also provides a way of working with large arrays of records much faster than
+OCaml arrays of records.  See `examples/bench/bench_struct.ml`.
+
+# Building
 
     ./configure
     make
 
-# lib/caml - simplified HDF5 wrapper
+# *lib/caml* - simplified HDF5 wrapper
 
 ## Store an array
 
@@ -48,7 +51,7 @@ To build it do:
       Record.Array.make_table a output "Temperature";
       H5.close output
 
-# lib/raw - raw HDF5 wrapper
+# *lib/raw* - raw HDF5 wrapper
 
     open Bigarray
     open Hdf5_raw
