@@ -142,6 +142,31 @@ value hdf5_h5a_exists(value obj_v, value attr_name_v)
   CAMLreturn(Val_htri(H5Aexists(Hid_val(obj_v), String_val(attr_name_v))));
 }
 
+value hdf5_h5a_exists_by_name(value loc_v, value obj_name_v, value lapl_v,
+  value attr_name_v)
+{
+  CAMLparam4(loc_v, obj_name_v, lapl_v, attr_name_v);
+  CAMLreturn(Val_htri(H5Aexists_by_name(Hid_val(loc_v), String_val(obj_name_v),
+    String_val(attr_name_v), H5P_opt_val(lapl_v))));
+}
+
+void hdf5_h5a_rename(value loc_v, value old_attr_name_v, value new_attr_name_v)
+{
+  CAMLparam3(loc_v, old_attr_name_v, new_attr_name_v);
+  raise_if_fail(H5Arename(Hid_val(loc_v), String_val(old_attr_name_v),
+    String_val(new_attr_name_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5a_rename_by_name(value loc_v, value obj_name_v, value lapl_v,
+  value old_attr_name_v, value new_attr_name_v)
+{
+  CAMLparam5(loc_v, obj_name_v, lapl_v, old_attr_name_v, new_attr_name_v);
+  raise_if_fail(H5Arename_by_name(Hid_val(loc_v), String_val(obj_name_v),
+    String_val(old_attr_name_v), String_val(new_attr_name_v), H5P_opt_val(lapl_v)));
+  CAMLreturn0;
+}
+
 void hdf5_h5a_write(value attr_v, value mem_type_v, value buf_v)
 {
   CAMLparam3(attr_v, mem_type_v, buf_v);
@@ -260,6 +285,71 @@ value hdf5_h5a_iterate_bytecode(value *argv, int argn)
 {
   assert(argn == 6);
   return hdf5_h5a_iterate(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+}
+
+value hdf5_h5a_iterate_by_name(value loc_v, value obj_name_v, value idx_type_opt_v,
+  value order_opt_v, value n_v, value lapd_v, value op_v, value op_data_v)
+{
+  CAMLparam5(loc_v, obj_name_v, idx_type_opt_v, order_opt_v, n_v);
+  CAMLxparam3(lapd_v, op_v, op_data_v);
+  CAMLlocal1(exception);
+  hsize_t n, ret;
+
+  struct operator_data op;
+  op.callback = &op_v;
+  op.operator_data = &op_data_v;
+  op.exception = &exception;
+  n = Is_block(n_v) ? Int_val(Field(Field(n_v, 0), 0)) : 0;
+  exception = Val_unit;
+
+  ret = H5Aiterate_by_name(Hid_val(loc_v), String_val(obj_name_v),
+    H5_index_opt_val(idx_type_opt_v), H5_iter_order_opt_val(order_opt_v),
+    Is_block(n_v) ? &n : NULL, hdf5_h5a_operator, &op, H5P_opt_val(lapd_v));
+  if (Is_block(n_v))
+    Store_field(Field(n_v, 0), 0, Val_int(n));
+  if (exception != Val_unit)
+    caml_raise(exception);
+  CAMLreturn(Val_h5_iter(ret));
+}
+
+value hdf5_h5a_iterate_by_name_bytecode(value *argv, int argn)
+{
+  assert(argn == 8);
+  return hdf5_h5a_iterate_by_name(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5],
+    argv[6], argv[7]);
+}
+
+void hdf5_h5a_delete(value loc_v, value attr_name_v)
+{
+  CAMLparam2(loc_v, attr_name_v);
+  raise_if_fail(H5Adelete(Hid_val(loc_v), String_val(attr_name_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5a_delete_by_name(value loc_v, value lapl_v, value obj_name_v,
+  value attr_name_v)
+{
+  CAMLparam4(loc_v, lapl_v, obj_name_v, attr_name_v);
+  raise_if_fail(H5Adelete_by_name(Hid_val(loc_v), String_val(obj_name_v),
+    String_val(attr_name_v), H5P_opt_val(lapl_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5a_delete_by_idx(value loc_v, value obj_name_v, value idx_type_opt_v,
+  value order_opt_v, value lapl_v, value n_v)
+{
+  CAMLparam5(loc_v, obj_name_v, idx_type_opt_v, order_opt_v, lapl_v);
+  CAMLxparam1(n_v);
+  raise_if_fail(H5Adelete_by_idx(Hid_val(loc_v), String_val(obj_name_v),
+    H5_index_opt_val(idx_type_opt_v), H5_iter_order_opt_val(order_opt_v), Int_val(n_v),
+    H5P_opt_val(lapl_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5a_delete_by_idx_bytecode(value *argv, int argn)
+{
+  assert(argn == 6);
+  hdf5_h5a_delete_by_idx(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
 value hdf5_h5a_get_space(value attr_v)
