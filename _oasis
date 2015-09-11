@@ -265,3 +265,7 @@ Executable test_h5tb
   CompiledObject: best
   BuildDepends:   bigarray, hdf5_raw, hdf5_caml
   Install:        false
+
+Test test_test_struct
+  Command:        ./test_struct.native
+
