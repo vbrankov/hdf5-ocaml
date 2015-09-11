@@ -1,8 +1,8 @@
-This is an OCaml wrapper for HDF5 library.  It currently implements most functionality
-needed for reading and writing HDF5 files.  It is actively maintained.
+It library implements most functionality needed for reading and writing HDF5 files.  It is
+actively maintained.
 
-This library also provides a way of working with large arrays of records much faster than
-OCaml arrays of records.  See `examples/bench/bench_struct.ml`.
+Also provided is a fast way of working with large arrays of records.  It is much faster
+than OCaml arrays of records, see `examples/bench/bench_struct.ml`.
 
 # Building
 
