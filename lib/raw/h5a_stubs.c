@@ -352,6 +352,80 @@ void hdf5_h5a_delete_by_idx_bytecode(value *argv, int argn)
   hdf5_h5a_delete_by_idx(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
+value hdf5_h5a_get_info(value attr_v)
+{
+  CAMLparam1(attr_v);
+  H5A_info_t ainfo;
+  raise_if_fail(H5Aget_info(Hid_val(attr_v), &ainfo));
+  CAMLreturn(Val_h5a_info(ainfo));
+}
+
+value hdf5_h5a_get_info_by_name(value loc_v, value obj_name_v, value lapl_v,
+  value attr_name_v)
+{
+  CAMLparam4(loc_v, obj_name_v, lapl_v, attr_name_v);
+  H5A_info_t ainfo;
+  raise_if_fail(H5Aget_info_by_name(Hid_val(loc_v), String_val(obj_name_v),
+    String_val(attr_name_v), &ainfo, H5P_opt_val(lapl_v)));
+  CAMLreturn(Val_h5a_info(ainfo));
+}
+
+value hdf5_h5a_get_info_by_idx(value loc_v, value obj_name_v, value idx_type_opt_v,
+  value order_opt_v, value lapl_v, value n_v)
+{
+  CAMLparam5(loc_v, obj_name_v, idx_type_opt_v, order_opt_v, lapl_v);
+  CAMLxparam1(n_v);
+  H5A_info_t ainfo;
+  raise_if_fail(H5Aget_info_by_idx(Hid_val(loc_v), String_val(obj_name_v),
+    H5_index_opt_val(idx_type_opt_v), H5_iter_order_opt_val(order_opt_v), Int_val(n_v),
+    &ainfo, H5P_opt_val(lapl_v)));
+  CAMLreturn(Val_h5a_info(ainfo));
+}
+
+value hdf5_h5a_get_info_by_idx_bytecode(value *argv, int argn)
+{
+  assert(argn == 6);
+  return hdf5_h5a_get_info_by_idx(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+}
+
+value hdf5_h5a_get_num_attrs(value loc_v)
+{
+  CAMLparam1(loc_v);
+  CAMLreturn(Val_int(H5Aget_num_attrs(Hid_val(loc_v))));
+}
+
+value hdf5_h5a_get_name(value attr_v)
+{
+  CAMLparam1(attr_v);
+  CAMLlocal1(name_v);
+  hid_t attr_id;
+  char* buf;
+  ssize_t size;
+
+  attr_id = Hid_val(attr_v);
+  size = H5Aget_name(attr_id, 0, NULL);
+  if (size < 0)
+    fail();
+  buf = malloc(size);
+  if (buf == NULL)
+    caml_raise_out_of_memory();
+  size = H5Aget_name(attr_id, size, buf);
+  if (size < 0)
+  {
+    free(buf);
+    fail();
+  }
+  name_v = caml_copy_string(buf);
+  free(buf);
+  CAMLreturn(name_v);
+}
+
+value hdf5_h5a_get_create_plist(value attr_v)
+{
+  CAMLparam1(attr_v);
+  CAMLreturn(alloc_h5p(H5Aget_create_plist(Hid_val(attr_v))));
+}
+
 value hdf5_h5a_get_space(value attr_v)
 {
   CAMLparam1(attr_v);
@@ -362,4 +436,49 @@ value hdf5_h5a_get_type(value attr_v)
 {
   CAMLparam1(attr_v);
   CAMLreturn(alloc_h5t(H5Aget_type(Hid_val(attr_v))));
+}
+
+value hdf5_h5a_get_storage_size(value attr_v)
+{
+  CAMLparam1(attr_v);
+  hsize_t size = H5Aget_storage_size(Hid_val(attr_v));
+  if (size == 0)
+    fail();
+  CAMLreturn(Val_int(size));
+}
+
+value hdf5_h5a_get_name_by_idx(value loc_v, value obj_name_v, value idx_type_opt_v,
+  value order_opt_v, value lapl_v, value n_v)
+{
+  CAMLparam5(loc_v, obj_name_v, idx_type_opt_v, order_opt_v, lapl_v);
+  CAMLxparam1(n_v);
+  CAMLlocal1(name_v);
+  char *buf;
+  ssize_t size;
+
+  size = H5Aget_name_by_idx(Hid_val(loc_v), String_val(obj_name_v),
+    H5_index_opt_val(idx_type_opt_v), H5_iter_order_opt_val(order_opt_v), Int_val(n_v),
+    NULL, 0, H5P_opt_val(lapl_v));
+  if (size < 0)
+    fail();
+  buf = malloc(size);
+  if (buf == NULL)
+    caml_raise_out_of_memory();
+  size = H5Aget_name_by_idx(Hid_val(loc_v), String_val(obj_name_v),
+    H5_index_opt_val(idx_type_opt_v), H5_iter_order_opt_val(order_opt_v), Int_val(n_v),
+    buf, size, H5P_opt_val(lapl_v));
+  if (size < 0)
+  {
+    free(buf);
+    fail();
+  }
+  name_v = caml_copy_string(buf);
+  free(buf);
+  CAMLreturn(name_v);
+}
+
+value hdf5_h5a_get_name_by_idx_bytecode(value *argv, int argn)
+{
+  assert(argn == 6);
+  return hdf5_h5a_get_name_by_idx(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }

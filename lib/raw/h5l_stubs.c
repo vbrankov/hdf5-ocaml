@@ -244,8 +244,13 @@ value hdf5_h5l_get_name_by_idx(value loc_v, value group_name_v, value index_fiel
   name = malloc(size);
   if (name == NULL)
     caml_raise_out_of_memory();
-  raise_if_fail(H5Lget_name_by_idx(loc_id, group_name, index_field, order, n, name, size,
-    lapl_id));
+  size = H5Lget_name_by_idx(loc_id, group_name, index_field, order, n, name, size,
+    lapl_id);
+  if (size < 0)
+  {
+    free(name);
+    fail();
+  }
   name_v = caml_copy_string(name);
   free(name);
   CAMLreturn(name_v);

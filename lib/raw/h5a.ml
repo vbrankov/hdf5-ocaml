@@ -45,5 +45,18 @@ external delete_by_name : Hid.t -> ?lapl:Hid.t -> string -> string -> unit
 external delete_by_idx : Hid.t -> string -> ?idx_type:H5.Index.t
   -> ?iter_order:H5.Iter_order.t -> ?lapl:Hid.t -> int -> unit
   = "hdf5_h5a_delete_by_idx_bytecode" "hdf5_h5a_delete_by_idx"
+external get_info : Hid.t -> Info.t = "hdf5_h5a_get_info"
+external get_info_by_name : Hid.t -> string -> ?lapl:Hid.t -> string -> Info.t
+  = "hdf5_h5a_get_info_by_name"
+external get_info_by_idx : Hid.t -> string -> ?idx_type:H5.Index.t
+  -> ?order:H5.Iter_order.t -> ?lapl:Hid.t -> int -> Info.t
+  = "hdf5_h5a_get_info_by_idx_bytecode" "hdf5_h5a_get_info_by_idx"
+external get_num_attrs : Hid.t -> int = "hdf5_h5a_get_num_attrs"
+external get_name : Hid.t -> string = "hdf5_h5a_get_name"
+external get_create_plist : Hid.t -> Hid.t = "hdf5_h5a_get_create_plist"
 external get_space : Hid.t -> Hid.t = "hdf5_h5a_get_space"
 external get_type : Hid.t -> Hid.t = "hdf5_h5a_get_type"
+external get_storage_size : Hid.t -> int = "hdf5_h5a_get_storage_size"
+external get_name_by_idx : Hid.t -> string -> ?idx_type:H5.Index.t
+  -> ?order:H5.Iter_order.t -> ?lapl:Hid.t -> int -> string
+  = "hdf5_h5a_get_name_by_idx_bytecode" "hdf5_h5a_get_name_by_idx"
