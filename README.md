@@ -32,8 +32,7 @@ let () =
 
 ## Store a table
 
-```
-#!ocaml
+```ocaml
 open Hdf5_caml
 
 module Temperature = struct
@@ -58,8 +57,7 @@ let () =
 
 # lib/raw - raw HDF5 wrapper
 
-```
-#!ocaml
+```ocaml
 open Bigarray
 open Hdf5_raw
 
