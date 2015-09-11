@@ -58,9 +58,210 @@ Library hdf5_caml
   Modules:      H5caml, Struct
   BuildDepends: hdf5_raw
 
-Executable ex_lite1
-  Path: examples/hl
-  MainIs: ex_lite1.ml
+Executable bench_struct
+  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
+  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
+  Path:           examples/bench
+  MainIs:         bench_struct.ml
   CompiledObject: best
-  BuildDepends:
-    bigarray, hdf5_caml
+  BuildDepends:   bigarray, hdf5_caml
+  Install:        false
+
+Executable test_struct
+  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
+  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
+  Path:           examples/caml
+  MainIs:         test_struct.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_caml
+  Install:        false
+
+Executable h5_interm_group
+  Path:           examples/examples
+  MainIs:         h5_interm_group.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable h5ex_g_traverse
+  Path:           examples/examples-by-api
+  MainIs:         h5ex_g_traverse.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable check_and_read_example
+  Path:           examples/h5_intro
+  MainIs:         check_and_read_example.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable compound
+  Path:           examples/h5_intro
+  MainIs:         compound.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable create_example
+  Path:           examples/h5_intro
+  MainIs:         create_example.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable create_extend_write
+  Path:           examples/h5_intro
+  MainIs:         create_extend_write.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable create_groups
+  Path:           examples/h5_intro
+  MainIs:         create_groups.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable create_write_ref_obj
+  Path:           examples/h5_intro
+  MainIs:         create_write_ref_obj.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable create_write_ref_reg
+  Path:           examples/h5_intro
+  MainIs:         create_write_ref_reg.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable read_extended
+  Path:           examples/h5_intro
+  MainIs:         read_extended.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable read_ref_obj
+  Path:           examples/h5_intro
+  MainIs:         read_ref_obj.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable read_ref_reg
+  Path:           examples/h5_intro
+  MainIs:         read_ref_reg.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable read_write_attributes
+  Path:           examples/h5_intro
+  MainIs:         read_write_attributes.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable write_selected
+  Path:           examples/h5_intro
+  MainIs:         write_selected.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable ex_lite1
+  Path:           examples/hl
+  MainIs:         ex_lite1.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable ex_lite2
+  Path:           examples/hl
+  MainIs:         ex_lite2.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable ex_lite3
+  Path:           examples/hl
+  MainIs:         ex_lite3.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable ex_table_01
+  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
+  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
+  Path:           examples/hl
+  MainIs:         ex_table_01.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw, hdf5_caml
+  Install:        false
+
+Executable ex_table_02
+  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
+  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
+  Path:           examples/hl
+  MainIs:         ex_table_02.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw, hdf5_caml
+  Install:        false
+
+Executable ex_table_03
+  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
+  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
+  Path:           examples/hl
+  MainIs:         ex_table_03.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw, hdf5_caml
+  Install:        false
+
+Executable attrs
+  Path:           examples/misc-examples
+  MainIs:         attrs.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable crtstr
+  Path:           examples/misc-examples
+  MainIs:         crtstr.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable mafisc
+  Path:           examples/misc-examples
+  MainIs:         mafisc.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable varlen
+  Path:           examples/misc-examples
+  MainIs:         varlen.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable vlstra
+  Path:           examples/misc-examples
+  MainIs:         vlstra.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw
+  Install:        false
+
+Executable test_h5tb
+  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
+  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
+  Path:           examples/test
+  MainIs:         test_h5tb.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw, hdf5_caml
+  Install:        false

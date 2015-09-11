@@ -1,4 +1,5 @@
 open Hdf5_raw
+open Hdf5_caml
 
 let _NRECORDS   = 8
 let _TABLE_NAME = "table"
