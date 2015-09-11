@@ -91,20 +91,20 @@ module Make(S : S) : sig
     val iteri : t -> f:(int -> e -> unit) -> unit
 
     (** Creates and writes a table. *)
-    val make_table : t -> ?title:string -> ?chunk_size:int -> ?compress:bool -> H5.t
+    val make_table : t -> ?title:string -> ?chunk_size:int -> ?compress:bool -> H5caml.t
       -> string -> unit
 
     (** Adds records to the end of the table. *)
-    val append_records : t -> H5.t -> string -> unit
+    val append_records : t -> H5caml.t -> string -> unit
 
     (** Ovewrites records. *)
-    val write_records : t -> H5.t -> start:int -> string -> unit
+    val write_records : t -> H5caml.t -> start:int -> string -> unit
 
     (** Reads a table. *)
-    val read_table : H5.t -> string -> t
+    val read_table : H5caml.t -> string -> t
 
     (** Reads records. *)
-    val read_records : H5.t -> start:int -> nrecords:int -> string -> t
+    val read_records : H5caml.t -> start:int -> nrecords:int -> string -> t
   end
 
   val mem : t -> Array.t

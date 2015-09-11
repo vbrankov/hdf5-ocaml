@@ -375,19 +375,19 @@ module Make(S : S) = struct
         dset_name =
       let title = match title with Some t -> t | None -> dset_name in
       let chunk_size = match chunk_size with Some s -> s | None -> length t in
-      H5tb.make_table title (H5.hid h5) dset_name ~nrecords:(t.Mem.dim / size64)
+      H5tb.make_table title (H5caml.hid h5) dset_name ~nrecords:(t.Mem.dim / size64)
         ~type_size:size ~field_names ~field_offset ~field_types ~chunk_size ~compress t
 
     let append_records t h5 dset_name =
-      H5tb.append_records (H5.hid h5) dset_name ~nrecords:(t.Mem.dim / size64)
+      H5tb.append_records (H5caml.hid h5) dset_name ~nrecords:(t.Mem.dim / size64)
         ~type_size:size ~field_offset ~field_sizes t
 
     let write_records t h5 ~start dset_name =
-      H5tb.write_records (H5.hid h5) dset_name ~start ~nrecords:(t.Mem.dim / size64)
+      H5tb.write_records (H5caml.hid h5) dset_name ~start ~nrecords:(t.Mem.dim / size64)
         ~type_size:size ~field_offset ~field_sizes t
 
     let read_table h5 table_name =
-      let loc = H5.hid h5 in
+      let loc = H5caml.hid h5 in
       let nrecords = H5tb.get_table_info loc table_name in
       let t = make nrecords in
       H5tb.read_table loc table_name ~dst_size:size ~dst_offset:field_offset
@@ -395,7 +395,7 @@ module Make(S : S) = struct
       t
 
     let read_records h5 ~start ~nrecords table_name =
-      let loc = H5.hid h5 in
+      let loc = H5caml.hid h5 in
       let t = make nrecords in
       H5tb.read_records loc table_name ~start ~nrecords ~type_size:size ~field_offset
         ~dst_sizes:field_sizes t;

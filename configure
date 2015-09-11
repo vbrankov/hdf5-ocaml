@@ -1,50 +1,27 @@
-#!/bin/bash
+#!/bin/sh
 
-HDF5_H_LOC=$(locate -l 1 -b '\hdf5.h')
-if [[ !(-e $HDF5_H_LOC) ]]
-then
-  echo "HDF5 cannot be found"
-  exit 1
-fi
-HDF5_H_DIR=$(dirname $HDF5_H_LOC)
+# OASIS_START
+# DO NOT EDIT (digest: dc86c2ad450f91ca10c931b6045d0499)
+set -e
 
-HDF5_LIB_LOC=$(locate -l 1 -b '\libhdf5_serial.so')
-if [[ -e $HDF5_LIB_LOC ]]
-then
-  HDF5_LIB=hdf5_serial
-else
-  HDF5_LIB_LOC=$(locate -l 1 -b '\libhdf5.so')
-  if [[ !(-e $HDF5_LIB_LOC) ]]
-  then
-    echo "HDF5 library cannot be found"
-    exit 1
+FST=true
+for i in "$@"; do
+  if $FST; then
+    set --
+    FST=false
   fi
-  HDF5_LIB=hdf5
-fi
 
-HDF5_HL_LIB_LOC=$(locate -l 1 -b '\libhdf5_serial_hl.so')
-if [[ -e $HDF5_HL_LIB_LOC ]]
-then
-  HDF5_HL_LIB=hdf5_serial_hl
-else
-  HDF5_HL_LIB_LOC=$(locate -l 1 -b '\libhdf5_hl.so')
-  if [[ !(-e $HDF5_HL_LIB_LOC) ]]
-  then
-    echo "HDF5 HL library cannot be found"
-    exit 1
-  fi
-  HDF5_HL_LIB=hdf5_hl
-fi
+  case $i in
+    --*=*)
+      ARG=${i%%=*}
+      VAL=${i##*=}
+      set -- "$@" "$ARG" "$VAL"
+      ;;
+    *)
+      set -- "$@" "$i"
+      ;;
+  esac
+done
 
-COMPILER_LIBS=$(ocamlfind query compiler-libs)
-if [[ $? != 0 ]]
-then
-  echo "compiler-libs cannot be found"
-  exit 1
-fi
-echo "HDF5_LIB_DIR=$(dirname $HDF5_LIB_LOC)" > Makefile.config
-echo "HDF5_HL_LIB_DIR=$(dirname $HDF5_HL_LIB_LOC)" >> Makefile.config
-echo "HDF5_H_DIR=${HDF5_H_DIR}" >> Makefile.config
-echo "HDF5_LIB=${HDF5_LIB}" >> Makefile.config
-echo "HDF5_HL_LIB=${HDF5_HL_LIB}" >> Makefile.config
-echo "COMPILER_LIBS=${COMPILER_LIBS}" >> Makefile.config
+ocaml setup.ml -configure "$@"
+# OASIS_STOP
