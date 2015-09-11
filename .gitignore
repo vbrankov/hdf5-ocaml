@@ -1,5 +1,3 @@
-syntax: glob
-
 *.a
 *.cm*
 *.exe
