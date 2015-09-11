@@ -13,8 +13,7 @@ OCaml arrays of records.  See `examples/bench/bench_struct.ml`.
 
 ## Store an array
 
-```
-#!ocaml
+```ocaml
 open Hdf5_caml
 
 let () =
