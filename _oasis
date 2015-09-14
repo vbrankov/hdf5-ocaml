@@ -58,25 +58,36 @@ Library hdf5_caml
   Modules:      H5caml, Struct
   BuildDepends: hdf5_raw
 
+Executable test_comprehensive
+  Build$:         flag(tests)
+  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
+  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
+  Path:           test
+  MainIs:         comprehensive.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_caml
+  Install:        false
+
+Test test_comprehensive
+  Command:          $test_comprehensive && rm *.h5
+  WorkingDirectory: test
+
+Flag examples
+  Description: Build examples
+  Default:     false
+
 Executable bench_struct
   ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
   NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
   Path:           examples/bench
   MainIs:         bench_struct.ml
-  CompiledObject: best
-  BuildDepends:   bigarray, hdf5_caml
-  Install:        false
-
-Executable test_struct
-  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
-  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
-  Path:           examples/caml
-  MainIs:         test_struct.ml
+  Build$:         flag(examples)
   CompiledObject: best
   BuildDepends:   bigarray, hdf5_caml
   Install:        false
 
 Executable h5_interm_group
+  Build$:         flag(examples)
   Path:           examples/examples
   MainIs:         h5_interm_group.ml
   CompiledObject: best
@@ -84,6 +95,7 @@ Executable h5_interm_group
   Install:        false
 
 Executable h5ex_g_traverse
+  Build$:         flag(examples)
   Path:           examples/examples-by-api
   MainIs:         h5ex_g_traverse.ml
   CompiledObject: best
@@ -91,6 +103,7 @@ Executable h5ex_g_traverse
   Install:        false
 
 Executable check_and_read_example
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         check_and_read_example.ml
   CompiledObject: best
@@ -98,6 +111,7 @@ Executable check_and_read_example
   Install:        false
 
 Executable compound
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         compound.ml
   CompiledObject: best
@@ -105,6 +119,7 @@ Executable compound
   Install:        false
 
 Executable create_example
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         create_example.ml
   CompiledObject: best
@@ -112,6 +127,7 @@ Executable create_example
   Install:        false
 
 Executable create_extend_write
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         create_extend_write.ml
   CompiledObject: best
@@ -119,6 +135,7 @@ Executable create_extend_write
   Install:        false
 
 Executable create_groups
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         create_groups.ml
   CompiledObject: best
@@ -126,6 +143,7 @@ Executable create_groups
   Install:        false
 
 Executable create_write_ref_obj
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         create_write_ref_obj.ml
   CompiledObject: best
@@ -133,6 +151,7 @@ Executable create_write_ref_obj
   Install:        false
 
 Executable create_write_ref_reg
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         create_write_ref_reg.ml
   CompiledObject: best
@@ -140,6 +159,7 @@ Executable create_write_ref_reg
   Install:        false
 
 Executable read_extended
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         read_extended.ml
   CompiledObject: best
@@ -147,6 +167,7 @@ Executable read_extended
   Install:        false
 
 Executable read_ref_obj
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         read_ref_obj.ml
   CompiledObject: best
@@ -154,6 +175,7 @@ Executable read_ref_obj
   Install:        false
 
 Executable read_ref_reg
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         read_ref_reg.ml
   CompiledObject: best
@@ -161,6 +183,7 @@ Executable read_ref_reg
   Install:        false
 
 Executable read_write_attributes
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         read_write_attributes.ml
   CompiledObject: best
@@ -168,6 +191,7 @@ Executable read_write_attributes
   Install:        false
 
 Executable write_selected
+  Build$:         flag(examples)
   Path:           examples/h5_intro
   MainIs:         write_selected.ml
   CompiledObject: best
@@ -175,6 +199,7 @@ Executable write_selected
   Install:        false
 
 Executable ex_lite1
+  Build$:         flag(examples)
   Path:           examples/hl
   MainIs:         ex_lite1.ml
   CompiledObject: best
@@ -182,6 +207,7 @@ Executable ex_lite1
   Install:        false
 
 Executable ex_lite2
+  Build$:         flag(examples)
   Path:           examples/hl
   MainIs:         ex_lite2.ml
   CompiledObject: best
@@ -189,6 +215,7 @@ Executable ex_lite2
   Install:        false
 
 Executable ex_lite3
+  Build$:         flag(examples)
   Path:           examples/hl
   MainIs:         ex_lite3.ml
   CompiledObject: best
@@ -196,6 +223,7 @@ Executable ex_lite3
   Install:        false
 
 Executable ex_table_01
+  Build$:         flag(examples)
   ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
   NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
   Path:           examples/hl
@@ -205,6 +233,7 @@ Executable ex_table_01
   Install:        false
 
 Executable ex_table_02
+  Build$:         flag(examples)
   ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
   NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
   Path:           examples/hl
@@ -214,6 +243,7 @@ Executable ex_table_02
   Install:        false
 
 Executable ex_table_03
+  Build$:         flag(examples)
   ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
   NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
   Path:           examples/hl
@@ -223,6 +253,7 @@ Executable ex_table_03
   Install:        false
 
 Executable attrs
+  Build$:         flag(examples)
   Path:           examples/misc-examples
   MainIs:         attrs.ml
   CompiledObject: best
@@ -230,6 +261,7 @@ Executable attrs
   Install:        false
 
 Executable crtstr
+  Build$:         flag(examples)
   Path:           examples/misc-examples
   MainIs:         crtstr.ml
   CompiledObject: best
@@ -237,6 +269,7 @@ Executable crtstr
   Install:        false
 
 Executable mafisc
+  Build$:         flag(examples)
   Path:           examples/misc-examples
   MainIs:         mafisc.ml
   CompiledObject: best
@@ -244,6 +277,7 @@ Executable mafisc
   Install:        false
 
 Executable varlen
+  Build$:         flag(examples)
   Path:           examples/misc-examples
   MainIs:         varlen.ml
   CompiledObject: best
@@ -251,6 +285,7 @@ Executable varlen
   Install:        false
 
 Executable vlstra
+  Build$:         flag(examples)
   Path:           examples/misc-examples
   MainIs:         vlstra.ml
   CompiledObject: best
@@ -258,6 +293,7 @@ Executable vlstra
   Install:        false
 
 Executable test_h5tb
+  Build$:         flag(examples)
   ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
   NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
   Path:           examples/test
@@ -265,7 +301,3 @@ Executable test_h5tb
   CompiledObject: best
   BuildDepends:   bigarray, hdf5_raw, hdf5_caml
   Install:        false
-
-Test test_test_struct
-  Command:        ./test_struct.native
-
