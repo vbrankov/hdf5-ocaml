@@ -61,6 +61,8 @@ install_on_linux () {
      "$(full_apt_version camlp4 $OCAML_VERSION)" \
      "$(full_apt_version camlp4-extra $OCAML_VERSION)" \
      opam
+  sudo add-apt-repository -r \
+     "deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main restricted universe"
 
   if [ "$UPDATE_GCC_BINUTILS" != "0" ] ; then
     echo "installing a recent gcc and binutils (mainly to get mirage-entropy-xen working!)"
@@ -70,6 +72,7 @@ install_on_linux () {
     sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
     wget http://mirrors.kernel.org/ubuntu/pool/main/b/binutils/binutils_2.24-5ubuntu3.1_amd64.deb
     sudo dpkg -i binutils_2.24-5ubuntu3.1_amd64.deb
+    sudo add-apt-repository --yes -r ppa:ubuntu-toolchain-r/test
   fi
 }
 
