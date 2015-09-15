@@ -44,7 +44,7 @@ Library hdf5_raw
             hdf5_caml.h,
             hid_stubs.c,
             hid_stubs.h
-  CCOpt:    -I/usr/include/serial
+  CCOpt:    -I/usr/lib/x86_64-linux-gnu/hdf5/serial
   CClib:    -lhdf5 -lhdf5_hl
 
 Executable ppx_h5struct

@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 2319699a91f8c75ac4336e140a605a33) *)
+(* DO NOT EDIT (digest: 67f3ba58909327dcdbc5cfafb707802a) *)
 module OASISGettext = struct
 (* # 22 "/home/vbrankov/.opam/4.02.3/build/oasis.0.4.3/src/oasis/OASISGettext.ml" *)
 
@@ -620,7 +620,7 @@ let package_default =
           (["oasis_library_hdf5_raw_ccopt"; "compile"],
             [
                (OASISExpr.EBool true,
-                 S [A "-ccopt"; A "-I/usr/include/serial"])
+                 S [A "-ccopt"; A "-I/usr/lib/x86_64-linux-gnu/hdf5/serial"])
             ]);
           (["oasis_library_hdf5_raw_cclib"; "link"],
             [
