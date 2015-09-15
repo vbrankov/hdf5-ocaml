@@ -19,6 +19,5 @@ ocamlc.opt yorick.mli
 ocamlfind ocamlc -c yorick.ml
 
 ocamlfind ocamlc -o travis-opam -package unix -linkpkg yorick.cmo travis_opam.ml
-cd -
 
 ./travis-opam
