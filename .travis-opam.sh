@@ -8,10 +8,7 @@ fork_branch=${FORK_BRANCH:-master}
 
 set -uex
 
-TMP_BUILD=$(mktemp -d 2>/dev/null || mktemp -d -t 'travistmpdir')
-cd ${TMP_BUILD}
-
-./.travis-ocaml.sh
+sh .travis-ocaml.sh
 export OPAMYES=1
 eval $(opam config env)
 
@@ -24,4 +21,4 @@ ocamlfind ocamlc -c yorick.ml
 ocamlfind ocamlc -o travis-opam -package unix -linkpkg yorick.cmo travis_opam.ml
 cd -
 
-${TMP_BUILD}/travis-opam
+./travis-opam
