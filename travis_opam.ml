@@ -120,6 +120,7 @@ List.iter pin pins;
 ?|  "eval $(opam config env)";
 
 (* Install the external dependencies *)
+?|~ "sudo apt-get update";
 ?|~ "opam depext %s" pkg;
 
 (* Install the OCaml dependencies *)
@@ -189,7 +190,6 @@ begin (* reverse dependencies *)
 
     ignore (List.fold_left (fun i dependent ->
         echo "\nInstalling %s (REVDEP %d/%d)" dependent i installable_count;
-        ?|~ "sudo apt-get update";
         ?|~ "opam depext %s" dependent;
         ?|~ "opam install %s" dependent;
         ?|~ "opam remove %s" dependent;
