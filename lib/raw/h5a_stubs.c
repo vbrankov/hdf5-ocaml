@@ -271,7 +271,7 @@ value hdf5_h5a_iterate(value obj_v, value idx_type_opt_v, value order_opt_v, val
   n = Is_block(n_v) ? Int_val(Field(Field(n_v, 0), 0)) : 0;
   exception = Val_unit;
 
-  ret = H5Aiterate(Hid_val(obj_v), H5_index_opt_val(idx_type_opt_v),
+  ret = H5Aiterate2(Hid_val(obj_v), H5_index_opt_val(idx_type_opt_v),
     H5_iter_order_opt_val(order_opt_v), Is_block(n_v) ? &n : NULL, hdf5_h5a_operator,
     &op);
   if (Is_block(n_v))
