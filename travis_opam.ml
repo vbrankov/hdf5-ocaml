@@ -120,7 +120,6 @@ List.iter pin pins;
 ?|  "eval $(opam config env)";
 
 (* Install the external dependencies *)
-?|~ "sudo apt-get install -m libhdf5-serial-dev";
 ?|~ "opam depext %s" pkg;
 
 (* Install the OCaml dependencies *)
