@@ -11,7 +11,7 @@ set -uex
 TMP_BUILD=$(mktemp -d 2>/dev/null || mktemp -d -t 'travistmpdir')
 cd ${TMP_BUILD}
 
-sh .travis-ocaml.sh
+./.travis-ocaml.sh
 export OPAMYES=1
 eval $(opam config env)
 
