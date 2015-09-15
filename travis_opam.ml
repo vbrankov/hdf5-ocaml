@@ -120,6 +120,7 @@ List.iter pin pins;
 ?|  "eval $(opam config env)";
 
 (* Install the external dependencies *)
+?|~ "sudo apt-get install hdf5-tools";
 ?|~ "sudo apt-get install libhdf5-dev";
 ?|~ "sudo apt-get install libhdf5-serial-dev";
 ?|~ "opam depext %s" pkg;
