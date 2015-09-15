@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 67f3ba58909327dcdbc5cfafb707802a) *)
+(* DO NOT EDIT (digest: 75126b22983b80dd7b1621fe65b3642e) *)
 module OASISGettext = struct
 (* # 22 "/home/vbrankov/.opam/4.02.3/build/oasis.0.4.3/src/oasis/OASISGettext.ml" *)
 
@@ -620,15 +620,31 @@ let package_default =
           (["oasis_library_hdf5_raw_ccopt"; "compile"],
             [
                (OASISExpr.EBool true,
-                 S [A "-ccopt"; A "-I/usr/lib/x86_64-linux-gnu/hdf5/serial"])
+                 S [A "-ccopt"; A "-I/usr/include/hdf5/serial"])
             ]);
           (["oasis_library_hdf5_raw_cclib"; "link"],
             [
                (OASISExpr.EBool true,
-                 S [A "-cclib"; A "-lhdf5"; A "-cclib"; A "-lhdf5_hl"])
+                 S
+                   [
+                      A "-cclib";
+                      A "-L/usr/lib/x86_64-linux-gnu/hdf5/serial";
+                      A "-cclib";
+                      A "-lhdf5";
+                      A "-cclib";
+                      A "-lhdf5_hl"
+                   ])
             ]);
           (["oasis_library_hdf5_raw_cclib"; "ocamlmklib"; "c"],
-            [(OASISExpr.EBool true, S [A "-lhdf5"; A "-lhdf5_hl"])]);
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-L/usr/lib/x86_64-linux-gnu/hdf5/serial";
+                      A "-lhdf5";
+                      A "-lhdf5_hl"
+                   ])
+            ]);
           ([
               "oasis_executable_test_comprehensive_byte";
               "ocaml";
@@ -903,6 +919,6 @@ let package_default =
   }
   ;;
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
-# 909 "myocamlbuild.ml"
+# 925 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;
