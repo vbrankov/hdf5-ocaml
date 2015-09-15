@@ -17,6 +17,7 @@ remove: [
   ["ocamlfind" "remove" "hdf5_raw"]
 ]
 depexts: [
+  ["-d"]
   ["-u"]
   ["ubuntu"] ["libhdf5-serial-dev"]
 ]
