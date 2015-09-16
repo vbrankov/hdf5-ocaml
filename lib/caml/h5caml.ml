@@ -1,6 +1,8 @@
 open Bigarray
 open Hdf5_raw
 
+let () = H5.init ()
+
 type t =
 | File of Hid.t
 | Group of Hid.t

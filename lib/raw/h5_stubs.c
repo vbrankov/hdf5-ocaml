@@ -245,10 +245,13 @@ value Val_ssize(ssize_t s)
   return Val_int(s);
 }
 
-struct custom_operations *caml_ba_ops;
+struct custom_operations *caml_ba_ops = NULL;
 
 void hdf5_h5_init()
 {
-  caml_ba_ops = Custom_ops_val(
-    caml_ba_alloc_dims(CAML_BA_FLOAT64 | CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, NULL, 1));
+  if (caml_ba_ops == NULL)
+  {
+    caml_ba_ops = Custom_ops_val(caml_ba_alloc_dims(
+      CAML_BA_FLOAT64 | CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, NULL, 1));
+  }
 }
