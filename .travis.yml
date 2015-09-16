@@ -3,4 +3,4 @@ sudo: required
 install: wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/master/.travis-opam.sh
 script: bash -ex .travis-opam.sh
 env:
-  - OCAML_VERSION=4.02 FORK_USER=vbrankov
+  - OCAML_VERSION=4.02
