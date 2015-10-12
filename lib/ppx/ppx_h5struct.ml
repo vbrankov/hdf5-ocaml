@@ -272,8 +272,8 @@ let construct_size_dependent_fun name ~bsize ~index loc =
 
 let map_structure_item mapper structure_item =
   match structure_item with
-  | { pstr_desc = Pstr_extension (({txt = "h5struct"; _}, payload), _); pstr_loc = loc }
-    ->
+  | { pstr_desc = Pstr_extension (({txt = "h5struct"; _}, payload), attrs);
+      pstr_loc = loc } ->
     let fields =
       match payload with
       | PStr [{ pstr_desc = Pstr_eval (expression, _); _ }] ->
@@ -312,7 +312,7 @@ let map_structure_item mapper structure_item =
         functions) fields
       |> List.concat
     in
-    Str.include_ ~loc (Incl.mk ~loc (Mod.structure ~loc (
+    Str.include_ ~loc (Incl.mk ~loc ~attrs (Mod.structure ~loc (
       include_ :: functions @ [
         construct_set_all_fields fields loc;
         construct_size_dependent_fun "unsafe_next" ~bsize ~index:false loc;
