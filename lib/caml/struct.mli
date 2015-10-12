@@ -114,6 +114,7 @@ module Make(S : S) : sig
     type t
 
     val create : ?capacity:int -> unit -> t
+    val length : t -> int
     val resize : t -> int -> unit
     val append : t -> e
     val unsafe_get : t -> int -> e

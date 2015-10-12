@@ -432,6 +432,8 @@ module Make(S : S) = struct
       let mem = Array.make capacity in
       { mem; capacity; length = 0; end_ = Array.unsafe_get mem (-1) }
 
+    let length t = t.length
+
     let resize t capacity =
       if t.capacity > capacity then begin
         let mem = Array.make capacity in
