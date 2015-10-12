@@ -42,7 +42,7 @@ H5D_layout_t H5D_layout_val(value layout)
     case  1: return H5D_CONTIGUOUS;
     case  2: return H5D_CHUNKED;
     case  3: return H5D_NLAYOUTS;
-    default: caml_failwith("unrecognized H5D_layout_t");
+    default: caml_failwith("unrecognized H5D.Layout.t");
   }
 }
 
@@ -59,20 +59,43 @@ value Val_h5d_layout(H5D_layout_t layout)
   }
 }
 
-value hdf5_h5d_create(value loc_id_v, value name_v, value dtype_id_v, value lcpl_id_v,
-    value dcpl_id_v, value dapl_id_v, value space_id_v)
+H5D_space_status_t H5D_space_status_val(value v)
 {
-  CAMLparam5(loc_id_v, name_v, dtype_id_v, lcpl_id_v, dcpl_id_v);
-  CAMLxparam2(dapl_id_v, space_id_v);
+  switch (Int_val(v))
+  {
+    case  0: return H5D_SPACE_STATUS_NOT_ALLOCATED;
+    case  1: return H5D_SPACE_STATUS_PART_ALLOCATED;
+    case  2: return H5D_SPACE_STATUS_ALLOCATED;
+    default: caml_failwith("unrecognized H5d.Space_status.t");
+  }
+}
+
+value Val_h5d_space_status(H5D_space_status_t s)
+{
+  switch (s)
+  {
+    case H5D_SPACE_STATUS_ERROR:          fail();
+    case H5D_SPACE_STATUS_NOT_ALLOCATED:  return Val_int(0);
+    case H5D_SPACE_STATUS_PART_ALLOCATED: return Val_int(1);
+    case H5D_SPACE_STATUS_ALLOCATED:      return Val_int(2);
+    default: caml_failwith("unrecognized H5D_space_status_t");
+  }
+}
+
+value hdf5_h5d_create(value loc_v, value name_v, value dtype_v, value lcpl_v,
+    value dcpl_v, value dapl_v, value space_v)
+{
+  CAMLparam5(loc_v, name_v, dtype_v, lcpl_v, dcpl_v);
+  CAMLxparam2(dapl_v, space_v);
 
   CAMLreturn(alloc_h5d(H5Dcreate2(
-    Hid_val(loc_id_v),
+    Hid_val(loc_v),
     String_val(name_v),
-    Hid_val(dtype_id_v),
-    Hid_val(space_id_v),
-    H5P_opt_val(lcpl_id_v),
-    H5P_opt_val(dcpl_id_v),
-    H5P_opt_val(dapl_id_v))));
+    Hid_val(dtype_v),
+    Hid_val(space_v),
+    H5P_opt_val(lcpl_v),
+    H5P_opt_val(dcpl_v),
+    H5P_opt_val(dapl_v))));
 }
 
 value hdf5_h5d_create_bytecode(value *argv, int argn)
@@ -81,13 +104,26 @@ value hdf5_h5d_create_bytecode(value *argv, int argn)
   return hdf5_h5d_create(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 }
 
-value hdf5_h5d_open(value loc_id_v, value dapl_id_v, value name_v)
+value hdf5_h5d_create_anon(value loc_v, value type_v, value dcpl_v, value dapl_v,
+    value space_v)
 {
-  CAMLparam3(loc_id_v, dapl_id_v, name_v);
+  CAMLparam5(loc_v, type_v, dcpl_v, dapl_v, space_v);
+
+  CAMLreturn(alloc_h5d(H5Dcreate_anon(
+    Hid_val(loc_v),
+    Hid_val(type_v),
+    Hid_val(space_v),
+    H5P_opt_val(dcpl_v),
+    H5P_opt_val(dapl_v))));
+}
+
+value hdf5_h5d_open(value loc_v, value dapl_v, value name_v)
+{
+  CAMLparam3(loc_v, dapl_v, name_v);
   CAMLreturn(alloc_h5d(H5Dopen2(
-    Hid_val(loc_id_v),
+    Hid_val(loc_v),
     String_val(name_v),
-    H5P_opt_val(dapl_id_v))));
+    H5P_opt_val(dapl_v))));
 }
 
 void hdf5_h5d_close(value dataset_v)
@@ -98,29 +134,37 @@ void hdf5_h5d_close(value dataset_v)
   CAMLreturn0;
 }
 
-value hdf5_h5d_get_space(value dataset_id_v)
+value hdf5_h5d_get_space(value dataset_v)
 {
-  CAMLparam1(dataset_id_v);
-  CAMLreturn(alloc_h5s(H5Dget_space(Hid_val(dataset_id_v))));
+  CAMLparam1(dataset_v);
+  CAMLreturn(alloc_h5s(H5Dget_space(Hid_val(dataset_v))));
 }
 
-value hdf5_h5d_get_type(value dataset_id_v)
+value hdf5_hd5_get_space_status(value dset_v)
 {
-  CAMLparam1(dataset_id_v);
-  CAMLreturn(alloc_h5t(H5Dget_type(Hid_val(dataset_id_v))));
+  CAMLparam1(dset_v);
+  H5D_space_status_t s;
+  raise_if_fail(H5Dget_space_status(Hid_val(dset_v), &s));
+  CAMLreturn(Val_h5d_space_status(s));
 }
 
-value hdf5_h5d_get_create_plist(value dataset_id_v)
+value hdf5_h5d_get_type(value dataset_v)
 {
-  CAMLparam1(dataset_id_v);
-  CAMLreturn(alloc_h5p(H5Dget_create_plist(Hid_val(dataset_id_v))));
+  CAMLparam1(dataset_v);
+  CAMLreturn(alloc_h5t(H5Dget_type(Hid_val(dataset_v))));
 }
 
-void hdf5_h5d_read(value dataset_id_v, value mem_type_id_v, value mem_space_id_v,
-  value file_space_id_v, value xfer_plist_id_v, value buf_v)
+value hdf5_h5d_get_create_plist(value dataset_v)
 {
-  CAMLparam5(dataset_id_v, mem_type_id_v, mem_space_id_v, file_space_id_v,
-    xfer_plist_id_v);
+  CAMLparam1(dataset_v);
+  CAMLreturn(alloc_h5p(H5Dget_create_plist(Hid_val(dataset_v))));
+}
+
+void hdf5_h5d_read(value dataset_v, value mem_type_v, value mem_space_v,
+  value file_space_v, value xfer_plist_v, value buf_v)
+{
+  CAMLparam5(dataset_v, mem_type_v, mem_space_v, file_space_v,
+    xfer_plist_v);
   CAMLxparam1(buf_v);
   void* buf;
   if (Is_long(buf_v))
@@ -131,11 +175,11 @@ void hdf5_h5d_read(value dataset_id_v, value mem_type_id_v, value mem_space_id_v
     buf = (void*) buf_v;
 
   raise_if_fail(H5Dread(
-    Hid_val(dataset_id_v),
-    Hid_val(mem_type_id_v),
-    Hid_val(mem_space_id_v),
-    Hid_val(file_space_id_v),
-    H5P_opt_val(xfer_plist_id_v),
+    Hid_val(dataset_v),
+    Hid_val(mem_type_v),
+    Hid_val(mem_space_v),
+    Hid_val(file_space_v),
+    H5P_opt_val(xfer_plist_v),
     buf));
 
   CAMLreturn0;
@@ -147,11 +191,11 @@ void hdf5_h5d_read_bytecode(value *argv, int argn)
   hdf5_h5d_read(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
-void hdf5_h5d_write(value dataset_id_v, value mem_type_id_v, value mem_space_id_v,
-  value file_space_id_v, value xfer_plist_id_v, value buf_v)
+void hdf5_h5d_write(value dataset_v, value mem_type_v, value mem_space_v,
+  value file_space_v, value xfer_plist_v, value buf_v)
 {
-  CAMLparam5(dataset_id_v, mem_type_id_v, mem_space_id_v, file_space_id_v,
-    xfer_plist_id_v);
+  CAMLparam5(dataset_v, mem_type_v, mem_space_v, file_space_v,
+    xfer_plist_v);
   CAMLxparam1(buf_v);
   const void* buf;
   if (Is_long(buf_v))
@@ -162,11 +206,11 @@ void hdf5_h5d_write(value dataset_id_v, value mem_type_id_v, value mem_space_id_
     buf = (const void*) buf_v;
 
   raise_if_fail(H5Dwrite(
-    Hid_val(dataset_id_v),
-    Hid_val(mem_type_id_v),
-    Hid_val(mem_space_id_v),
-    Hid_val(file_space_id_v),
-    H5P_opt_val(xfer_plist_id_v),
+    Hid_val(dataset_v),
+    Hid_val(mem_type_v),
+    Hid_val(mem_space_v),
+    Hid_val(file_space_v),
+    H5P_opt_val(xfer_plist_v),
     buf));
 
   CAMLreturn0;
@@ -178,16 +222,16 @@ void hdf5_h5d_write_bytecode(value *argv, int argn)
   hdf5_h5d_write(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
-void hdf5_h5d_set_extent(value dset_id_v, value size_v)
+void hdf5_h5d_set_extent(value dset_v, value size_v)
 {
-  CAMLparam2(dset_id_v, size_v);
+  CAMLparam2(dset_v, size_v);
   hsize_t *size;
   herr_t err;
 
   (void) hsize_t_array_val(size_v, &size);
   if (size == NULL)
     caml_raise_out_of_memory();
-  err = H5Dset_extent(Hid_val(dset_id_v), size);
+  err = H5Dset_extent(Hid_val(dset_v), size);
   free(size);
   raise_if_fail(err);
  

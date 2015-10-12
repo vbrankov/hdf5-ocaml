@@ -1,8 +1,8 @@
-The library implements most functionality needed for reading and writing HDF5 files.  It
-is actively maintained.
+The library implements most of the functionality needed for reading and writing HDF5
+files.  It is actively maintained and the goal is to support all the features of HDF5.
 
-Also provided is a fast way of working with large arrays of records.  It is much faster
-than OCaml arrays of records, see `examples/bench/bench_struct.ml`.
+Also provided is a fast way of working with large arrays of records, much faster than
+OCaml arrays of records.  See examples/bench/bench_struct.ml`.
 
 # Building
 
