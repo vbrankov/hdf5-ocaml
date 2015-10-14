@@ -33,4 +33,4 @@ module Ih_info : sig
     heap_size  : int }
 end
 
-external init : unit -> unit = "hdf5_h5_init" "noalloc"
+val init : unit -> unit

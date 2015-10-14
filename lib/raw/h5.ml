@@ -34,4 +34,7 @@ module Ih_info = struct
 end
 
 external init : unit -> unit = "hdf5_h5_init" "noalloc"
+let init () =
+  Callback.register_exception "HDF5.H5I.Fail" H5i.Fail;
+  init ()
 let () = init ()
