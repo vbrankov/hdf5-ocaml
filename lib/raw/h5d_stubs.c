@@ -140,7 +140,7 @@ value hdf5_h5d_get_space(value dataset_v)
   CAMLreturn(alloc_h5s(H5Dget_space(Hid_val(dataset_v))));
 }
 
-value hdf5_hd5_get_space_status(value dset_v)
+value hdf5_h5d_get_space_status(value dset_v)
 {
   CAMLparam1(dset_v);
   H5D_space_status_t s;
