@@ -158,10 +158,6 @@ module Ptr = struct
     let max = ref i in
     let step = ref 1 in
     if v' < v then begin
-      if !max < len - 1 then begin
-        incr min;
-        max := !min
-      end;
       while !max < len
         && Array.unsafe_get (Obj.magic (data + !max * size)) 0 < v do
         max := !max + !step;
@@ -169,10 +165,6 @@ module Ptr = struct
       done;
       if !max >= len then max := len - 1
     end else if v' > v then begin
-      if !min > 0 then begin
-        decr min;
-        max := !min
-      end;
       while !min > 0 && Array.unsafe_get (Obj.magic (data + !min * size)) 0 > v do
         min := !min - !step;
         step := !step * 2
@@ -214,20 +206,12 @@ module Ptr = struct
     let max = ref i in
     let step = ref 1 in
     if v' < v then begin
-      if !max < len - 1 then begin
-        incr min;
-        max := !min
-      end;
       while !max < len && Int64.to_int (Obj.magic (data + !max * size)) < v do
         max := !max + !step;
         step := !step * 2
       done;
       if !max >= len then max := len - 1
     end else if v' > v then begin
-      if !min > 0 then begin
-        decr min;
-        max := !min
-      end;
       while !min > 0 && Int64.to_int (Obj.magic (data + !min * size)) > v do
         min := !min - !step;
         step := !step * 2
@@ -268,20 +252,12 @@ module Ptr = struct
     let max = ref i in
     let step = ref 1 in
     if v' < v then begin
-      if !max < len - 1 then begin
-        incr min;
-        max := !min
-      end;
       while !max < len && Obj.magic (data + !max * size) < v do
         max := !max + !step;
         step := !step * 2
       done;
       if !max >= len then max := len - 1
     end else if v' > v then begin
-      if !min > 0 then begin
-        decr min;
-        max := !min
-      end;
       while !min > 0 && Obj.magic (data + !min * size) > v do
         min := !min - !step;
         step := !step * 2
