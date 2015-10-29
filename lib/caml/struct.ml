@@ -139,8 +139,8 @@ module Ptr = struct
       else
         max := !mid
     done;
-    let v' = Array.unsafe_get (Obj.magic (data + !min * size) : float array) 0 in
-    if v' >= v then !min else !max
+    let v' = Array.unsafe_get (Obj.magic (data + !max * size) : float array) 0 in
+    if v' <= v then !max else !min
 
   let seek_float64 t size pos v =
     let v : float = Obj.magic v in
@@ -195,8 +195,8 @@ module Ptr = struct
       else
         max := !mid
     done;
-    let v' = Int64.to_int (Obj.magic (data + !min * size)) in
-    if v' >= v then !min else !max
+    let v' = Int64.to_int (Obj.magic (data + !max * size)) in
+    if v' <= v then !max else !min
 
   let seek_int t size pos v =
     let v : int = Obj.magic v in
@@ -250,8 +250,8 @@ module Ptr = struct
       else
         max := !mid
     done;
-    let v' = Obj.magic (data + !min * size) in
-    if v' >= v then !min else !max
+    let v' = Obj.magic (data + !max * size) in
+    if v' <= v then !max else !min
 
   let seek_int64 t size pos v =
     let v : int64 = Obj.magic v in

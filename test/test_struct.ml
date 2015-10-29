@@ -70,3 +70,9 @@ let () =
     Record.seek_si64 e (Int64.of_int r.(i));
     assert (expected_val e r.(i))
   done;
+  for i = 0 to len - 1 do
+    let f = Random.float (float_of_int len) in
+    Record.seek_sf64 e f;
+    assert (Record.sf64 e <= f);
+    assert (Record.sf64 e +. 1. > f)
+  done

@@ -73,6 +73,20 @@ Test test_comprehensive
   Command:          $test_comprehensive && rm *.h5
   WorkingDirectory: test
 
+Executable test_struct
+  Build$:         flag(tests)
+  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
+  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
+  Path:           test
+  MainIs:         test_struct.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_caml
+  Install:        false
+
+Test test_struct
+  Command:          $test_struct
+  WorkingDirectory: test
+
 Flag examples
   Description: Build examples
   Default:     false
