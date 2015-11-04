@@ -101,7 +101,7 @@ let write_data t datatype dims name ?(deflate = 6) data =
   | None -> ()
   | Some dcpl -> H5p.close dcpl
 
-let read_data expected_datatype create verify t data name =
+let read_data expected_datatype create verify t data ?xfer_plist name =
   let hid = hid t in
   let dataset = H5d.open_ hid name in
   let datatype = H5d.get_type dataset in
@@ -113,7 +113,7 @@ let read_data expected_datatype create verify t data name =
     match data with
     | Some data -> verify (Obj.magic data) dims
     | None -> Obj.magic (create dims) in
-  H5d.read dataset datatype H5s.all H5s.all data;
+  H5d.read dataset datatype H5s.all H5s.all ?xfer_plist data;
   H5s.close dataspace;
   H5t.close datatype;
   H5d.close dataset;
@@ -186,6 +186,8 @@ let read_uint8_array1 t ?data name = read_data H5t.native_b8
 let read_string_array t ?data name =
   let datatype = H5t.copy H5t.c_s1 in
   H5t.set_size datatype H5t.variable;
+  let xfer_plist = H5p.create H5p.Cls_id.DATASET_XFER in
+  H5p.set_vlen_mem_manager xfer_plist (fun i -> Bytes.create (i - 1)) ignore;
   let data = read_data datatype
     (fun dims ->
       if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
@@ -194,7 +196,8 @@ let read_string_array t ?data name =
       if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
       if Array.length data < dims.(0) then
         invalid_arg "The provided data storage too small";
-      data) t data name in
+      data) t data ~xfer_plist name in
+  H5p.close xfer_plist;
   H5t.close datatype;
   data
 

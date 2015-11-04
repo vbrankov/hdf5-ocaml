@@ -79,4 +79,12 @@ let () =
   H5d.close dataset;
   H5g.close group_aa;
   H5g.close group_a;
-  H5f.close dest
+  H5f.close dest;
+
+  let h5 = H5.create_trunc _FILE in
+  let a = [| "abc"; "ABC"; "XYZABC" |] in
+  H5.write_string_array h5 "a" a;
+  H5.close h5;
+  let h5 = H5.open_rdonly _FILE in
+  assert (a = H5.read_string_array h5 "a");
+  H5.close h5
