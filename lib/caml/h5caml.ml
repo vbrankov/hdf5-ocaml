@@ -131,6 +131,12 @@ let write_float_array2 t name ?deflate (a : (float, float64_elt, _) Array2.t) =
 let write_uint8_array1 t name ?deflate (a : (char, int8_unsigned_elt, _) Array1.t)
   = write_data t H5t.native_b8 [| Array1.dim a |] name ?deflate a
 
+let write_string_array t name ?deflate (a : string array) =
+  let datatype = H5t.copy H5t.c_s1 in
+  H5t.set_size datatype H5t.variable;
+  write_data t datatype [| Array.length a |] name ?deflate a;
+  H5t.close datatype
+
 let read_float_array t ?data name = read_data H5t.native_double
   (fun dims ->
     if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
@@ -176,6 +182,21 @@ let read_uint8_array1 t ?data name = read_data H5t.native_b8
       invalid_arg "The provided data storage too small";
     data)
   t data name
+
+let read_string_array t ?data name =
+  let datatype = H5t.copy H5t.c_s1 in
+  H5t.set_size datatype H5t.variable;
+  let data = read_data datatype
+    (fun dims ->
+      if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
+      Array.make dims.(0) "")
+    (fun data dims ->
+      if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
+      if Array.length data < dims.(0) then
+        invalid_arg "The provided data storage too small";
+      data) t data name in
+  H5t.close datatype;
+  data
 
 let write_float_array_array t name ?(transpose = true) ?deflate (a : float array array) =
   let dim1 = Array.length a in

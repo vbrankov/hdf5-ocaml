@@ -80,6 +80,14 @@ val write_uint8_array1 : t -> string -> ?deflate:int
 val read_uint8_array1 : t -> ?data:(char, int8_unsigned_elt, 'a) Array1.t -> string
   -> (char, int8_unsigned_elt, 'a) Array1.t
 
+(** Writes the given string array to the data set. *)
+val write_string_array : t -> string -> ?deflate:int -> string array -> unit
+
+(** Reads the data set into a string array.
+    
+    @param data If provided, the storage for the data. *)
+val read_string_array : t -> ?data:string array -> string -> string array
+
 (** Writes the given array of float arrays as a matrix. *)
 val write_float_array_array : t -> string -> ?transpose:bool -> ?deflate:int
   -> float array array -> unit
