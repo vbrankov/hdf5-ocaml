@@ -253,21 +253,36 @@ let read_float_array_array t ?(transpose = true) name =
       e)
   end
 
-let write_attribute_string_array t dataset_name attribute_name (a : string array) =
+let write_attribute_float t attribute_name (v : float) =
+  let dataspace = H5s.create H5s.Class.SCALAR in
+  let att = H5a.create (hid t) attribute_name H5t.native_double dataspace in
+  H5a.write att H5t.native_double v;
+  H5a.close att;
+  H5s.close dataspace
+
+let read_attribute_float t attribute_name =
+  let att = H5a.open_ (hid t) attribute_name in
+  let dataspace = H5a.get_space att in
+  let datatype = H5a.get_type att in
+  let a = Array.make_float 1 in
+  H5a.read att datatype a;
+  H5t.close datatype;
+  H5s.close dataspace;
+  H5a.close att;
+  a.(0)
+
+let write_attribute_string_array t attribute_name (a : string array) =
   let datatype = H5t.copy H5t.c_s1 in
   H5t.set_size datatype H5t.variable; 
   let dataspace = H5s.create_simple [| Array.length a |] in
-  let dataset = H5d.open_ (hid t) dataset_name in
-  let att = H5a.create dataset attribute_name datatype dataspace in
+  let att = H5a.create (hid t) attribute_name datatype dataspace in
   H5a.write att datatype a;
   H5a.close att;
-  H5d.close dataset;
   H5s.close dataspace;
   H5t.close datatype
 
-let read_attribute_string_array t dataset_name attribute_name =
-  let dataset = H5d.open_ (hid t) dataset_name in
-  let att = H5a.open_ dataset attribute_name in
+let read_attribute_string_array t attribute_name =
+  let att = H5a.open_ (hid t) attribute_name in
   let dataspace = H5a.get_space att in
   let datatype = H5a.get_type att in
   let dims, _ = H5s.get_simple_extent_dims dataspace in
@@ -276,5 +291,4 @@ let read_attribute_string_array t dataset_name attribute_name =
   H5t.close datatype;
   H5s.close dataspace;
   H5a.close att;
-  H5d.close dataset;
   a

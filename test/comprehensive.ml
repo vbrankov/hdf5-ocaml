@@ -87,4 +87,17 @@ let () =
   H5.close h5;
   let h5 = H5.open_rdonly _FILE in
   assert (a = H5.read_string_array h5 "a");
+  H5.close h5;
+
+  let h5 = H5.create_trunc _FILE in
+  let d = H5.open_dir h5 "a" in
+  H5.write_attribute_float d "f" 4.2;
+  H5.close d;
+  H5.close h5;
+
+  let h5 = H5.open_rdonly _FILE in
+  let d = H5.open_dir h5 "a" in
+  let f = H5.read_attribute_float d "f" in
+  assert (f = 4.2);
+  H5.close d;
   H5.close h5

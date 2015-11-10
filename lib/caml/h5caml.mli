@@ -95,10 +95,17 @@ val write_float_array_array : t -> string -> ?transpose:bool -> ?deflate:int
 (** Reads the given matrix as an array of float arrays. *)
 val read_float_array_array : t -> ?transpose:bool -> string -> float array array
 
-(** [write_attribute_string_array t dataset_name attribute_name v] writes the given
-    [string array] as the given attribute for the given dataset or directory. *)
-val write_attribute_string_array : t -> string -> string -> string array -> unit
+(** [write_attribute_float t name v] writes the given [float] as an attribute with the
+    given name. *)
+val write_attribute_float : t -> string -> float -> unit
 
-(** [read_attribute_string_array t dataset_name attribute_name] reads the given attribute
-    of the given dataset or directory as a string array. *)
-val read_attribute_string_array : t -> string -> string -> string array
+(** [read_attribute_float t name] reads the attribute with the given name as a float. *)
+val read_attribute_float : t -> string -> float
+
+(** [write_attribute_string_array t name v] writes the given [string array] as an
+    attribute with the given name. *)
+val write_attribute_string_array : t -> string -> string array -> unit
+
+(** [read_attribute_string_array t name] reads the attribute with the given name as a
+    string array. *)
+val read_attribute_string_array : t -> string -> string array
