@@ -102,6 +102,13 @@ val write_attribute_float : t -> string -> float -> unit
 (** [read_attribute_float t name] reads the attribute with the given name as a float. *)
 val read_attribute_float : t -> string -> float
 
+(** [write_attribute_string t name v] writes the given [string] as an attribute with the
+    given name. *)
+val write_attribute_string : t -> string -> string -> unit
+
+(** [read_attribute_string t name] reads the attribute with the given name as a string. *)
+val read_attribute_string : t -> string -> string
+
 (** [write_attribute_string_array t name v] writes the given [string array] as an
     attribute with the given name. *)
 val write_attribute_string_array : t -> string -> string array -> unit
