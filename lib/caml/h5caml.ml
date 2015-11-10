@@ -271,6 +271,24 @@ let read_attribute_float t name =
   H5a.close att;
   a.(0)
 
+let write_attribute_int64 t name (v : int64) =
+  let dataspace = H5s.create H5s.Class.SCALAR in
+  let att = H5a.create (hid t) name H5t.native_int64 dataspace in
+  H5a.write att H5t.native_int64 (Obj.magic v + 4);
+  H5a.close att;
+  H5s.close dataspace
+
+let read_attribute_int64 t name =
+  let att = H5a.open_ (hid t) name in
+  let dataspace = H5a.get_space att in
+  let datatype = H5a.get_type att in
+  let a = Int64.of_int (Obj.magic t) in
+  H5a.read att datatype (Obj.magic a + 4);
+  H5t.close datatype;
+  H5s.close dataspace;
+  H5a.close att;
+  Obj.magic a
+
 let write_attribute_string t name (v : string) =
   let datatype = H5t.copy H5t.c_s1 in
   H5t.set_size datatype (String.length v);

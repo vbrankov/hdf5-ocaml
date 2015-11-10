@@ -92,6 +92,7 @@ let () =
   let h5 = H5.create_trunc _FILE in
   let d = H5.open_dir h5 "a" in
   H5.write_attribute_float d "f" 4.2;
+  H5.write_attribute_int64 d "i64" 4L;
   H5.write_attribute_string d "s" "abc";
   H5.close d;
   H5.close h5;
@@ -100,6 +101,8 @@ let () =
   let d = H5.open_dir h5 "a" in
   let f = H5.read_attribute_float d "f" in
   assert (f = 4.2);
+  let i = H5.read_attribute_int64 d "i64" in
+  assert (i = 4L);
   let s = H5.read_attribute_string d "s" in
   assert (s = "abc");
   H5.close d;
