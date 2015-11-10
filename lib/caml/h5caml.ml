@@ -35,13 +35,11 @@ let get_name t = H5f.get_name (hid t)
 let exists t name =
   H5l.exists (hid t) name
 
-let ls t ?(index = Hdf5_raw.H5.Index.NAME) ?(order = Hdf5_raw.H5.Iter_order.NATIVE) name =
+let ls ?(index = Hdf5_raw.H5.Index.NAME) ?(order = Hdf5_raw.H5.Iter_order.NATIVE) t =
   let links = ref [] in
-  let t = open_dir t name in
   let _ = H5l.iterate (hid t) index order (fun _ l _ () ->
     links := l :: !links;
     Hdf5_raw.H5.Iter.CONT) () in
-  close t;
   List.rev !links
 
 let copy ~src ~src_name ~dst ~dst_name =
