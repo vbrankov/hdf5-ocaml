@@ -64,14 +64,15 @@ void hdf5_h5tb_make_table(value table_title_v, value loc_v, value dset_name_v,
     if (Is_long(fill_data_v))
       caml_invalid_argument("H5tb.make_table: immediate values not allowed");
     else if (Tag_hd(Hd_val(fill_data_v)) == Custom_tag &&
-        Custom_ops_val(fill_data_v) == caml_ba_ops)
+        Custom_ops_val(fill_data_v) == get_caml_ba_ops())
       fill_data = Caml_ba_data_val(fill_data_v);
     else
       fill_data = (void*) fill_data_v;
   }
   if (Is_long(data_v))
     data = NULL;
-  else if (Tag_hd(Hd_val(data_v)) == Custom_tag && Custom_ops_val(data_v) == caml_ba_ops)
+  else if (Tag_hd(Hd_val(data_v)) == Custom_tag
+      && Custom_ops_val(data_v) == get_caml_ba_ops())
     data = Caml_ba_data_val(data_v);
   else
     data = (void*) data_v;
@@ -135,7 +136,8 @@ void hdf5_h5tb_append_records(value loc_v, value dset_name_v, value nrecords_v,
   }
   if (Is_long(data_v))
     caml_invalid_argument("H5tb.append_records: immediate values not allowed");
-  else if (Tag_hd(Hd_val(data_v)) == Custom_tag && Custom_ops_val(data_v) == caml_ba_ops)
+  else if (Tag_hd(Hd_val(data_v)) == Custom_tag
+      && Custom_ops_val(data_v) == get_caml_ba_ops())
     data = Caml_ba_data_val(data_v);
   else
     data = (void*) data_v;
@@ -194,7 +196,8 @@ void hdf5_h5tb_write_records(value loc_v, value table_name_v, value start_v,
   }
   if (Is_long(data_v))
     caml_invalid_argument("H5tb.write_records: immediate values not allowed");
-  else if (Tag_hd(Hd_val(data_v)) == Custom_tag && Custom_ops_val(data_v) == caml_ba_ops)
+  else if (Tag_hd(Hd_val(data_v)) == Custom_tag
+      && Custom_ops_val(data_v) == get_caml_ba_ops())
     data = Caml_ba_data_val(data_v);
   else
     data = (void*) data_v;
@@ -257,7 +260,7 @@ void hdf5_h5tb_read_table(value loc_v, value table_name_v, value dst_size_v,
     caml_invalid_argument("H5tb.read_table: immediate values not allowed");
   }
   else if (Tag_hd(Hd_val(dst_buf_v)) == Custom_tag
-      && Custom_ops_val(dst_buf_v) == caml_ba_ops)
+      && Custom_ops_val(dst_buf_v) == get_caml_ba_ops())
     dst_buf = Caml_ba_data_val(dst_buf_v);
   else
     dst_buf = (void*) dst_buf_v;
@@ -319,7 +322,8 @@ void hdf5_h5tb_read_records(value loc_v, value table_name_v, value start_v,
     free(dst_sizes);
     caml_invalid_argument("H5tb.read_records: immediate values not allowed");
   }
-  else if (Tag_hd(Hd_val(data_v)) == Custom_tag && Custom_ops_val(data_v) == caml_ba_ops)
+  else if (Tag_hd(Hd_val(data_v)) == Custom_tag
+      && Custom_ops_val(data_v) == get_caml_ba_ops())
     data = Caml_ba_data_val(data_v);
   else
     data = (void*) data_v;

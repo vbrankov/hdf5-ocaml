@@ -169,7 +169,8 @@ void hdf5_h5d_read(value dataset_v, value mem_type_v, value mem_space_v,
   void* buf;
   if (Is_long(buf_v))
     caml_invalid_argument("H5d.read: immediate values not allowed");
-  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag && Custom_ops_val(buf_v) == caml_ba_ops)
+  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag
+      && Custom_ops_val(buf_v) == get_caml_ba_ops())
     buf = Caml_ba_data_val(buf_v);
   else
     buf = (void*) buf_v;
@@ -200,7 +201,8 @@ void hdf5_h5d_write(value dataset_v, value mem_type_v, value mem_space_v,
   const void* buf;
   if (Is_long(buf_v))
     caml_invalid_argument("H5d.write: immediate values not allowed");
-  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag && Custom_ops_val(buf_v) == caml_ba_ops)
+  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag
+      && Custom_ops_val(buf_v) == get_caml_ba_ops())
     buf = Caml_ba_data_val(buf_v);
   else
     buf = (const void*) buf_v;
