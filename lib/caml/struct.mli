@@ -28,12 +28,12 @@ end
 
 module Ptr : sig
   type t = {
-    mutable ptr : int;
-    mem         : Mem.t;
-    begin_      : int;
-    end_        : int;
-    mutable len : int;
-    mutable i   : int;
+    mutable ptr    : int;
+    mutable mem    : Mem.t;
+    mutable begin_ : int;
+    mutable end_   : int;
+    mutable len    : int;
+    mutable i      : int;
   }
 
   val unsafe_next : _ -> int -> unit
@@ -118,6 +118,7 @@ module Make(S : S) : sig
     val resize : t -> int -> unit
     val append : t -> e
     val unsafe_get : t -> int -> e
+    val get : t -> int -> e
     val iter : t -> f:(e -> unit) -> unit
     val of_array : Array.t -> t
     val to_array : t -> Array.t

@@ -36,12 +36,12 @@ end
 
 module Ptr = struct
   type t = {
-    mutable ptr : int;
-    mem         : Mem.t;
-    begin_      : int;
-    end_        : int;
-    mutable len : int;
-    mutable i   : int;
+    mutable ptr    : int;
+    mutable mem    : Mem.t;
+    mutable begin_ : int;
+    mutable end_   : int;
+    mutable len    : int;
+    mutable i      : int;
   }
 
   let unsafe_next t size =
@@ -410,11 +410,12 @@ module Make(S : S) = struct
       mutable capacity : int;
       mutable length : int;
       mutable end_ : e;
+      mutable ptrs : e list;
     }
 
     let create ?(capacity = 16) () =
       let mem = Array.make capacity in
-      { mem; capacity; length = 0; end_ = Array.unsafe_get mem (-1) }
+      { mem; capacity; length = 0; end_ = Array.unsafe_get mem (-1); ptrs = [] }
 
     let length t = t.length
 
@@ -430,6 +431,12 @@ module Make(S : S) = struct
           (Array1.sub (Obj.magic mem) 0 (t.capacity * size));
         t.mem <- mem
       end;
+      List.iter (fun e ->
+        let e' = Array.get t.mem e.i in
+        e.ptr    <- e'.ptr;
+        e.mem    <- e'.mem;
+        e.begin_ <- e'.begin_;
+        e.end_   <- e'.end_) t.ptrs;
       t.capacity <- capacity
 
     let append t =
@@ -441,7 +448,15 @@ module Make(S : S) = struct
       unsafe_next t.end_;
       t.end_
 
-    let unsafe_get (t : t) i = Array.unsafe_get t.mem i
+    let unsafe_get (t : t) i =
+      let e = Array.unsafe_get t.mem i in
+      t.ptrs <- e :: t.ptrs;
+      e
+
+    let get (t : t) i =
+      let e = Array.get t.mem i in
+      t.ptrs <- e :: t.ptrs;
+      e
 
     let iter (t : t) ~f =
       let ptr = t.end_ in
@@ -454,7 +469,8 @@ module Make(S : S) = struct
 
     let of_array a =
       let len = Array.length a in
-      { mem = a; capacity = len; length = len; end_ = Array.unsafe_get a (len - 1) }
+      { mem = a; capacity = len; length = len; end_ = Array.unsafe_get a (len - 1);
+        ptrs = [] }
 
     let to_array t =
       let mem = Array.make t.length in

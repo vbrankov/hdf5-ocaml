@@ -97,4 +97,14 @@ let () =
     Record.seek_si64 e i;
     assert (Record.si64 e <= i);
     assert (Int64.add (Record.si64 e) 1L > i);
+  done;
+
+  let v = Record.Vector.create () in
+  let e = Record.Vector.get v 0 in
+  for i = 0 to len - 1 do
+    let e' = Record.Vector.append v in
+    if i > 0 then
+      Record.next e;
+    Record.set_i e' i;
+    assert (Record.i e = i)
   done
