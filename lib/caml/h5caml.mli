@@ -1,23 +1,22 @@
 open Bigarray
 open Hdf5_raw
 
-(** Represents a directory handle inside a HDF5 file. *)
+(** Represents a group inside an HDF5 file. *)
 type t
 
-(** Creates the named file and returns the root directory. *)
+(** Creates the named file and returns the root group. *)
 val create_trunc : string -> t
 
-(** Opens the named file for reading and returns the root directory. *)
+(** Opens the named file for reading and returns the root group. *)
 val open_rdonly : string -> t
 
-(** Opens the named file for reading and writing and returns the root directory. *)
+(** Opens the named file for reading and writing and returns the root group. *)
 val open_rdwr : string -> t
 
-(** Opens the named subdirectory.  The subdirectory is created if it does not already
-    exists. *)
+(** Opens the named subgroup.  The subgroup is created if it does not already exist. *)
 val open_dir : t -> string -> t
 
-(** Closes the given directory handle. *)
+(** Closes the group handle.  If given a root group closes the file. *)
 val close : t -> unit
 
 (** Flushes all buffers associated with a file to disk. *)
@@ -26,7 +25,7 @@ val flush : t -> unit
 (** Returns the name of file to which object belongs. *)
 val get_name : t -> string
 
-(** Returns whether the given subdirectory or a data set exists. *)
+(** Returns whether the given subgroup or a data set exists. *)
 val exists : t -> string -> bool
 
 (** Returns all subdirectories and data sets. *)
