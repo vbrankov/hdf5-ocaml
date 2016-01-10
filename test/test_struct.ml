@@ -28,7 +28,8 @@ let () =
     && Record.f64  e = f  
     && Record.i    e = i  
     && Record.i64  e = i64
-    && Record.s    e = s  
+    && Record.s    e = s
+    && Record.pos  e = i
   in
   for i = 0 to len - 1 do
     let e = Record.Array.get a i in

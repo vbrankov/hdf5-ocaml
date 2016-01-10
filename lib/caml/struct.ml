@@ -47,12 +47,14 @@ module Ptr = struct
   let unsafe_next t size =
     let t = Obj.magic t in
     let ptr = t.ptr + size in
-    t.ptr <- ptr
+    t.ptr <- ptr;
+    t.i <- t.i + 1
 
   let unsafe_prev t size =
     let t = Obj.magic t in
     let ptr = t.ptr - size in
-    t.ptr <- ptr
+    t.ptr <- ptr;
+    t.i <- t.i - 1
 
   let unsafe_move t i size =
     let t = Obj.magic t in
@@ -64,14 +66,20 @@ module Ptr = struct
     let ptr = t.ptr + size in
     if ptr > t.end_
     then raise (Invalid_argument "index out of bounds")
-    else t.ptr <- ptr
+    else begin
+      t.ptr <- ptr;
+      t.i <- t.i + 1
+    end
 
   let prev t size =
     let t = Obj.magic t in
     let ptr = t.ptr - size in
     if ptr < t.begin_
     then raise (Invalid_argument "index out of bounds")
-    else t.ptr <- ptr
+    else begin
+      t.ptr <- ptr;
+      t.i <- t.i - 1
+    end
 
   let move t i size =
     let t = Obj.magic t in
