@@ -57,6 +57,8 @@ let () =
 
 # lib/raw - raw HDF5 wrapper
 
+Equivalent to the HDF5 C library function-for-function.  HDF5 C documentation can be used.
+
 ```ocaml
 open Bigarray
 open Hdf5_raw
