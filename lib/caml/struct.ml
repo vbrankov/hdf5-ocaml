@@ -45,24 +45,20 @@ module Ptr = struct
   }
 
   let unsafe_next t size =
-    let t = Obj.magic t in
     let ptr = t.ptr + size in
     t.ptr <- ptr;
     t.i <- t.i + 1
 
   let unsafe_prev t size =
-    let t = Obj.magic t in
     let ptr = t.ptr - size in
     t.ptr <- ptr;
     t.i <- t.i - 1
 
   let unsafe_move t i size =
-    let t = Obj.magic t in
     t.ptr <- t.begin_ + i * size;
     t.i <- i
 
   let next t size =
-    let t = Obj.magic t in
     let ptr = t.ptr + size in
     if ptr > t.end_
     then raise (Invalid_argument "index out of bounds")
@@ -72,7 +68,6 @@ module Ptr = struct
     end
 
   let prev t size =
-    let t = Obj.magic t in
     let ptr = t.ptr - size in
     if ptr < t.begin_
     then raise (Invalid_argument "index out of bounds")
@@ -82,7 +77,6 @@ module Ptr = struct
     end
 
   let move t i size =
-    let t = Obj.magic t in
     let ptr = t.begin_ + i * size in
     if i < 0 || ptr > t.end_
     then raise (Invalid_argument "index out of bounds")
@@ -94,11 +88,11 @@ module Ptr = struct
   open Bigarray
 
   let get_float64 t i   =
-    Obj.magic (Array.unsafe_get (Obj.magic (Obj.magic t).ptr : float array) i)
+    Obj.magic (Array.unsafe_get (Obj.magic t.ptr : float array) i)
   let set_float64 t i v =
-    Array.unsafe_set (Obj.magic (Obj.magic t).ptr : float array) i (Obj.magic v)
+    Array.unsafe_set (Obj.magic t.ptr : float array) i (Obj.magic v)
   let get_int t i = Obj.magic (
-    Int64.to_int (Obj.magic (Obj.magic (Obj.magic t).ptr + (i - 1) * 4) : int64))
+    Int64.to_int (Obj.magic (Obj.magic t.ptr + (i - 1) * 4) : int64))
   let set_int t i v =
     let a : (int64, int64_elt, c_layout) Array1.t = Obj.magic (Obj.magic t - 4) in
     Array1.unsafe_set a i (Int64.of_int (Obj.magic v))
@@ -335,14 +329,18 @@ module Make(S : S) = struct
         len = -1; i }
 
     let init len f =
+      if len < 0 then invalid_arg "Hdf5_caml.Struct.Array.init";
       let t = make len in
-      let e = unsafe_get t 0 in
-      for i = 0 to len - 2 do
-        f i e;
-        unsafe_next e
-      done;
-      f (len - 1) e;
-      t
+      if len = 0 then t
+      else begin
+        let e = unsafe_get t 0 in
+        for i = 0 to len - 2 do
+          f i e;
+          unsafe_next e
+        done;
+        f (len - 1) e;
+        t
+      end
 
     let get t i =
       let ptr = t.Mem.data + i * size64 in
@@ -406,11 +404,11 @@ module Make(S : S) = struct
   module Vector = struct
     type e = t
     type t = {
-      mutable mem : Mem.t;
+      mutable mem      : Mem.t;
       mutable capacity : int;
-      mutable length : int;
-      mutable end_ : e;
-      mutable ptrs : e list;
+      mutable length   : int;
+      mutable end_     : e;
+      mutable ptrs     : e list;
     }
 
     let create ?(capacity = 16) () =
@@ -431,12 +429,14 @@ module Make(S : S) = struct
           (Array1.sub (Obj.magic mem) 0 (t.capacity * size));
         t.mem <- mem
       end;
-      List.iter (fun e ->
-        let e' = Array.get t.mem e.i in
-        e.ptr    <- e'.ptr;
-        e.mem    <- e'.mem;
-        e.begin_ <- e'.begin_;
-        e.end_   <- e'.end_) t.ptrs;
+      List.iter (fun ptr ->
+        let ptr' = Array.get t.mem ptr.i in
+        ptr.ptr    <- ptr'.ptr;
+        ptr.mem    <- ptr'.mem;
+        ptr.begin_ <- ptr'.begin_;
+        ptr.end_   <- ptr'.end_;
+        ptr.len    <- ptr'.len;
+        ptr.i      <- ptr'.i) t.ptrs;
       t.capacity <- capacity
 
     let append t =
@@ -448,17 +448,17 @@ module Make(S : S) = struct
       unsafe_next t.end_;
       t.end_
 
-    let unsafe_get (t : t) i =
+    let unsafe_get t i =
       let e = Array.unsafe_get t.mem i in
       t.ptrs <- e :: t.ptrs;
       e
 
-    let get (t : t) i =
+    let get t i =
       let e = Array.get t.mem i in
       t.ptrs <- e :: t.ptrs;
       e
 
-    let iter (t : t) ~f =
+    let iter t ~f =
       let ptr = t.end_ in
       unsafe_move ptr 0;
       for _ = 0 to t.length - 1 do

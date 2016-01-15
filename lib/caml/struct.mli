@@ -36,26 +36,26 @@ module Ptr : sig
     mutable i      : int;
   }
 
-  val unsafe_next : _ -> int -> unit
-  val unsafe_prev : _ -> int -> unit
-  val unsafe_move : _ -> int -> int -> unit
-  val next : _ -> int -> unit
-  val prev : _ -> int -> unit
-  val move : _ -> int -> int -> unit
+  val unsafe_next : t -> int -> unit
+  val unsafe_prev : t -> int -> unit
+  val unsafe_move : t -> int -> int -> unit
+  val next : t -> int -> unit
+  val prev : t -> int -> unit
+  val move : t -> int -> int -> unit
 
-  val get_float64  : _ -> int -> _
-  val set_float64  : _ -> int -> _ -> unit
-  val get_int      : _ -> int -> _
-  val set_int      : _ -> int -> _ -> unit
-  val get_int64    : _ -> int -> _
-  val set_int64    : _ -> int -> _ -> unit
-  val get_string   : _ -> int -> int -> string
-  val set_string   : _ -> int -> int -> string -> unit
+  val get_float64  : t -> int -> float
+  val set_float64  : t -> int -> float -> unit
+  val get_int      : t -> int -> int
+  val set_int      : t -> int -> int -> unit
+  val get_int64    : t -> int -> int64
+  val set_int64    : t -> int -> int64 -> unit
+  val get_string   : t -> int -> int -> string
+  val set_string   : t -> int -> int -> string -> unit
 
-  val seek_int     : _ -> int -> int -> _ -> unit
-  val seek_int64   : _ -> int -> int -> _ -> unit
-  val seek_float64 : _ -> int -> int -> _ -> unit
-  val seek_string  : _ -> int -> int -> int -> string -> unit
+  val seek_int     : t -> int -> int -> int -> unit
+  val seek_int64   : t -> int -> int -> int64 -> unit
+  val seek_float64 : t -> int -> int -> float -> unit
+  val seek_string  : t -> int -> int -> int -> string -> unit
 end
 
 module type S = sig
@@ -70,6 +70,7 @@ module Make(S : S) : sig
   val field_offset : int array
   val field_sizes : int array
   
+  (* [t = Ptr.t] is hidden so that the users cannot access low level functions. *)
   type t
 
   val create : unit -> t
