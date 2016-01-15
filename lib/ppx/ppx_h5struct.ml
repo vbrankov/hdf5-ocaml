@@ -152,7 +152,7 @@ let construct_function ~loc name args body =
     Vb.mk ~loc
       (Pat.var ~loc { txt = name; loc }) (construct_args args) ]
 
-let construct_function_call ~loc name args =
+let rec construct_function_call ~loc name args =
   Exp.apply ~loc
     (Exp.ident ~loc { txt = name; loc })
     (List.map (fun arg ->
@@ -160,7 +160,11 @@ let construct_function_call ~loc name args =
       match arg with
       | `Exp e -> e
       | `Int i -> Exp.constant ~loc (Const_int i)
-      | `Var v -> Exp.ident ~loc { txt = Longident.Lident v; loc }) args)
+      | `Var v -> Exp.ident ~loc { txt = Longident.Lident v; loc }
+      | `Mgc v -> obj_magic ~loc (Exp.ident ~loc { txt = Longident.Lident v; loc })) args)
+
+and obj_magic ~loc exp =
+  construct_function_call ~loc Longident.(Ldot (Lident "Obj", "magic")) [`Exp exp]
 
 let construct_field_get field pos loc =
   construct_function ~loc field.Field.id [ "t", Longident.Lident "t" ] (
@@ -174,7 +178,7 @@ let construct_field_get field pos loc =
                 | Type.Int        -> "get_int"
                 | Type.Int64      -> "get_int64"
                 | Type.String _   -> "get_string" )))
-            (   [ `Var "t" ]
+            (   [ `Mgc "t" ]
               @ ( match field.Field.type_ with
                   | Type.Float64
                   | Type.Int
@@ -192,13 +196,13 @@ let construct_field_set field pos loc =
           | Type.Int        -> "set_int"
           | Type.Int64      -> "set_int64"
           | Type.String _   -> "set_string" )))
-      (   [ `Var "t" ]
+      (   [ `Mgc "t" ]
         @ ( match field.Field.type_ with
             | Type.Float64
             | Type.Int
             | Type.Int64 -> [ `Int pos ]
             | Type.String length -> [ `Int (pos * 8); `Int length ] )
-        @ [ `Var "v" ] ))
+        @ [ `Mgc "v" ] ))
 
 let construct_field_seek field ~bsize pos loc =
   construct_function ~loc ("seek_" ^ field.Field.id)
@@ -210,14 +214,14 @@ let construct_field_seek field ~bsize pos loc =
           | Type.Int        -> "seek_int"
           | Type.Int64      -> "seek_int64"
           | Type.String _   -> "seek_string" )))
-      ( [ `Var "t"; `Int (bsize / 2) ]
+      ( [ `Mgc "t"; `Int (bsize / 2) ]
         @ (
           match field.Field.type_ with
           | Type.Float64
           | Type.Int
           | Type.Int64 -> [ `Int pos ]
           | Type.String len -> [ `Int (pos * 8); `Int len ] )
-        @ [ `Var "v" ] ))
+        @ [ `Mgc "v" ] ))
 
 let construct_set_all_fields fields loc =
   let rec construct_sets = function
