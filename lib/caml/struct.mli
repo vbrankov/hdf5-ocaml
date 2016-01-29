@@ -114,14 +114,16 @@ module Make(S : S) : sig
     type e = t
     type t
 
-    val create : ?capacity:int -> unit -> t
+    val create : ?capacity:int -> ?growth_factor:float -> unit -> t
     val length : t -> int
-    val resize : t -> int -> unit
+    val realloc : t -> int -> unit
     val append : t -> e
+    val clear : t -> unit
     val unsafe_get : t -> int -> e
     val get : t -> int -> e
     val iter : t -> f:(e -> unit) -> unit
-    val of_array : Array.t -> t
+    val of_array : ?growth_factor:float -> Array.t -> t
     val to_array : t -> Array.t
+    val on_realloc : t -> (unit -> unit) -> unit
   end
 end

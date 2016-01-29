@@ -404,20 +404,25 @@ module Make(S : S) = struct
   module Vector = struct
     type e = t
     type t = {
-      mutable mem      : Mem.t;
-      mutable capacity : int;
-      mutable length   : int;
-      mutable end_     : e;
-      mutable ptrs     : e list;
+      mutable mem        : Mem.t;
+      mutable capacity   : int;
+      growth_factor      : float;
+      mutable length     : int;
+      mutable end_       : e;
+      mutable ptrs       : e list;
+      mutable on_realloc : unit -> unit
     }
 
-    let create ?(capacity = 16) () =
+    let create ?(capacity = 16) ?(growth_factor = 1.5) () =
+      if growth_factor < 1. then
+        invalid_arg (Printf.sprintf "Invalid growth factor %f" growth_factor);
       let mem = Array.make capacity in
-      { mem; capacity; length = 0; end_ = Array.unsafe_get mem (-1); ptrs = [] }
+      { mem; capacity; growth_factor; length = 0; end_ = Array.unsafe_get mem (-1);
+        ptrs = []; on_realloc = fun () -> () }
 
     let length t = t.length
 
-    let resize t capacity =
+    let realloc t capacity =
       if t.capacity > capacity then begin
         let mem = Array.make capacity in
         Array.unsafe_blit (Array1.sub (Obj.magic t.mem) 0 (capacity * size))
@@ -437,16 +442,21 @@ module Make(S : S) = struct
         ptr.end_   <- ptr'.end_;
         ptr.len    <- ptr'.len;
         ptr.i      <- ptr'.i) t.ptrs;
-      t.capacity <- capacity
+      t.capacity <- capacity;
+      t.on_realloc ()
 
     let append t =
       if t.capacity = t.length then begin
-        resize t (t.capacity * 2);
+        realloc t (int_of_float (float t.capacity *. t.growth_factor) + 1);
         t.end_ <- Array.unsafe_get t.mem (t.length - 1)
       end;
       t.length <- t.length + 1;
       unsafe_next t.end_;
       t.end_
+
+    let clear t =
+      t.length <- 0;
+      unsafe_move t.end_ (-1)
 
     let unsafe_get t i =
       let e = Array.unsafe_get t.mem i in
@@ -467,14 +477,18 @@ module Make(S : S) = struct
       done;
       unsafe_move ptr t.length
 
-    let of_array a =
+    let of_array ?(growth_factor = 1.5) a =
+      if growth_factor < 1. then
+        invalid_arg (Printf.sprintf "Invalid growth factor %f" growth_factor);
       let len = Array.length a in
-      { mem = a; capacity = len; length = len; end_ = Array.unsafe_get a (len - 1);
-        ptrs = [] }
+      { mem = a; capacity = len; growth_factor; length = len;
+        end_ = Array.unsafe_get a (len - 1); ptrs = []; on_realloc = fun () -> () }
 
     let to_array t =
       let mem = Array.make t.length in
       Array.unsafe_blit (Array1.sub (Obj.magic t.mem) 0 (t.length * size)) mem;
       (Obj.magic mem : Mem.t)
+
+    let on_realloc t f = t.on_realloc <- f
   end
 end
