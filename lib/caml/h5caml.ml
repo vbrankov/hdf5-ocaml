@@ -28,6 +28,12 @@ let close = function
 | File f -> H5f.close f
 | Group g -> H5g.close g
 
+let with_dir t name f =
+  let t = open_dir t name in
+  let r = f t in
+  close t;
+  r
+
 let flush t = H5f.flush (hid t) H5f.Scope.LOCAL
 
 let get_name t = H5f.get_name (hid t)

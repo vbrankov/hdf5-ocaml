@@ -19,6 +19,9 @@ val open_dir : t -> string -> t
 (** Closes the group handle.  If given a root group closes the file. *)
 val close : t -> unit
 
+(** Performs the given function on the given dir. *)
+val with_dir : t -> string -> (t -> 'a) -> 'a
+
 (** Flushes all buffers associated with a file to disk. *)
 val flush : t -> unit
 
