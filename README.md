@@ -14,7 +14,7 @@ OCaml arrays of records.  See examples/bench/bench_struct.ml`.
 ## Store an array
 
 ```ocaml
-open Hdf5_caml
+module H5 = Hdf5_caml.H5caml
 
 let () =
   let a = [| 0.; 1.; 2. |] in
@@ -24,7 +24,7 @@ let () =
   H5.close output;
 
   let input = H5.open_rdonly "file.h5" in
-  let b = H5.read_float_array "a" in
+  let b = H5.read_float_array input "a" in
   H5.close input;
 
   assert (a = b)
@@ -33,25 +33,25 @@ let () =
 ## Store a table
 
 ```ocaml
-open Hdf5_caml
+module H5 = Hdf5_caml.H5caml
 
 module Temperature = struct
   [%%h5struct
     time      "Time"      Int;
-    latitude  "Latitude"  Float;
-    longitude "Longitude" Float;
-    temp      "Temp"      Float]
+    latitude  "Latitude"  Float64;
+    longitude "Longitude" Float64;
+    temp      "Temp"      Float64]
 end
 
 let () =
-  let a = Record.Vector.create () in
-  Record.(set (Vector.append a) ~time:10 ~latitude:45.2 ~longitude:0.2 ~temp:15.3);
-  Record.(set (Vector.append a) ~time:11 ~latitude:45.2 ~longitude:0.2 ~temp:15.5);
-  Record.(set (Vector.append a) ~time:12 ~latitude:45.3 ~longitude:0.5 ~temp:16.2);
-  let a = Record.Vector.to_array a in
+  let a = Temperature.Vector.create () in
+  Temperature.(set (Vector.append a) ~time:10 ~latitude:45.2 ~longitude:0.2 ~temp:15.3);
+  Temperature.(set (Vector.append a) ~time:11 ~latitude:45.2 ~longitude:0.2 ~temp:15.5);
+  Temperature.(set (Vector.append a) ~time:12 ~latitude:45.3 ~longitude:0.5 ~temp:16.2);
+  let a = Temperature.Vector.to_array a in
 
   let output = H5.create_trunc "file.h5" in
-  Record.Array.make_table a output "Temperature";
+  Temperature.Array.make_table a output "Temperature";
   H5.close output
 ```
 
