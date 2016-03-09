@@ -2,7 +2,7 @@ OASISFormat: 0.4
 BuildTools:  ocamlbuild
 Plugins:     META (0.4), DevFiles (0.4)
 Name:        HDF5
-Version:     0.1
+Version:     0.1.1
 Synopsis:    OCaml wrapper for HDF5 library
 Authors:     Vladimir Brankov <brankovv@gmail.com>
 License:     MIT
@@ -56,7 +56,7 @@ Executable ppx_h5struct
 Library hdf5_caml
   Path:         lib/caml
   Pack:         true
-  Modules:      H5caml, Struct
+  Modules:      Field, H5caml, Struct, Struct_intf, Type
   BuildDepends: hdf5_raw
 
 Executable test_comprehensive

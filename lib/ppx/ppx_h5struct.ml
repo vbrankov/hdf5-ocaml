@@ -122,18 +122,17 @@ let rec construct_fields_list fields loc =
       Exp.tuple ~loc [
         Exp.apply ~loc
           (Exp.ident { txt = Longident.(
-            Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Field"), "create")); loc })
+            Ldot (Ldot (Lident "Hdf5_caml", "Field"), "create")); loc })
           [ "", Exp.constant ~loc (Const_string (field.Field.name, None));
             "",
             Exp.construct ~loc
               { loc; txt = Longident.(
-                  Ldot (
-                    Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Type"),
-                    match field.Field.type_ with
-                    | Type.Float64  -> "Float64"
-                    | Type.Int      -> "Int"
-                    | Type.Int64    -> "Int64"
-                    | Type.String _ -> "String")) }
+                  Ldot (Ldot (Lident "Hdf5_caml", "Type"),
+                  match field.Field.type_ with
+                  | Type.Float64  -> "Float64"
+                  | Type.Int      -> "Int"
+                  | Type.Int64    -> "Int64"
+                  | Type.String _ -> "String")) }
               ( match field.Field.type_ with
                 | Type.String length -> Some (Exp.constant ~loc (Const_int length))
                 | _ -> None ) ];

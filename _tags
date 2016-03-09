@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 13be57f0b1a85ad4fccd3a0372a174ce)
+# DO NOT EDIT (digest: 1fd5e7d31a0f2cdfcf1f6a7095d23be1)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -62,8 +62,11 @@ true: annot, bin_annot
 <lib/ppx/*.ml{,i,y}>: pkg_compiler-libs.common
 # Library hdf5_caml
 "lib/caml/hdf5_caml.cmxs": use_hdf5_caml
+"lib/caml/field.cmx": for-pack(Hdf5_caml)
 "lib/caml/h5caml.cmx": for-pack(Hdf5_caml)
 "lib/caml/struct.cmx": for-pack(Hdf5_caml)
+"lib/caml/struct_intf.cmx": for-pack(Hdf5_caml)
+"lib/caml/type.cmx": for-pack(Hdf5_caml)
 <lib/caml/*.ml{,i,y}>: use_hdf5_raw
 # Executable test_comprehensive
 <test/comprehensive.{native,byte}>: oasis_executable_test_comprehensive_byte

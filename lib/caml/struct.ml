@@ -1,24 +1,3 @@
-module Type = struct
-  type t =
-  | Int
-  | Int64
-  | Float64
-  | String of int
-
-  let size = function
-  | Int | Int64 | Float64 -> 8
-  | String l -> l
-end
-
-module Field = struct
-  type t = {
-    name  : string;
-    type_ : Type.t;
-  }
-
-  let create name type_ = { name; type_ }
-end
-
 module type S = sig
   val fields : Field.t list
 end
