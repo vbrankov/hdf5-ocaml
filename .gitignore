@@ -1,4 +1,5 @@
 _build
+lib/ppx/ppx_h5struct.ml
 setup.data
 setup.log
 *.a

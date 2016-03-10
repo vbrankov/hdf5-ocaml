@@ -12,6 +12,15 @@ Description:
   is actively maintained.  Also provided is a fast way of working with large arrays of
   records. It is much faster than OCaml arrays of records
 
+PostConfCommand:
+    rm -f lib/ppx/ppx_h5struct.ml
+    if [[ ${ocaml_version} < 4.03 ]]
+    then
+      ln -s ppx_h5struct.4.02.ml lib/ppx/ppx_h5struct.ml
+    else
+      ln -s ppx_h5struct.4.03.ml lib/ppx/ppx_h5struct.ml
+    fi
+
 Library hdf5_raw
   Path:     lib/raw
   Pack:     true
