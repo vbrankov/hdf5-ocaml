@@ -45,4 +45,4 @@ module type S = sig
   val fields : Field.t list
 end
 
-module Make(S : S) : Struct_intf.S
+module Make(S : S) : Struct_intf.S_no_ppx

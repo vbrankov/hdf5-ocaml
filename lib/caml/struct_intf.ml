@@ -1,4 +1,4 @@
-module type S = sig
+module type S_no_ppx = sig
   val fields : Field.t list
   val nfields : int
   val size : int
@@ -89,4 +89,15 @@ module type S = sig
     (** Sets a function to be called then whe vector is reallocated. *)
     val on_realloc : t -> (t -> unit) -> unit
   end
+end
+
+module type S = sig
+  include S_no_ppx
+
+  val unsafe_next : t -> unit
+  val unsafe_prev : t -> unit
+  val unsafe_move : t -> int -> unit
+  val next : t -> unit
+  val prev : t -> unit
+  val move : t -> int -> unit
 end

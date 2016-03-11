@@ -389,7 +389,7 @@ module Make(S : S) = struct
       mutable length     : int;
       mutable end_       : e;
       mutable ptrs       : e list;
-      mutable on_realloc : t -> unit
+      mutable on_realloc : t -> unit;
     }
 
     let create ?(capacity = 16) ?(growth_factor = 1.5) () =
