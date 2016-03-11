@@ -389,7 +389,7 @@ module Make(S : S) = struct
       mutable length     : int;
       mutable end_       : e;
       mutable ptrs       : e list;
-      mutable on_realloc : unit -> unit
+      mutable on_realloc : t -> unit
     }
 
     let create ?(capacity = 16) ?(growth_factor = 1.5) () =
@@ -397,7 +397,11 @@ module Make(S : S) = struct
         invalid_arg (Printf.sprintf "Invalid growth factor %f" growth_factor);
       let mem = Array.make capacity in
       { mem; capacity; growth_factor; length = 0; end_ = Array.unsafe_get mem (-1);
-        ptrs = []; on_realloc = fun () -> () }
+        ptrs = []; on_realloc = fun _ -> () }
+
+    let capacity t = t.capacity
+
+    let growth_factor t = t.growth_factor
 
     let length t = t.length
 
@@ -422,7 +426,7 @@ module Make(S : S) = struct
         ptr.len    <- ptr'.len;
         ptr.i      <- ptr'.i) t.ptrs;
       t.capacity <- capacity;
-      t.on_realloc ()
+      t.on_realloc t
 
     let append t =
       if t.capacity = t.length then begin
@@ -461,7 +465,7 @@ module Make(S : S) = struct
         invalid_arg (Printf.sprintf "Invalid growth factor %f" growth_factor);
       let len = Array.length a in
       { mem = a; capacity = len; growth_factor; length = len;
-        end_ = Array.unsafe_get a (len - 1); ptrs = []; on_realloc = fun () -> () }
+        end_ = Array.unsafe_get a (len - 1); ptrs = []; on_realloc = fun _ -> () }
 
     let to_array t =
       let mem = Array.make t.length in

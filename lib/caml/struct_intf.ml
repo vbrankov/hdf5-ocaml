@@ -50,16 +50,43 @@ module type S = sig
     type e = t
     type t
 
+    (** Create a vector with the given initial capacity and growth factor. *)
     val create : ?capacity:int -> ?growth_factor:float -> unit -> t
+
+    (** Returns the current capacity of the given vector. *)
+    val capacity : t -> int
+
+    (** Returns the growth factor of the given vector. *)
+    val growth_factor : t -> float
+
+    (** Returns the length of the given vector. *)
     val length : t -> int
+
+    (** Sets the capacity of the vector to the given size. *)
     val realloc : t -> int -> unit
+
+    (** Appends an element to the end of the vector and returns a pointer to the end. *)
     val append : t -> e
+
+    (** Removes all the elements in the vector. *)
     val clear : t -> unit
+
+    (** Unsafely returns the element with the given index in the vector. *)
     val unsafe_get : t -> int -> e
+
+    (** Returns the element with the given index in the vector. *)
     val get : t -> int -> e
+
+    (** Iterates through all the element of the vector. *)
     val iter : t -> f:(e -> unit) -> unit
+
+    (** Creates a vector of the given array. *)
     val of_array : ?growth_factor:float -> Array.t -> t
+
+    (** Creates an array of the given vector. *)
     val to_array : t -> Array.t
-    val on_realloc : t -> (unit -> unit) -> unit
+
+    (** Sets a function to be called then whe vector is reallocated. *)
+    val on_realloc : t -> (t -> unit) -> unit
   end
 end
