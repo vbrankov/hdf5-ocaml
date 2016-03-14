@@ -2,8 +2,6 @@ open Bigarray
 open Hdf5_raw
 open Hdf5_caml
 
-module H5 = H5caml
-
 let _FILE = "test.h5"
 let _NX   = 5
 let _NY   = 6

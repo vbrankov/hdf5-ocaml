@@ -1,8 +1,6 @@
 open Hdf5_raw
 open Hdf5_caml
 
-module H5 = H5caml
-
 module Record = struct
   [%%h5struct
     f64 "F64" Float64;

@@ -1,7 +1,7 @@
 open Bigarray
 open Hdf5_raw
 
-let () = H5.init ()
+let () = H5_raw.init ()
 
 type t =
 | File of Hid.t
@@ -41,18 +41,18 @@ let get_name t = H5f.get_name (hid t)
 let exists t name =
   H5l.exists (hid t) name
 
-let ls ?(index = Hdf5_raw.H5.Index.NAME) ?(order = Hdf5_raw.H5.Iter_order.NATIVE) t =
+let ls ?(index = H5_raw.Index.NAME) ?(order = H5_raw.Iter_order.NATIVE) t =
   let links = ref [] in
   let _ = H5l.iterate (hid t) index order (fun _ l _ () ->
     links := l :: !links;
-    Hdf5_raw.H5.Iter.CONT) () in
+    H5_raw.Iter.CONT) () in
   List.rev !links
 
 let copy ~src ~src_name ~dst ~dst_name =
   H5o.copy (hid src) src_name (hid dst) dst_name
 
 let rec merge ~src ~dst =
-  let _ = H5l.iterate src Hdf5_raw.H5.Index.NAME Hdf5_raw.H5.Iter_order.NATIVE
+  let _ = H5l.iterate src H5_raw.Index.NAME H5_raw.Iter_order.NATIVE
     (fun _ name _ () ->
       if H5l.exists dst name then begin
         let src = H5o.open_ src name in
@@ -81,7 +81,7 @@ let rec merge ~src ~dst =
         H5o.close src;
         H5o.close dst
       end else H5o.copy src name dst name;
-      Hdf5_raw.H5.Iter.CONT
+      H5_raw.Iter.CONT
     ) () in ()
 
 let merge ~src ~dst = merge ~src:(hid src) ~dst:(hid dst)

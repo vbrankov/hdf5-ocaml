@@ -24,8 +24,8 @@ PostConfCommand: bash -c '
 Library hdf5_raw
   Path:     lib/raw
   Pack:     true
-  Modules:  H5a, H5d, H5f, H5g, H5i, H5l, H5lt, H5, H5o, H5p, H5r, H5s, H5tb, H5t, H5z,
-            Hid, Hsize, Layout
+  Modules:  H5a, H5d, H5f, H5g, H5i, H5l, H5lt, H5o, H5p, H5r, H5s, H5tb, H5t, H5z,
+            H5_raw, Hid, Hsize, Layout
   CSources: h5a_stubs.c,
             h5d_stubs.c,
             h5d_stubs.h,
@@ -65,7 +65,7 @@ Executable ppx_h5struct
 Library hdf5_caml
   Path:         lib/caml
   Pack:         true
-  Modules:      Field, H5caml, Struct, Struct_intf, Type
+  Modules:      Field, H5, Struct, Struct_intf, Type
   BuildDepends: hdf5_raw
 
 Executable test_comprehensive
@@ -95,6 +95,16 @@ Executable test_struct
 Test test_struct
   Command:          $test_struct
   WorkingDirectory: test
+
+Executable test_h5tb
+  Build$:         flag(tests)
+  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
+  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
+  Path:           test
+  MainIs:         test_h5tb.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_raw, hdf5_caml
+  Install:        false
 
 Flag examples
   Description: Build examples
@@ -314,14 +324,4 @@ Executable vlstra
   MainIs:         vlstra.ml
   CompiledObject: best
   BuildDepends:   bigarray, hdf5_raw
-  Install:        false
-
-Executable test_h5tb
-  Build$:         flag(examples)
-  ByteOpt:        -ppx lib/ppx/ppx_h5struct.native
-  NativeOpt:      -ppx lib/ppx/ppx_h5struct.native
-  Path:           examples/test
-  MainIs:         test_h5tb.ml
-  CompiledObject: best
-  BuildDepends:   bigarray, hdf5_raw, hdf5_caml
   Install:        false

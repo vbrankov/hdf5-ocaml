@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 77a99a04cd9627317d58e30c9b3d6aa6) *)
+(* DO NOT EDIT (digest: 977a05085adeb0fdae18d3d2200a8065) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -757,6 +757,42 @@ let package_default =
                (OASISExpr.EBool true,
                  S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
             ]);
+          (["oasis_executable_test_h5tb_byte"; "ocaml"; "link"; "byte"],
+            [
+               (OASISExpr.EBool true,
+                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
+            ]);
+          (["oasis_executable_test_h5tb_native"; "ocaml"; "link"; "native"],
+            [
+               (OASISExpr.EBool true,
+                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
+            ]);
+          (["oasis_executable_test_h5tb_byte"; "ocaml"; "ocamldep"; "byte"],
+            [
+               (OASISExpr.EBool true,
+                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
+            ]);
+          ([
+              "oasis_executable_test_h5tb_native";
+              "ocaml";
+              "ocamldep";
+              "native"
+           ],
+            [
+               (OASISExpr.EBool true,
+                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
+            ]);
+          (["oasis_executable_test_h5tb_byte"; "ocaml"; "compile"; "byte"],
+            [
+               (OASISExpr.EBool true,
+                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
+            ]);
+          (["oasis_executable_test_h5tb_native"; "ocaml"; "compile"; "native"
+           ],
+            [
+               (OASISExpr.EBool true,
+                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
+            ]);
           (["oasis_executable_bench_struct_byte"; "ocaml"; "link"; "byte"],
             [
                (OASISExpr.EBool true,
@@ -918,49 +954,12 @@ let package_default =
             [
                (OASISExpr.EBool true,
                  S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
-            ]);
-          (["oasis_executable_test_h5tb_byte"; "ocaml"; "link"; "byte"],
-            [
-               (OASISExpr.EBool true,
-                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
-            ]);
-          (["oasis_executable_test_h5tb_native"; "ocaml"; "link"; "native"],
-            [
-               (OASISExpr.EBool true,
-                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
-            ]);
-          (["oasis_executable_test_h5tb_byte"; "ocaml"; "ocamldep"; "byte"],
-            [
-               (OASISExpr.EBool true,
-                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
-            ]);
-          ([
-              "oasis_executable_test_h5tb_native";
-              "ocaml";
-              "ocamldep";
-              "native"
-           ],
-            [
-               (OASISExpr.EBool true,
-                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
-            ]);
-          (["oasis_executable_test_h5tb_byte"; "ocaml"; "compile"; "byte"],
-            [
-               (OASISExpr.EBool true,
-                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
-            ]);
-          (["oasis_executable_test_h5tb_native"; "ocaml"; "compile"; "native"
-           ],
-            [
-               (OASISExpr.EBool true,
-                 S [A "-ppx"; A "lib/ppx/ppx_h5struct.native"])
             ])
        ];
      includes =
        [
-          ("test", ["lib/caml"]);
+          ("test", ["lib/caml"; "lib/raw"]);
           ("lib/caml", ["lib/raw"]);
-          ("examples/test", ["lib/caml"; "lib/raw"]);
           ("examples/misc-examples", ["lib/raw"]);
           ("examples/hl", ["lib/caml"; "lib/raw"]);
           ("examples/h5_intro", ["lib/raw"]);
@@ -975,6 +974,6 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 979 "myocamlbuild.ml"
+# 978 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;

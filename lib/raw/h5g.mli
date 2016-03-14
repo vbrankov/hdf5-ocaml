@@ -15,7 +15,7 @@ module Info : sig
 end
 
 module Iterate : sig
-  type 'a t = Hid.t -> string -> 'a -> H5.Iter.t
+  type 'a t = Hid.t -> string -> 'a -> H5_raw.Iter.t
 end
 
 external close : Hid.t -> unit = "hdf5_h5g_close"
@@ -31,5 +31,5 @@ external set_comment : Hid.t -> string -> string -> unit = "hdf5_h5g_set_comment
 external get_comment : Hid.t -> string -> string = "hdf5_h5g_get_comment"
   [@@ocaml.deprecated "Use H5o.get_comment"]
 external get_info : Hid.t -> Info.t = "hdf5_h5g_get_info"
-external iterate : Hid.t -> string -> ?idx:int ref -> 'a Iterate.t -> 'a -> H5.Iter.t
+external iterate : Hid.t -> string -> ?idx:int ref -> 'a Iterate.t -> 'a -> H5_raw.Iter.t
   = "hdf5_h5g_iterate" [@@ocaml.deprecated "Use H5l.iterate instead"]

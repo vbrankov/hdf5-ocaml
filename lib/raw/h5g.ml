@@ -16,7 +16,7 @@ end
 
 module Iterate = struct
   type h5g =Hid.t
-  type 'a t = h5g -> string -> 'a -> H5.Iter.t
+  type 'a t = h5g -> string -> 'a -> H5_raw.Iter.t
 end
 
 external close : Hid.t -> unit = "hdf5_h5g_close"
@@ -29,5 +29,5 @@ external unlink : Hid.t -> string -> unit = "hdf5_h5g_unlink"
 external set_comment : Hid.t -> string -> string -> unit = "hdf5_h5g_set_comment"
 external get_comment : Hid.t -> string -> string = "hdf5_h5g_get_comment"
 external get_info : Hid.t -> Info.t = "hdf5_h5g_get_info"
-external iterate : Hid.t -> string -> ?idx:int ref -> 'a Iterate.t -> 'a -> H5.Iter.t
+external iterate : Hid.t -> string -> ?idx:int ref -> 'a Iterate.t -> 'a -> H5_raw.Iter.t
   = "hdf5_h5g_iterate"

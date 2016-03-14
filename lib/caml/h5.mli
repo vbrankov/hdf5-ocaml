@@ -32,7 +32,7 @@ val get_name : t -> string
 val exists : t -> string -> bool
 
 (** Returns all subdirectories and data sets. *)
-val ls : ?index:Hdf5_raw.H5.Index.t -> ?order:Hdf5_raw.H5.Iter_order.t -> t -> string list
+val ls : ?index:H5_raw.Index.t -> ?order:H5_raw.Iter_order.t -> t -> string list
 
 (** Copies data. *)
 val copy : src:t -> src_name:string -> dst:t -> dst_name:string -> unit

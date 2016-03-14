@@ -38,7 +38,7 @@ module Info : sig
   module Sohm : sig
     type t = {
       hdr_size  : Hsize.t;
-      msgs_info : H5.Ih_info.t
+      msgs_info : H5_raw.Ih_info.t
     }
   end
 

@@ -33,19 +33,19 @@ end
 module Info : sig
   module Meta_size : sig
     type t = {
-      obj : H5.Ih_info.t;
-      attr : H5.Ih_info.t }
+      obj : H5_raw.Ih_info.t;
+      attr : H5_raw.Ih_info.t }
   end
 
   type t = {
     fileno    : int;
-    addr      : H5.Addr.t;
+    addr      : H5_raw.Addr.t;
     type_     : Type.t;
     rc        : int;
-    atime     : H5.Time.t;
-    mtime     : H5.Time.t;
-    ctime     : H5.Time.t;
-    btime     : H5.Time.t;
+    atime     : H5_raw.Time.t;
+    mtime     : H5_raw.Time.t;
+    ctime     : H5_raw.Time.t;
+    btime     : H5_raw.Time.t;
     num_attrs : int;
     hdr       : Hdr_info.t;
     meta_size : Meta_size.t }
