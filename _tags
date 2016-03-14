@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 2cd1e3ad2602e6bdd6f50c40b1e3d459)
+# DO NOT EDIT (digest: a7fdd1735a3c8edec2012316fa60c2f2)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -207,4 +207,11 @@ true: annot, bin_annot
 <examples/misc-examples/vlstra.{native,byte}>: use_hdf5_raw
 <examples/misc-examples/*.ml{,i,y}>: pkg_bigarray
 <examples/misc-examples/*.ml{,i,y}>: use_hdf5_raw
+# Executable test
+<examples/caml/test.{native,byte}>: pkg_bigarray
+<examples/caml/test.{native,byte}>: use_hdf5_caml
+<examples/caml/test.{native,byte}>: use_hdf5_raw
+<examples/caml/*.ml{,i,y}>: pkg_bigarray
+<examples/caml/*.ml{,i,y}>: use_hdf5_caml
+<examples/caml/*.ml{,i,y}>: use_hdf5_raw
 # OASIS_STOP

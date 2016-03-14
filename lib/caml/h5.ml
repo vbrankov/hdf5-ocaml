@@ -4,10 +4,12 @@ open Hdf5_raw
 let () = H5_raw.init ()
 
 type t =
+| Dataset of Hid.t
 | File of Hid.t
 | Group of Hid.t
 
 let hid = function
+| Dataset d -> d
 | File f -> f
 | Group g -> g
 
@@ -24,7 +26,11 @@ let open_dir t name =
   let t = hid t in
   Group (if name = "." || H5l.exists t name then H5g.open_ t name else H5g.create t name)
 
+let open_dataset t name =
+  Dataset (H5d.open_ (hid t) name)
+
 let close = function
+| Dataset d -> H5d.close d
 | File f -> H5f.close f
 | Group g -> H5g.close g
 

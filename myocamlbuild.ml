@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 977a05085adeb0fdae18d3d2200a8065) *)
+(* DO NOT EDIT (digest: 4f5f2a80e42935d9e1a31889091c2b5d) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -965,6 +965,7 @@ let package_default =
           ("examples/h5_intro", ["lib/raw"]);
           ("examples/examples-by-api", ["lib/raw"]);
           ("examples/examples", ["lib/raw"]);
+          ("examples/caml", ["lib/caml"]);
           ("examples/bench", ["lib/caml"])
        ]
   }
@@ -974,6 +975,6 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 978 "myocamlbuild.ml"
+# 979 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;

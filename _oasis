@@ -325,3 +325,11 @@ Executable vlstra
   CompiledObject: best
   BuildDepends:   bigarray, hdf5_raw
   Install:        false
+
+Executable test
+  Build$:         flag(examples)
+  Path:           examples/caml
+  MainIs:         test.ml
+  CompiledObject: best
+  BuildDepends:   bigarray, hdf5_caml
+  Install:        false

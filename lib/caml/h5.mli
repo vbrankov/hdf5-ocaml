@@ -16,6 +16,9 @@ val open_rdwr : string -> t
 (** Opens the named subgroup.  The subgroup is created if it does not already exist. *)
 val open_dir : t -> string -> t
 
+(** Opens the dataset with the given name. *)
+val open_dataset : t -> string -> t
+
 (** Closes the group handle.  If given a root group closes the file. *)
 val close : t -> unit
 
