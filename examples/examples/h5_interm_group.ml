@@ -25,7 +25,8 @@ let () =
     let g2_info = H5g.get_info g2_id in
     Printf.printf "Group /G1/G2 has %d member(s)\n" g2_info.H5g.Info.nlinks;
     for i = 0 to g2_info.H5g.Info.nlinks - 1 do
-      let name = H5l.get_name_by_idx g2_id "." H5.Index.NAME H5.Iter_order.NATIVE i in
+      let name =
+        H5l.get_name_by_idx g2_id "." H5_raw.Index.NAME H5_raw.Iter_order.NATIVE i in
       Printf.printf "Object's name is %s\n" name
     done;
     H5g.close g2_id

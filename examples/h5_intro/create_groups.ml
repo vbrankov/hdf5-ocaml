@@ -8,7 +8,7 @@ let file_info loc_id name () =
   Printf.printf "Name : ";
   print_endline name;
   H5g.close grp;
-  H5.Iter.CONT
+  H5_raw.Iter.CONT
 
 let () =
   let file = H5f.create _FILE H5f.Acc.([ TRUNC ]) in

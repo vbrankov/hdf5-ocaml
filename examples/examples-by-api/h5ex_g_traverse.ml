@@ -18,7 +18,7 @@ let rec group_check od target_addr =
     | Some prev -> group_check prev target_addr
 
 let rec op_func loc_id name _info od =
-  let return_val = ref H5.Iter.CONT in
+  let return_val = ref H5_raw.Iter.CONT in
   let spaces = 2 * (od.Opdata.recurs + 1) in
   let infobuf = H5o.get_info_by_name loc_id name in
   Printf.printf "%*s" spaces "";
@@ -33,7 +33,8 @@ let rec op_func loc_id name _info od =
         prev = Some od;
         addr = infobuf.H5o.Info.addr } in
       return_val :=
-        H5l.iterate_by_name loc_id name H5.Index.NAME H5.Iter_order.NATIVE op_func nextod
+        H5l.iterate_by_name loc_id name H5_raw.Index.NAME H5_raw.Iter_order.NATIVE
+          op_func nextod
     end;
     Printf.printf "%*s}\n%!" spaces ""
   | H5o.Type.DATASET ->
@@ -51,7 +52,7 @@ let () =
   let od = { Opdata.recurs = 0; prev = None; addr = infobuf.H5o.Info.addr } in
 
   Printf.printf "/ {\n%!";
-  let _ = H5l.iterate file H5.Index.NAME H5.Iter_order.NATIVE op_func od in
+  let _ = H5l.iterate file H5_raw.Index.NAME H5_raw.Iter_order.NATIVE op_func od in
   Printf.printf "}\n%!";
 
   H5f.close file 

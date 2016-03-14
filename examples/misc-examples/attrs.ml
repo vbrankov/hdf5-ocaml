@@ -72,7 +72,7 @@ let attr_info loc_id name _ () =
   H5s.close aspace;
   H5a.close attr;
 
-  H5.Iter.CONT
+  H5_raw.Iter.CONT
 
 let () =
   let matrix = Array2.create Float32 C_layout _ADIM1 _ADIM2 in
