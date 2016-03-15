@@ -127,3 +127,6 @@ val write_attribute_string_array : t -> string -> string array -> unit
 (** [read_attribute_string_array t name] reads the attribute with the given name as a
     string array. *)
 val read_attribute_string_array : t -> string -> string array
+
+(** Returns whether the given attribute exists. *)
+val attribute_exists : t -> string -> bool

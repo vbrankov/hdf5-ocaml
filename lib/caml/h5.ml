@@ -341,3 +341,5 @@ let read_attribute_string_array t name =
   H5s.close dataspace;
   H5a.close att;
   a
+
+let attribute_exists t name = H5a.exists (hid t) name
