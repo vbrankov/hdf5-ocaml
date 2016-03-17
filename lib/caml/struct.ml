@@ -474,4 +474,73 @@ module Make(S : S) = struct
 
     let on_realloc t f = t.on_realloc <- f
   end
+
+  module Queue = struct
+    type e = t
+    type t = {
+      mutable a  : Array.t;
+      mutable hd : e;
+      mutable tl : e;
+    }
+
+    let create ?(capacity = 16) () =
+      if capacity <= 0 then
+        invalid_arg (Printf.sprintf "The given capacity %d cannot be negative" capacity);
+      let a = Array.make capacity in
+      { a; hd = Array.get a 0; tl = Array.get a 0 }
+
+    let next a e =
+      let capacity = Array.length a in
+      let pos = pos e in
+      let new_pos = pos + 1 in
+      if new_pos = capacity then unsafe_move e 0
+      else unsafe_next e
+
+    let is_empty t = pos t.hd = pos t.tl
+
+    let length t =
+      let l = pos t.hd - pos t.tl in
+      if l >= 0 then l
+      else l + Array.length t.a
+
+    let add t =
+      let { a; hd; tl } = t in
+      next a hd;
+      if pos hd <> pos tl then hd
+      else begin
+        let capacity = Array.length a in
+        let new_capacity = 1 + capacity * 3 / 2 in
+        t.a  <- Array.make new_capacity;
+        t.hd <- Array.get t.a 0;
+        t.tl <- Array.get t.a 0;
+        let open Bigarray in
+        let pos = pos hd in
+        let size = size in
+        let bpos = pos * size in
+        let bcapacity = capacity * size in
+        let a  : (char, int8_unsigned_elt, c_layout) Array1.t = Obj.magic a   in
+        let ta : (char, int8_unsigned_elt, c_layout) Array1.t = Obj.magic t.a in
+        if pos = 0 then
+          Array1.blit a (Array1.sub ta 0 bcapacity)
+        else begin
+          Bigarray.Array1.blit
+            (Array1.sub a  bpos (bcapacity - bpos))
+            (Array1.sub ta 0    (bcapacity - bpos));
+          Bigarray.Array1.blit
+            (Array1.sub a  0                  bpos)
+            (Array1.sub ta (bcapacity - bpos) bpos)
+        end;
+        unsafe_move t.hd capacity;
+        t.hd
+      end
+
+    let take { a; hd; tl } =
+      if pos hd = pos tl then raise Queue.Empty;
+      next a tl;
+      tl
+
+    let peek { hd; tl; _ } =
+      if pos hd = pos tl then raise Queue.Empty;
+      tl
+  end
 end

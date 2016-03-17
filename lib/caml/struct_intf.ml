@@ -89,6 +89,30 @@ module type S_no_ppx = sig
     (** Sets a function to be called then whe vector is reallocated. *)
     val on_realloc : t -> (t -> unit) -> unit
   end
+
+  module Queue : sig
+    type e = t
+    type t
+
+    (** Return a new queue with the given capacity. *)
+    val create : ?capacity:int -> unit -> t
+
+    (** Return [true] if the given queue is empty, [false] otherwise. *)
+    val is_empty : t -> bool
+
+    (** Return the number of elements in a queue. *)
+    val length : t -> int
+
+    (** Add an element to the end of the queue and returns a pointer to it. *)
+    val add : t -> e
+
+    (** Removes and returns the first element of the given queue or raises [Queue.Empty]
+        if empty. *)
+    val take : t -> e
+
+    (** Returns the first element of the given queue or raises [Queue.Empty] if empty. *)
+    val peek : t -> e
+  end
 end
 
 module type S = sig
