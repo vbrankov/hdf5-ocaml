@@ -478,16 +478,17 @@ module Make(S : S) = struct
   module Queue = struct
     type e = t
     type t = {
-      mutable a  : Array.t;
-      mutable hd : e;
-      mutable tl : e;
+      mutable a    : Array.t;
+      mutable hd   : e;
+      mutable tl   : e;
+      mutable peek : e;
     }
 
     let create ?(capacity = 16) () =
       if capacity <= 0 then
         invalid_arg (Printf.sprintf "The given capacity %d cannot be negative" capacity);
       let a = Array.make capacity in
-      { a; hd = Array.get a 0; tl = Array.get a 0 }
+      { a; hd = Array.get a 0; tl = Array.get a 0; peek = Array.get a 0 }
 
     let next a e =
       let capacity = Array.length a in
@@ -504,15 +505,16 @@ module Make(S : S) = struct
       else l + Array.length t.a
 
     let add t =
-      let { a; hd; tl } = t in
+      let { a; hd; tl; _ } = t in
       next a hd;
       if pos hd <> pos tl then hd
       else begin
         let capacity = Array.length a in
         let new_capacity = 1 + capacity * 3 / 2 in
-        t.a  <- Array.make new_capacity;
-        t.hd <- Array.get t.a 0;
-        t.tl <- Array.get t.a 0;
+        t.a    <- Array.make new_capacity;
+        t.hd   <- Array.get t.a 0;
+        t.tl   <- Array.get t.a 0;
+        t.peek <- Array.get t.a 0;
         let open Bigarray in
         let pos = pos hd in
         let size = size in
@@ -534,13 +536,15 @@ module Make(S : S) = struct
         t.hd
       end
 
-    let take { a; hd; tl } =
+    let take { a; hd; tl; _ } =
       if pos hd = pos tl then raise Queue.Empty;
       next a tl;
       tl
 
-    let peek { hd; tl; _ } =
+    let peek { a; hd; tl; peek } =
       if pos hd = pos tl then raise Queue.Empty;
-      tl
+      unsafe_move peek (pos tl);
+      next a peek;
+      peek
   end
 end
