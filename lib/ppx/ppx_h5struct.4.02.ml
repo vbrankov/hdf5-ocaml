@@ -242,10 +242,13 @@ let construct_set_all_fields fields loc =
       (Pat.var ~loc { txt = field.Field.id; loc })
       (construct_funs fields)
   in
-  Str.value ~loc Nonrecursive [
-    Vb.mk ~loc (Pat.var ~loc { txt = "set"; loc })
-      (Exp.fun_ ~loc "" None (Pat.var ~loc { txt = "t"; loc })
-        (construct_funs fields)) ]
+  [ Str.value ~loc Nonrecursive [
+      Vb.mk ~loc (Pat.var ~loc { txt = "set"; loc })
+        (Exp.fun_ ~loc "" None (Pat.var ~loc { txt = "t"; loc })
+          (construct_funs fields)) ];
+    Str.value ~loc Nonrecursive [
+      Vb.mk ~loc (Pat.var ~loc { txt = "_"; loc })
+        (Exp.ident ~loc { txt = Longident.Lident "set"; loc }) ] ]
 
 let construct_size_dependent_fun name ~bsize ~index loc =
   let call =
@@ -263,15 +266,18 @@ let construct_size_dependent_fun name ~bsize ~index loc =
           else [])
         @ [ "", Exp.constant ~loc (Const_int (bsize / 2)) ])
   in
-  Str.value ~loc Nonrecursive [
-    Vb.mk ~loc (Pat.var ~loc { txt = name; loc })
-      (Exp.fun_ ~loc "" None
-        (Pat.constraint_ ~loc
-          (Pat.var ~loc { txt = "t"; loc })
-          (Typ.constr ~loc { txt = Longident.Lident "t"; loc } []))
-        ( if index
-          then Exp.fun_ ~loc "" None (Pat.var ~loc { txt = "i"; loc }) call
-          else call )) ]
+  [ Str.value ~loc Nonrecursive [
+      Vb.mk ~loc (Pat.var ~loc { txt = name; loc })
+        (Exp.fun_ ~loc "" None
+          (Pat.constraint_ ~loc
+            (Pat.var ~loc { txt = "t"; loc })
+            (Typ.constr ~loc { txt = Longident.Lident "t"; loc } []))
+          ( if index
+            then Exp.fun_ ~loc "" None (Pat.var ~loc { txt = "i"; loc }) call
+            else call )) ];
+    Str.value ~loc Nonrecursive [
+      Vb.mk ~loc (Pat.var ~loc { txt = "_"; loc })
+        (Exp.ident ~loc { txt = Longident.Lident name; loc }) ] ]
 
 let map_structure_item mapper structure_item =
   match structure_item with
@@ -316,14 +322,14 @@ let map_structure_item mapper structure_item =
       |> List.concat
     in
     Str.include_ ~loc (Incl.mk ~loc ~attrs (Mod.structure ~loc (
-      include_ :: functions @ [
-        construct_set_all_fields fields loc;
-        construct_size_dependent_fun "unsafe_next" ~bsize ~index:false loc;
-        construct_size_dependent_fun "unsafe_prev" ~bsize ~index:false loc;
-        construct_size_dependent_fun "unsafe_move" ~bsize ~index:true  loc;
-        construct_size_dependent_fun "next"        ~bsize ~index:false loc;
-        construct_size_dependent_fun "prev"        ~bsize ~index:false loc;
-        construct_size_dependent_fun "move"        ~bsize ~index:true  loc])))
+      include_ :: functions
+      @ (construct_set_all_fields fields loc)
+      @ (construct_size_dependent_fun "unsafe_next" ~bsize ~index:false loc)
+      @ (construct_size_dependent_fun "unsafe_prev" ~bsize ~index:false loc)
+      @ (construct_size_dependent_fun "unsafe_move" ~bsize ~index:true  loc)
+      @ (construct_size_dependent_fun "next"        ~bsize ~index:false loc)
+      @ (construct_size_dependent_fun "prev"        ~bsize ~index:false loc)
+      @ (construct_size_dependent_fun "move"        ~bsize ~index:true  loc))))
   | s -> default_mapper.structure_item mapper s
 
 let h5struct_mapper _ = { default_mapper with structure_item = map_structure_item }
