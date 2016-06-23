@@ -252,3 +252,10 @@ value hdf5_h5p_get_vlen_mem_manager(value plist_id_v)
   Store_field(ret, 1, (value) free_info);
   CAMLreturn(ret);
 }
+
+void hdf5_h5p_set_copy_object(value ocpypl_v, value copy_options_v)
+{
+  CAMLparam2(ocpypl_v, copy_options_v);
+  raise_if_fail(H5Pset_copy_object(Hid_val(ocpypl_v), H5O_copy_val(copy_options_v)));
+  CAMLreturn0;
+}

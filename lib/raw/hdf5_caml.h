@@ -3,6 +3,7 @@
 #include "h5i_stubs.h"
 #include "h5l_stubs.h"
 #include "h5p_stubs.h"
+#include "h5o_stubs.h"
 #include "h5r_stubs.h"
 #include "h5s_stubs.h"
 #include "h5t_stubs.h"

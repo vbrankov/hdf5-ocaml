@@ -1,3 +1,14 @@
+module Copy : sig
+  type t =
+  | SHALLOW_HIERARCHY_FLAG
+  | EXPAND_SOFT_LINK_FLAG
+  | EXPAND_EXT_LINK_FLAG
+  | EXPAND_REFERENCE_FLAG
+  | WITHOUT_ATTR_FLAG
+  | PRESERVE_NULL_FLAG
+  | ALL
+end
+
 module Type : sig
   type t =
   | GROUP

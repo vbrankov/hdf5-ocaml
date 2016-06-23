@@ -37,6 +37,7 @@ Library hdf5_raw
             h5l_stubs.h,
             h5lt_stubs.c,
             h5o_stubs.c,
+            h5o_stubs.h,
             h5p_stubs.c,
             h5p_stubs.h,
             h5r_stubs.c,

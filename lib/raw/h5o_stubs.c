@@ -33,6 +33,101 @@ static value alloc_h5o(hid_t id, bool close)
   return v;
 }
 
+unsigned H5O_copy_val(value v)
+{
+  CAMLparam0();
+  CAMLlocal1(h);
+  unsigned flags = 0;
+
+  while (Is_block(v))
+  {
+    assert(Tag_val(v) == 0);
+    h = Field(v, 0);
+    v = Field(v, 1);
+    assert(Is_long(h));
+    switch (Long_val(h))
+    {
+      case 0: flags |= H5O_COPY_SHALLOW_HIERARCHY_FLAG; break;
+      case 1: flags |= H5O_COPY_EXPAND_SOFT_LINK_FLAG ; break;
+      case 2: flags |= H5O_COPY_EXPAND_EXT_LINK_FLAG  ; break;
+      case 3: flags |= H5O_COPY_EXPAND_REFERENCE_FLAG ; break;
+      case 4: flags |= H5O_COPY_WITHOUT_ATTR_FLAG     ; break;
+      case 5: flags |= H5O_COPY_PRESERVE_NULL_FLAG    ; break;
+      case 6: flags |= H5O_COPY_ALL                   ; break;
+      default: caml_failwith("unrecognized Copy.t");
+    }
+  }
+  assert(Int_val(v) == 0);
+  CAMLreturnT(unsigned, flags);
+}
+
+value val_h5o_copy(unsigned f)
+{
+  CAMLparam0();
+  CAMLlocal3(h, v, t);
+
+  h = Val_unit;
+  while (f != 0)
+  {
+    if (f & H5O_COPY_ALL)
+    {
+      v = Val_int(6);
+      f ^= H5O_COPY_ALL;
+    }
+    else if (f & H5O_COPY_SHALLOW_HIERARCHY_FLAG)
+    {
+      v = Val_int(0);
+      f ^= H5O_COPY_SHALLOW_HIERARCHY_FLAG;
+    }
+    else if (f & H5O_COPY_EXPAND_SOFT_LINK_FLAG)
+    {
+      v = Val_int(1);
+      f ^= H5O_COPY_EXPAND_SOFT_LINK_FLAG;
+    }
+    else if (f & H5O_COPY_EXPAND_EXT_LINK_FLAG)
+    {
+      v = Val_int(2);
+      f ^= H5O_COPY_EXPAND_EXT_LINK_FLAG;
+    }
+    else if (f & H5O_COPY_EXPAND_REFERENCE_FLAG)
+    {
+      v = Val_int(3);
+      f ^= H5O_COPY_EXPAND_REFERENCE_FLAG;
+    }
+    else if (f & H5O_COPY_WITHOUT_ATTR_FLAG)
+    {
+      v = Val_int(4);
+      f ^= H5O_COPY_WITHOUT_ATTR_FLAG;
+    }
+    else if (f & H5O_COPY_PRESERVE_NULL_FLAG)
+    {
+      v = Val_int(5);
+      f ^= H5O_COPY_PRESERVE_NULL_FLAG;
+    }
+    else caml_failwith("unrecognized Copy.t");
+    t = h;
+    h = caml_alloc(2, 0);
+    Store_field(h, 0, v);
+    Store_field(h, 1, t);
+  }
+  CAMLreturn(h);
+}
+
+value Val_h5o_copy(unsigned v)
+{
+  switch (v)
+  {
+    case H5O_COPY_SHALLOW_HIERARCHY_FLAG: return 0;
+    case H5O_COPY_EXPAND_SOFT_LINK_FLAG : return 1;
+    case H5O_COPY_EXPAND_EXT_LINK_FLAG  : return 2;
+    case H5O_COPY_EXPAND_REFERENCE_FLAG : return 3;
+    case H5O_COPY_WITHOUT_ATTR_FLAG     : return 4;
+    case H5O_COPY_PRESERVE_NULL_FLAG    : return 5;
+    case H5O_COPY_ALL                   : return 6;
+    default: caml_failwith("unrecognized Copy.t");
+  }
+}
+
 H5O_type_t H5O_type_val(value type)
 {
   switch (Int_val(type))

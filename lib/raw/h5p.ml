@@ -46,3 +46,4 @@ external set_vlen_mem_manager : Hid.t -> 'a Alloc.t -> 'a Free.t -> unit
   = "hdf5_h5p_set_vlen_mem_manager"
 external get_vlen_mem_manager : Hid.t -> ('a Alloc.t * 'a Free.t)
   = "hdf5_h5p_set_vlen_mem_manager"
+external set_copy_object : Hid.t -> H5o.Copy.t list -> unit = "hdf5_h5p_set_copy_object"

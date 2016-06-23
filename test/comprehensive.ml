@@ -13,6 +13,13 @@ let () =
       int32array.{j, i} <- Int32.of_int (i + j)
     done
   done;
+  let assert_array () =
+    for j = 0 to _NX - 1 do
+      for i = 0 to _NY - 1 do
+        assert (int32array.{j, i} = Int32.of_int (i + j))
+      done
+    done
+  in
 
   let file = H5f.create _FILE H5f.Acc.([ TRUNC ]) in
   assert (H5f.get_name file = _FILE);
@@ -39,6 +46,10 @@ let () =
   H5d.write dataset_abb H5t.native_int H5s.all H5s.all int32array;
   H5d.close dataset_abb;
 
+  let _ = H5l.create_hard group_aa "A" file "AAA-link" in
+  let _ = H5l.create_soft "A/B/A" file "ABA-link" in
+  let _ = H5l.create_external "dest.h5" "A/A/B" file "AAB-link" in
+
   H5g.close group_aa;
   H5g.close group_ab;
   H5g.close group_a;
@@ -58,7 +69,22 @@ let () =
   H5f.close dest;
   H5f.close file;
 
-  let src = H5.open_rdonly _FILE in
+  let file = H5f.open_ _FILE H5f.Acc.([ RDWR ]) in
+  let h5d = H5d.open_ file "AAA-link" in
+  H5d.read h5d H5t.native_int H5s.all H5s.all int32array;
+  H5d.close h5d;
+  assert_array ();
+  let h5d = H5d.open_ file "ABA-link" in
+  H5d.read h5d H5t.native_int H5s.all H5s.all int32array;
+  H5d.close h5d;
+  assert_array ();
+  let h5d = H5d.open_ file "AAB-link" in
+  H5d.read h5d H5t.native_int H5s.all H5s.all int32array;
+  H5d.close h5d;
+  assert_array ();
+  H5f.close file;
+
+  let src = H5.open_rdwr _FILE in
   let dst = H5.open_rdwr "dest.h5" in
   H5.merge ~src ~dst;
   H5.close src;

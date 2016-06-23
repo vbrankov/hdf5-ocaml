@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 4f5f2a80e42935d9e1a31889091c2b5d) *)
+(* DO NOT EDIT (digest: 364360a911d164ba347e492eadf03fa5) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -617,6 +617,7 @@ let package_default =
                "lib/raw/h5d_stubs.h";
                "lib/raw/h5i_stubs.h";
                "lib/raw/h5l_stubs.h";
+               "lib/raw/h5o_stubs.h";
                "lib/raw/h5p_stubs.h";
                "lib/raw/h5r_stubs.h";
                "lib/raw/h5s_stubs.h";
@@ -975,6 +976,6 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 979 "myocamlbuild.ml"
+# 980 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;
