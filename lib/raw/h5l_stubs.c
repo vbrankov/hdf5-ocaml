@@ -67,44 +67,47 @@ static value alloc_h5l(hid_t id)
   return v;
 }
 
-value hdf5_h5l_create_hard(value obj_loc_v, value obj_name_v, value link_loc_v,
+void hdf5_h5l_create_hard(value obj_loc_v, value obj_name_v, value link_loc_v,
   value lcpl_v, value lapl_v, value link_name_v)
 {
   CAMLparam5(obj_loc_v, obj_name_v, link_loc_v, lcpl_v, lapl_v);
   CAMLxparam1(link_name_v);
-  CAMLreturn(alloc_h5l(H5Lcreate_hard(Hid_val(obj_loc_v), String_val(obj_name_v),
+  raise_if_fail(H5Lcreate_hard(Hid_val(obj_loc_v), String_val(obj_name_v),
     Hid_val(link_loc_v), String_val(link_name_v), H5P_opt_val(lcpl_v),
-    H5P_opt_val(lapl_v))));
+    H5P_opt_val(lapl_v)));
+  CAMLreturn0;
 }
 
-value hdf5_h5l_create_hard_bytecode(value *argv, int argn)
+void hdf5_h5l_create_hard_bytecode(value *argv, int argn)
 {
   assert(argn == 6);
-  return hdf5_h5l_create_hard(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+  hdf5_h5l_create_hard(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
-value hdf5_h5l_create_soft(value target_path_v, value link_loc_v, value lcpl_v,
+void hdf5_h5l_create_soft(value target_path_v, value link_loc_v, value lcpl_v,
   value lapl_v, value link_name_v)
 {
   CAMLparam5(target_path_v, link_loc_v, lcpl_v, lapl_v, link_name_v);
-  CAMLreturn(alloc_h5l(H5Lcreate_soft(String_val(target_path_v), Hid_val(link_loc_v),
-    String_val(link_name_v), H5P_opt_val(lcpl_v), H5P_opt_val(lapl_v))));
+  raise_if_fail(H5Lcreate_soft(String_val(target_path_v), Hid_val(link_loc_v),
+    String_val(link_name_v), H5P_opt_val(lcpl_v), H5P_opt_val(lapl_v)));
+  CAMLreturn0;
 }
 
-value hdf5_h5l_create_external(value target_file_name_v, value target_obj_name_v,
+void hdf5_h5l_create_external(value target_file_name_v, value target_obj_name_v,
   value link_loc_v, value lcpl_v, value lapl_v, value link_name_v)
 {
   CAMLparam5(target_file_name_v, target_obj_name_v, link_loc_v, lcpl_v, lapl_v);
   CAMLxparam1(link_name_v);
-  CAMLreturn(alloc_h5l(H5Lcreate_external(String_val(target_file_name_v),
+  raise_if_fail(H5Lcreate_external(String_val(target_file_name_v),
     String_val(target_obj_name_v), Hid_val(link_loc_v), String_val(link_name_v),
-    H5P_opt_val(lcpl_v), H5P_opt_val(lapl_v))));
+    H5P_opt_val(lcpl_v), H5P_opt_val(lapl_v)));
+  CAMLreturn0;
 }
 
-value hdf5_h5l_create_external_bytecode(value *argv, int argn)
+void hdf5_h5l_create_external_bytecode(value *argv, int argn)
 {
   assert(argn == 6);
-  return hdf5_h5l_create_external(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+  hdf5_h5l_create_external(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
 value hdf5_h5l_exists(value loc_v, value lapl_v, value name_v)

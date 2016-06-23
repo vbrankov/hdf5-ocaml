@@ -46,9 +46,9 @@ let () =
   H5d.write dataset_abb H5t.native_int H5s.all H5s.all int32array;
   H5d.close dataset_abb;
 
-  let _ = H5l.create_hard group_aa "A" file "AAA-link" in
-  let _ = H5l.create_soft "A/B/A" file "ABA-link" in
-  let _ = H5l.create_external "dest.h5" "A/A/B" file "AAB-link" in
+  H5l.create_hard group_aa "A" file "AAA-link";
+  H5l.create_soft "A/B/A" file "ABA-link";
+  H5l.create_external "dest.h5" "A/A/B" file "AAB-link";
 
   H5g.close group_aa;
   H5g.close group_ab;

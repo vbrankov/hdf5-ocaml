@@ -43,6 +43,16 @@ val copy : src:t -> src_name:string -> dst:t -> dst_name:string -> unit
 (** Merges the source into the destination. *)
 val merge : src:t -> dst:t -> unit
 
+(** Creates a hard link. *)
+val create_hard_link : obj:t -> obj_name:string -> link:t -> link_name:string -> unit
+
+(** Creates a soft link. *)
+val create_soft_link : target_path:string -> link:t -> link_name:string -> unit
+
+(** Creates an external link. *)
+val create_external_link : t -> target_file_name:string -> target_obj_name:string
+  -> link_name:string -> unit
+
 (** Returns the HDF5 handle *)
 val hid : t -> Hid.t
 

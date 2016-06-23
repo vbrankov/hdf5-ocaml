@@ -92,6 +92,15 @@ let rec merge ~src ~dst =
 
 let merge ~src ~dst = merge ~src:(hid src) ~dst:(hid dst)
 
+let create_hard_link ~obj ~obj_name ~link ~link_name =
+  H5l.create_hard (hid obj) obj_name (hid link) link_name
+
+let create_soft_link ~target_path ~link ~link_name =
+  H5l.create_soft target_path (hid link) link_name
+
+let create_external_link t ~target_file_name ~target_obj_name ~link_name =
+  H5l.create_external target_file_name target_obj_name (hid t) link_name
+
 let write_data t datatype dims name ?(deflate = 6) data =
   let dataspace = H5s.create_simple dims in
   let dcpl =
