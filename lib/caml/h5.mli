@@ -60,16 +60,25 @@ val hid : t -> Hid.t
 val write_float_array : t -> string -> ?deflate:int -> float array -> unit
 
 (** Reads the data set into a float array.
-    
+
     @param data If provided, the storage for the data. *)
 val read_float_array : t -> ?data:float array -> string -> float array
+
+val write_float_genarray : t -> string -> ?deflate:int
+  -> (float, float64_elt, _) Genarray.t -> unit
+
+(** Reads the data set into a float Genarray.t.
+
+    @param data If provided, the storage for the data. *)
+val read_float_genarray : t -> ?data:(float, float64_elt, 'a) Genarray.t -> string
+  -> (float, float64_elt, 'a) Genarray.t
 
 (** Writes the given float Array1.t to the data set. *)
 val write_float_array1 : t -> string -> ?deflate:int -> (float, float64_elt, _) Array1.t
   -> unit
 
 (** Reads the data set into a float Array1.t.
-    
+
     @param data If provided, the storage for the data. *)
 val read_float_array1 : t -> ?data:(float, float64_elt, 'a) Array1.t -> string
   -> (float, float64_elt, 'a) Array1.t
@@ -79,17 +88,27 @@ val write_float_array2 : t -> string -> ?deflate:int -> (float, float64_elt, _) 
   -> unit
 
 (** Reads the data set into a float Array2.t.
-    
+
     @param data If provided, the storage for the data. *)
-val read_float_array2 : t -> ?data:(float, float64_elt, 'a) Array1.t -> string
+val read_float_array2 : t -> ?data:(float, float64_elt, 'a) Array2.t -> string
   -> (float, float64_elt, 'a) Array2.t
+
+(** Writes the given float Array1.t to the data set. *)
+val write_float_array3 : t -> string -> ?deflate:int -> (float, float64_elt, _) Array3.t
+  -> unit
+
+(** Reads the data set into a float Array3.t.
+
+    @param data If provided, the storage for the data. *)
+val read_float_array3 : t -> ?data:(float, float64_elt, 'a) Array3.t -> string
+  -> (float, float64_elt, 'a) Array3.t
 
 (** Writes the given uint8 Array1.t to the data set. *)
 val write_uint8_array1 : t -> string -> ?deflate:int
   -> (char, int8_unsigned_elt, _) Array1.t -> unit
 
 (** Reads the data set into a uint8 Array1.t.
-    
+
     @param data If provided, the storage for the data. *)
 val read_uint8_array1 : t -> ?data:(char, int8_unsigned_elt, 'a) Array1.t -> string
   -> (char, int8_unsigned_elt, 'a) Array1.t

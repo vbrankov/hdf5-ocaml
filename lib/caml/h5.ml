@@ -141,11 +141,17 @@ let read_data expected_datatype create verify t data ?xfer_plist name =
 let write_float_array t name ?deflate (a : float array) =
   write_data t H5t.native_double [| Array.length a |] name ?deflate a
 
+let write_float_genarray t name ?deflate (a : (float, float64_elt, _) Genarray.t) =
+  write_data t H5t.native_double (Genarray.dims a) name ?deflate a
+
 let write_float_array1 t name ?deflate (a : (float, float64_elt, _) Array1.t) =
-  write_data t H5t.native_double [| Array1.dim a |] name ?deflate a
+  write_float_genarray t name ?deflate (genarray_of_array1 a)
 
 let write_float_array2 t name ?deflate (a : (float, float64_elt, _) Array2.t) =
-  write_data t H5t.native_double [| Array2.dim1 a; Array2.dim2 a |] name ?deflate a
+  write_float_genarray t name ?deflate (genarray_of_array2 a)
+
+let write_float_array3 t name ?deflate (a : (float, float64_elt, _) Array3.t) =
+  write_float_genarray t name ?deflate (genarray_of_array3 a)
 
 let write_uint8_array1 t name ?deflate (a : (char, int8_unsigned_elt, _) Array1.t)
   = write_data t H5t.native_b8 [| Array1.dim a |] name ?deflate a
@@ -155,6 +161,14 @@ let write_string_array t name ?deflate (a : string array) =
   H5t.set_size datatype H5t.variable;
   write_data t datatype [| Array.length a |] name ?deflate a;
   H5t.close datatype
+
+let read_float_genarray t ?data name = read_data H5t.native_double
+  (fun dims -> Genarray.create Float64 C_layout dims)
+  (fun data dims ->
+    if Genarray.dims data <> dims then
+      invalid_arg "The provided storage not of adequate size and dimensions";
+    data)
+  t data name
 
 let read_float_array t ?data name = read_data H5t.native_double
   (fun dims ->
@@ -172,9 +186,8 @@ let read_float_array1 t ?data name = read_data H5t.native_double
     if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
     Array1.create Float64 C_layout dims.(0))
   (fun data dims ->
-    if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
-    if Array1.dim data < dims.(0) then
-      invalid_arg "The provided data storage too small";
+    if Array.length dims <> 1     then invalid_arg "Dataset not one dimensional";
+    if Array1.dim data < dims.(0) then invalid_arg "The provided data storage too small";
     data)
   t data name
 
@@ -184,10 +197,25 @@ let read_float_array2 t ?data name = read_data H5t.native_double
     Array2.create Float64 C_layout dims.(0) dims.(1))
   (fun data dims ->
     if Array.length dims <> 2 then invalid_arg "Dataset not two dimensional";
-    if Array2.dim2 data <> dims.(1) then
-      invalid_arg "Dim2 of the provided data has wrong size";
     if Array2.dim1 data < dims.(0) then
       invalid_arg "The provided data storage too small";
+    if Array2.dim2 data <> dims.(1) then
+      invalid_arg "Dim1 of the provided data has wrong size";
+    data)
+  t data name
+
+let read_float_array3 t ?data name = read_data H5t.native_double
+  (fun dims ->
+    if Array.length dims <> 3 then invalid_arg "Dataset not three dimensional";
+    Array3.create Float64 C_layout dims.(0) dims.(1) dims.(2))
+  (fun data dims ->
+    if Array.length dims <> 3 then invalid_arg "Dataset not three dimensional";
+    if Array3.dim1 data < dims.(0) then
+      invalid_arg "The provided data storage too small";
+    if Array3.dim2 data <> dims.(1) then
+      invalid_arg "Dim2 of the provided data has wrong size";
+    if Array3.dim3 data <> dims.(2) then
+      invalid_arg "Dim3 of the provided data has wrong size";
     data)
   t data name
 

@@ -108,9 +108,54 @@ let () =
   let h5 = H5.create_trunc _FILE in
   let a = [| "abc"; "ABC"; "XYZABC" |] in
   H5.write_string_array h5 "a" a;
+  let b = Array1.create Float64 C_layout 4 in
+  for i = 0 to Array1.dim b - 1 do
+    b.{i} <- (float) (i + 1)
+  done;
+  H5.write_float_array1 h5 "b" b;
+  let c = Array2.create Float64 C_layout 3 4 in
+  for i = 0 to Array2.dim1 c - 1 do
+    for j = 0 to Array2.dim2 c - 1 do
+      c.{i, j} <- (float) (i * 2 + j + 1)
+    done
+  done;
+  H5.write_float_array2 h5 "c" c;
+  let d = Array3.create Float64 C_layout 2 3 4 in
+  for i = 0 to Array3.dim1 d - 1 do
+    for j = 0 to Array3.dim2 d - 1 do
+      for k = 0 to Array3.dim3 d - 1 do
+        d.{i, j, k} <- (float) (i * 3 + j * 2 + k + 1)
+      done
+    done
+  done;
+  H5.write_float_array3 h5 "d" d;
   H5.close h5;
   let h5 = H5.open_rdonly _FILE in
   assert (a = H5.read_string_array h5 "a");
+  assert (b = H5.read_float_array1 h5 "b");
+  let data = Array1.create Float64 C_layout 10 in
+  assert (data == H5.read_float_array1 h5 ~data "b");
+  for i = 0 to Array1.dim b - 1 do
+    assert (b.{i} = data.{i})
+  done;
+  assert (c = H5.read_float_array2 h5 "c");
+  let data = Array2.create Float64 C_layout 10 4 in
+  assert (data == H5.read_float_array2 h5 ~data "c");
+  for i = 0 to Array2.dim1 c - 1 do
+    for j = 0 to Array2.dim2 c - 1 do
+      assert (c.{i, j} = data.{i, j})
+    done
+  done;
+  assert (d = H5.read_float_array3 h5 "d");
+  let data = Array3.create Float64 C_layout 10 3 4 in
+  assert (data == H5.read_float_array3 h5 ~data "d");
+  for i = 0 to Array3.dim1 d - 1 do
+    for j = 0 to Array3.dim2 d - 1 do
+      for k = 0 to Array3.dim3 d - 1 do
+        assert (d.{i, j, k} = data.{i, j, k})
+      done
+    done
+  done;
   H5.close h5;
 
   let h5 = H5.create_trunc _FILE in
