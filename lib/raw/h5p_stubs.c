@@ -6,7 +6,7 @@
 #include "hdf5.h"
 #include "hdf5_caml.h"
 
-#define Hid_vlen_held(v) *((bool*) ((char*) Data_custom_val(v) + 2 * sizeof(hid_t)))
+#define Hid_vlen_held(v) *((bool*) ((char*) Data_custom_val(v) + 2 * sizeof(bool)))
 
 void hdf5_h5p_free_vlen_mem_manager(value id_v)
 {
