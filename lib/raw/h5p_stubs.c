@@ -96,6 +96,44 @@ void hdf5_h5p_set_userblock(value plist_v, value size_v)
   CAMLreturn0;
 }
 
+void hdf5_h5p_set_fapl_core(value fapl_v, value increment_v, value backing_store_v)
+{
+  CAMLparam3(fapl_v, increment_v, backing_store_v);
+  raise_if_fail(H5Pset_fapl_core(Hid_val(fapl_v), Int_val(increment_v),
+    Bool_val(backing_store_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5p_set_fapl_split(value fapl_v, value meta_plist_v, value meta_ext_v,
+  value raw_plist_v, value raw_ext_v)
+{
+  CAMLparam5(fapl_v, meta_plist_v, meta_ext_v, raw_plist_v, raw_ext_v);
+  raise_if_fail(H5Pset_fapl_split(Hid_val(fapl_v), String_val(meta_ext_v),
+    H5P_opt_val(meta_plist_v), String_val(raw_ext_v), H5P_opt_val(raw_plist_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5p_set_fapl_sec2(value fapl_v)
+{
+  CAMLparam1(fapl_v);
+  raise_if_fail(H5Pset_fapl_sec2(Hid_val(fapl_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5p_set_fapl_stdio(value fapl_v)
+{
+  CAMLparam1(fapl_v);
+  raise_if_fail(H5Pset_fapl_stdio(Hid_val(fapl_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5p_set_meta_block_size(value fapl_v, value size_v)
+{
+  CAMLparam2(fapl_v, size_v);
+  raise_if_fail(H5Pset_meta_block_size(Hid_val(fapl_v), Int_val(size_v)));
+  CAMLreturn0;
+}
+
 void hdf5_h5p_set_create_intermediate_group(value lcpl_v, value crt_intermed_group_v)
 {
   CAMLparam2(lcpl_v, crt_intermed_group_v);

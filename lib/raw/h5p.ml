@@ -29,6 +29,12 @@ end
 external create : Cls_id.t -> Hid.t = "hdf5_h5p_create"
 external close : Hid.t -> unit = "hdf5_h5p_close"
 external set_userblock : Hid.t -> int -> unit = "hdf5_h5p_set_userblock"
+external set_fapl_core : Hid.t -> int -> bool -> unit = "hdf5_h5p_set_fapl_core"
+external set_fapl_split : Hid.t -> ?meta_plist:Hid.t -> meta_ext:string
+  -> ?raw_plist:Hid.t -> raw_ext:string -> unit = "hdf5_h5p_set_fapl_split"
+external set_fapl_sec2 : Hid.t -> unit = "hdf5_h5p_set_fapl_sec2"
+external set_fapl_stdio : Hid.t -> unit = "hdf5_h5p_set_fapl_stdio"
+external set_meta_block_size : Hid.t -> int -> unit = "hdf5_h5p_set_meta_block_size"
 external set_create_intermediate_group : Hid.t -> bool -> unit
   = "hdf5_h5p_set_create_intermediate_group"
 external get_create_intermediate_group : Hid.t -> bool
