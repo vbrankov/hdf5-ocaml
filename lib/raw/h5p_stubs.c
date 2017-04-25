@@ -6,27 +6,33 @@
 #include "hdf5.h"
 #include "hdf5_caml.h"
 
+#define Hid_vlen_held(v) *((bool*) ((char*) Data_custom_val(v) + 2 * sizeof(hid_t)))
+
 void hdf5_h5p_free_vlen_mem_manager(value id_v)
 {
   H5MM_allocate_t alloc;
-  H5MM_free_t free;
+  H5MM_free_t free_;
   void *alloc_info, *free_info;
   herr_t err;
 
-  err = H5Pget_vlen_mem_manager(Hid_val(id_v), &alloc, &alloc_info, &free, &free_info);
-  if (err < 0) return;
-  if (alloc != NULL)
+  if (Hid_vlen_held(id_v))
+  {
+    Hid_vlen_held(id_v) = false;
+    err = H5Pget_vlen_mem_manager(Hid_val(id_v), &alloc, &alloc_info, &free_, &free_info);
+    if (err < 0) return;
     caml_remove_generational_global_root((value*) alloc_info);
-  if (free != NULL)
     caml_remove_generational_global_root((value*) free_info);
+    free(alloc_info);
+    free(free_info);
+  }
 }
 
 void h5p_finalize(value v)
 {
   if (!Hid_closed(v))
   {
-    H5Pclose(Hid_val(v));
     hdf5_h5p_free_vlen_mem_manager(v);
+    H5Pclose(Hid_val(v));
     Hid_closed(v) = true;
   }
 }
@@ -45,9 +51,10 @@ value alloc_h5p(hid_t id)
 {
   value v;
   raise_if_fail(id);
-  v = caml_alloc_custom(&h5p_ops, sizeof(hid_t) + sizeof(bool), 0, 1);
+  v = caml_alloc_custom(&h5p_ops, sizeof(hid_t) + 2 * sizeof(bool), 0, 1);
   Hid_val(v) = id;
   Hid_closed(v) = false;
+  Hid_vlen_held(v) = false;
   return v;
 }
 
@@ -84,6 +91,7 @@ value hdf5_h5p_create(value cls_id_v)
 void hdf5_h5p_close(value plist_v)
 {
   CAMLparam1(plist_v);
+  hdf5_h5p_free_vlen_mem_manager(plist_v);
   raise_if_fail(H5Pclose(Hid_val(plist_v)));
   Hid_closed(plist_v) = true;
   CAMLreturn0;
@@ -269,10 +277,13 @@ void hdf5_h5p_set_vlen_mem_manager(value plist_id_v, value alloc_v, value free_v
     hdf5_h5p_free, (void*) free_info);
   if (err < 0)
   {
+    caml_remove_generational_global_root(alloc_info);
+    caml_remove_generational_global_root(free_info);
     free(alloc_info);
     free(free_info);
     fail();
   }
+  Hid_vlen_held(plist_id_v) = true;
   CAMLreturn0;
 }
 
@@ -281,13 +292,13 @@ value hdf5_h5p_get_vlen_mem_manager(value plist_id_v)
   CAMLparam1(plist_id_v);
   H5MM_allocate_t alloc;
   H5MM_free_t free;
-  void *alloc_info, *free_info;
+  value *alloc_info, *free_info;
   CAMLlocal1(ret);
-  raise_if_fail(H5Pget_vlen_mem_manager(Hid_val(plist_id_v), &alloc, &alloc_info, &free,
-    &free_info));
+  raise_if_fail(H5Pget_vlen_mem_manager(Hid_val(plist_id_v), &alloc, (void**) &alloc_info,
+    &free, (void**) &free_info));
   ret = caml_alloc_tuple(2);
-  Store_field(ret, 0, (value) alloc_info);
-  Store_field(ret, 1, (value) free_info);
+  Store_field(ret, 0, *alloc_info);
+  Store_field(ret, 1, *free_info);
   CAMLreturn(ret);
 }
 

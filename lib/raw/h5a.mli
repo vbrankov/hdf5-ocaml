@@ -34,8 +34,13 @@ external rename : Hid.t -> string -> string -> unit = "hdf5_h5a_rename"
 external rename_by_name : Hid.t -> string -> ?lapl:Hid.t -> string -> string -> unit
   = "hdf5_h5a_rename_by_name"
 external write : Hid.t -> Hid.t -> _ -> unit = "hdf5_h5a_write"
-external read : Hid.t -> Hid.t -> _ -> unit = "hdf5_h5a_read"
-external read_vl : Hid.t -> Hid.t -> string array -> unit = "hdf5_h5a_read_vl"
+external read_bigarray : Hid.t -> Hid.t -> _ Bigarray.Genarray.t -> unit
+  = "hdf5_h5a_read_bigarray"
+external read_float : Hid.t -> Hid.t -> float = "hdf5_h5a_read_float"
+external read_int64 : Hid.t -> Hid.t -> int64 = "hdf5_h5a_read_int64"
+external read_string : Hid.t -> Hid.t -> string -> unit = "hdf5_h5a_read"
+external read_string_array : Hid.t -> Hid.t -> string array -> unit
+  = "hdf5_h5a_read_string_array"
 external close : Hid.t -> unit = "hdf5_h5a_close"
 external iterate : Hid.t -> ?idx_type:H5_raw.Index.t -> ?iter_order:H5_raw.Iter_order.t
   -> ?n:int ref -> 'a Iterate.t -> 'a -> H5_raw.Iter.t

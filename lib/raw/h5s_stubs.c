@@ -148,6 +148,8 @@ value hdf5_h5s_get_simple_extent_dims(value space_id_v)
   }
   dims_v = val_hsize_t_array(ndims, dims);
   maxdims_v = val_hsize_t_array(ndims, maxdims);
+  free(dims);
+  free(maxdims);
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, dims_v);
   Store_field(ret, 1, maxdims_v);

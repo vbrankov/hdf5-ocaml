@@ -311,12 +311,11 @@ let read_attribute_float t name =
   let att = H5a.open_ (hid t) name in
   let dataspace = H5a.get_space att in
   let datatype = H5a.get_type att in
-  let a = Array.make_float 1 in
-  H5a.read att datatype a;
+  let f = H5a.read_float att datatype in
   H5t.close datatype;
   H5s.close dataspace;
   H5a.close att;
-  a.(0)
+  f
 
 let write_attribute_int64 t name (v : int64) =
   let dataspace = H5s.create H5s.Class.SCALAR in
@@ -329,12 +328,11 @@ let read_attribute_int64 t name =
   let att = H5a.open_ (hid t) name in
   let dataspace = H5a.get_space att in
   let datatype = H5a.get_type att in
-  let a = Int64.of_int (Obj.magic t) in
-  H5a.read att datatype (Obj.magic a + 4);
+  let i = H5a.read_int64 att datatype in
   H5t.close datatype;
   H5s.close dataspace;
   H5a.close att;
-  Obj.magic a
+  i
 
 let write_attribute_string t name (v : string) =
   let datatype = H5t.copy H5t.c_s1 in
@@ -351,7 +349,7 @@ let read_attribute_string t name =
   let dataspace = H5a.get_space att in
   let datatype = H5a.get_type att in
   let a = Bytes.create (H5t.get_size datatype) in
-  H5a.read att datatype a;
+  H5a.read_string att datatype a;
   H5t.close datatype;
   H5s.close dataspace;
   H5a.close att;
@@ -373,7 +371,7 @@ let read_attribute_string_array t name =
   let datatype = H5a.get_type att in
   let dims, _ = H5s.get_simple_extent_dims dataspace in
   let a = Array.make dims.(0) "" in
-  H5a.read_vl att datatype a;
+  H5a.read_string_array att datatype a;
   H5t.close datatype;
   H5s.close dataspace;
   H5a.close att;
