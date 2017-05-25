@@ -1,17 +1,39 @@
 open Bigarray
 open Hdf5_raw
 
+(** Sets the default deflate to be used when writing data. *)
+val set_default_deflate : int -> unit
+
+(** Returns the default deflate used when writing data. *)
+val default_deflate : unit -> int
+
+(** Sets whether the create HDF5 files are split by default.  See [open_]. *)
+val set_default_split : bool -> unit
+
+(** Returns whether the created HDF5 files are split by default.  See [open_]. *)
+val default_split : unit -> bool
+
 (** Represents a group inside an HDF5 file. *)
 type t
 
+(** Parameters for opening files.
+
+    @param meta_block_size Size of the meta blocks.
+    @param split           If set, all HDF5 files are split into a file which contains
+                           only metadata and a file which contains only raw data.  Their
+                           respective extensions are "-m.h5" and "-r.h5".  Since reading
+                           metadata requires many small accesses to the file, this option
+                           may provide a faster access on slow file systems. *)
+type open_ = ?meta_block_size:int -> ?split:bool -> string -> t
+
 (** Creates the named file and returns the root group. *)
-val create_trunc : string -> t
+val create_trunc : open_
 
 (** Opens the named file for reading and returns the root group. *)
-val open_rdonly : string -> t
+val open_rdonly : open_
 
 (** Opens the named file for reading and writing and returns the root group. *)
-val open_rdwr : string -> t
+val open_rdwr : open_
 
 (** Opens the named subgroup.  The subgroup is created if it does not already exist. *)
 val open_dir : t -> string -> t
@@ -56,53 +78,6 @@ val create_external_link : t -> target_file_name:string -> target_obj_name:strin
 (** Returns the HDF5 handle *)
 val hid : t -> Hid.t
 
-(** Writes the given float array to the data set. *)
-val write_float_array : t -> string -> ?deflate:int -> float array -> unit
-
-(** Reads the data set into a float array.
-
-    @param data If provided, the storage for the data. *)
-val read_float_array : t -> ?data:float array -> string -> float array
-
-val write_float_genarray : t -> string -> ?deflate:int
-  -> (float, float64_elt, _) Genarray.t -> unit
-
-(** Reads the data set into a float Genarray.t.
-
-    @param data If provided, the storage for the data. *)
-val read_float_genarray : t -> ?data:(float, float64_elt, 'a) Genarray.t -> string
-  -> (float, float64_elt, 'a) Genarray.t
-
-(** Writes the given float Array1.t to the data set. *)
-val write_float_array1 : t -> string -> ?deflate:int -> (float, float64_elt, _) Array1.t
-  -> unit
-
-(** Reads the data set into a float Array1.t.
-
-    @param data If provided, the storage for the data. *)
-val read_float_array1 : t -> ?data:(float, float64_elt, 'a) Array1.t -> string
-  -> (float, float64_elt, 'a) Array1.t
-
-(** Writes the given float Array1.t to the data set. *)
-val write_float_array2 : t -> string -> ?deflate:int -> (float, float64_elt, _) Array2.t
-  -> unit
-
-(** Reads the data set into a float Array2.t.
-
-    @param data If provided, the storage for the data. *)
-val read_float_array2 : t -> ?data:(float, float64_elt, 'a) Array2.t -> string
-  -> (float, float64_elt, 'a) Array2.t
-
-(** Writes the given float Array1.t to the data set. *)
-val write_float_array3 : t -> string -> ?deflate:int -> (float, float64_elt, _) Array3.t
-  -> unit
-
-(** Reads the data set into a float Array3.t.
-
-    @param data If provided, the storage for the data. *)
-val read_float_array3 : t -> ?data:(float, float64_elt, 'a) Array3.t -> string
-  -> (float, float64_elt, 'a) Array3.t
-
 (** Writes the given uint8 Array1.t to the data set. *)
 val write_uint8_array1 : t -> string -> ?deflate:int
   -> (char, int8_unsigned_elt, _) Array1.t -> unit
@@ -111,7 +86,7 @@ val write_uint8_array1 : t -> string -> ?deflate:int
 
     @param data If provided, the storage for the data. *)
 val read_uint8_array1 : t -> ?data:(char, int8_unsigned_elt, 'a) Array1.t -> string
-  -> (char, int8_unsigned_elt, 'a) Array1.t
+  -> 'a layout -> (char, int8_unsigned_elt, 'a) Array1.t
 
 (** Writes the given string array to the data set. *)
 val write_string_array : t -> string -> ?deflate:int -> string array -> unit
@@ -120,20 +95,6 @@ val write_string_array : t -> string -> ?deflate:int -> string array -> unit
     
     @param data If provided, the storage for the data. *)
 val read_string_array : t -> ?data:string array -> string -> string array
-
-(** Writes the given array of float arrays as a matrix. *)
-val write_float_array_array : t -> string -> ?transpose:bool -> ?deflate:int
-  -> float array array -> unit
-
-(** Reads the given matrix as an array of float arrays. *)
-val read_float_array_array : t -> ?transpose:bool -> string -> float array array
-
-(** [write_attribute_float t name v] writes the given [float] as an attribute with the
-    given name. *)
-val write_attribute_float : t -> string -> float -> unit
-
-(** [read_attribute_float t name] reads the attribute with the given name as a float. *)
-val read_attribute_float : t -> string -> float
 
 (** [write_attribute_int64 t name v] writes the given [int64] as an attribute with the
     given name. *)
@@ -159,3 +120,8 @@ val read_attribute_string_array : t -> string -> string array
 
 (** Returns whether the given attribute exists. *)
 val attribute_exists : t -> string -> bool
+
+include Float_intf.S with type t := t and type float_elt := float64_elt
+
+module Float32 : Float_intf.S with type t := t and type float_elt := float32_elt
+module Float64 : Float_intf.S with type t := t and type float_elt := float64_elt

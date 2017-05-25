@@ -132,23 +132,23 @@ let () =
   H5.close h5;
   let h5 = H5.open_rdonly _FILE in
   assert (a = H5.read_string_array h5 "a");
-  assert (b = H5.read_float_array1 h5 "b");
+  assert (b = H5.read_float_array1 h5 "b" C_layout);
   let data = Array1.create Float64 C_layout 10 in
-  assert (data == H5.read_float_array1 h5 ~data "b");
+  assert (data == H5.read_float_array1 h5 ~data "b" C_layout);
   for i = 0 to Array1.dim b - 1 do
     assert (b.{i} = data.{i})
   done;
-  assert (c = H5.read_float_array2 h5 "c");
+  assert (c = H5.read_float_array2 h5 "c" C_layout);
   let data = Array2.create Float64 C_layout 10 4 in
-  assert (data == H5.read_float_array2 h5 ~data "c");
+  assert (data == H5.read_float_array2 h5 ~data "c" C_layout);
   for i = 0 to Array2.dim1 c - 1 do
     for j = 0 to Array2.dim2 c - 1 do
       assert (c.{i, j} = data.{i, j})
     done
   done;
-  assert (d = H5.read_float_array3 h5 "d");
+  assert (d = H5.read_float_array3 h5 "d" C_layout);
   let data = Array3.create Float64 C_layout 10 3 4 in
-  assert (data == H5.read_float_array3 h5 ~data "d");
+  assert (data == H5.read_float_array3 h5 ~data "d" C_layout);
   for i = 0 to Array3.dim1 d - 1 do
     for j = 0 to Array3.dim2 d - 1 do
       for k = 0 to Array3.dim3 d - 1 do
