@@ -22,5 +22,6 @@ depexts: [
 ]
 depends: [
   "ocamlfind" {build}
+  "cppo" {build}
 ]
 available: [ ocaml-version >= "4.02" ]
