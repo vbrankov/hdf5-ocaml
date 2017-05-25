@@ -32,6 +32,10 @@ module Field = struct
   }
 end
 
+#if OCAML_VERSION < (4, 3, 0)
+#define Nolabel ""
+#define Pconst_string Const_string
+#endif
 let rec extract_fields expression =
   match expression.pexp_desc with
   | Pexp_sequence (expression1, expression2) ->
@@ -76,8 +80,13 @@ let rec extract_fields expression =
             | "String"   ->
               let type_ =
                 match expression_opt with
+#if OCAML_VERSION >= (4, 3, 0)
                 | Some { pexp_desc = Pexp_constant (Pconst_integer (length, _)); _ } ->
                   Type.String (int_of_string length)
+#else
+                | Some { pexp_desc = Pexp_constant (Const_int length); _ } ->
+                  Type.String length
+#endif
                 | _ ->
                   raise (Location.Error (Location.error ~loc (Printf.sprintf
                     "[%%h5struct] invalid field %s, field type String requires length"
@@ -134,8 +143,12 @@ let rec construct_fields_list fields loc =
                   | Type.Int64    -> "Int64"
                   | Type.String _ -> "String")) }
               ( match field.Field.type_ with
+#if OCAML_VERSION >= (4, 3, 0)
                 | Type.String length ->
                   Some (Exp.constant ~loc (Pconst_integer (string_of_int length, None)))
+#else
+                | Type.String length -> Some (Exp.constant ~loc (Const_int length))
+#endif
                 | _ -> None ) ];
         construct_fields_list fields loc ]))
 
@@ -159,7 +172,11 @@ let rec construct_function_call ~loc name args =
       Nolabel,
       match arg with
       | `Exp e -> e
+#if OCAML_VERSION >= (4, 3, 0)
       | `Int i -> Exp.constant ~loc (Pconst_integer (string_of_int i, None))
+#else
+      | `Int i -> Exp.constant ~loc (Const_int i)
+#endif
       | `Var v -> Exp.ident ~loc { txt = Longident.Lident v; loc }
       | `Mgc v -> obj_magic ~loc (Exp.ident ~loc { txt = Longident.Lident v; loc })) args)
 
@@ -239,7 +256,11 @@ let construct_set_all_fields fields loc =
   let rec construct_funs = function
   | [] -> construct_sets fields
   | field :: fields ->
+#if OCAML_VERSION >= (4, 3, 0)
     Exp.fun_ ~loc (Labelled field.Field.id) None
+#else
+    Exp.fun_ ~loc field.Field.id None
+#endif
       (Pat.var ~loc { txt = field.Field.id; loc })
       (construct_funs fields)
   in
@@ -266,7 +287,11 @@ let construct_size_dependent_fun name ~bsize ~index loc =
           then [ Nolabel, Exp.ident ~loc { txt = Longident.Lident "i"; loc } ]
           else [])
         @ [ Nolabel,
+#if OCAML_VERSION >= (4, 3, 0)
             Exp.constant ~loc (Pconst_integer (string_of_int (bsize / 2), None)) ])
+#else
+            Exp.constant ~loc (Const_int (bsize / 2)) ])
+#endif
   in
   [ Str.value ~loc Nonrecursive [
       Vb.mk ~loc (Pat.var ~loc { txt = name; loc })
