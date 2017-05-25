@@ -1,8 +1,15 @@
+open Bigarray
+open Hdf5_raw
+
 module type S = sig
   val fields : Field.t list
 end
 
 module Mem = struct
+  module Array1 = struct
+    type t = (char, int8_unsigned_elt, c_layout) Array1.t
+  end
+
   type t = {
     ops      : int;
     data     : int;
@@ -11,6 +18,9 @@ module Mem = struct
     proxy    : int;
     dim      : int;
   }
+
+  let to_array1 (t : t) : Array1.t = Obj.magic t
+  let of_array1 (t : Array1.t) : t = Obj.magic t
 end
 
 module Ptr = struct
@@ -63,8 +73,6 @@ module Ptr = struct
       t.ptr <- ptr;
       t.i <- i
     end
-
-  open Bigarray
 
   let get_float64 t i   =
     Obj.magic (Array.unsafe_get (Obj.magic t.ptr : float array) i)
@@ -188,7 +196,7 @@ module Ptr = struct
     if data + t.i * size <> t.ptr then
       t.i <- (t.ptr - data) / size;
     let i = t.i in
-    let pos4 = pos * 4 in
+    let pos4 = pos * 4 - 4 in
     let data = data + pos4 in
     let v' = Int64.to_int (Obj.magic (t.ptr + pos4)) in
     let min = ref i in
@@ -291,6 +299,12 @@ module Make(S : S) = struct
   let field_sizes =
     List.map (fun field -> Type.size field.Field.type_) S.fields
     |> Array.of_list
+  let compound_type =
+    let datatype = H5t.create H5t.Class.COMPOUND size in
+    for i = 0 to nfields - 1 do
+      H5t.insert datatype field_names.(i) field_offset.(i) field_types.(i)
+    done;
+    datatype
 
   include Ptr
 
@@ -306,7 +320,7 @@ module Make(S : S) = struct
     type e = t
     type t = Mem.t
 
-    let make len = (Obj.magic (Array1.create Char C_layout (len * size)) : Mem.t)
+    let make len = Mem.of_array1 (Array1.create Char C_layout (len * size))
 
     let length t = t.Mem.dim / size64
 
@@ -369,6 +383,50 @@ module Make(S : S) = struct
       H5tb.read_records loc table_name ~start ~nrecords ~type_size:size ~field_offset
         ~dst_sizes:field_sizes t;
       t
+
+    let write t ?(deflate = H5.default_deflate ()) h5 name =
+      let open Hdf5_raw in
+      let len = length t in
+      let dims = [| len |] in
+      let dataspace = H5s.create_simple dims in
+      let dcpl =
+        match deflate with
+        | 0 -> None
+        | deflate ->
+          let dcpl = H5p.create H5p.Cls_id.DATASET_CREATE in
+          H5p.set_chunk dcpl dims;
+          H5p.set_deflate dcpl deflate;
+          Some dcpl
+      in
+      let dataset = H5d.create (H5.hid h5) name compound_type ?dcpl dataspace in
+      H5d.write dataset compound_type H5s.all H5s.all (Mem.to_array1 t);
+      H5d.close dataset;
+      H5s.close dataspace;
+      match dcpl with
+      | None -> ()
+      | Some dcpl -> H5p.close dcpl
+
+    let read h5 ?data name =
+      let hid = H5.hid h5 in
+      let dataset = H5d.open_ hid name in
+      let datatype = H5d.get_type dataset in
+      if not (H5t.equal compound_type datatype) then
+        invalid_arg "Unexpected datatype";
+      let dataspace = H5d.get_space dataset in
+      let dims, _ = H5s.get_simple_extent_dims dataspace in
+      if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
+      let data =
+        match data with
+        | Some data ->
+          if length data < dims.(0) then
+            invalid_arg "The provided data storage too small";
+          data
+        | None -> make dims.(0) in
+      H5d.read dataset datatype H5s.all H5s.all data;
+      H5s.close dataspace;
+      H5t.close datatype;
+      H5d.close dataset;
+      data
 
     let iter t ~f =
       let e = unsafe_get t 0 in

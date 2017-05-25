@@ -42,6 +42,12 @@ module type S_no_ppx = sig
 
     (** Reads records. *)
     val read_records : H5.t -> start:int -> nrecords:int -> string -> t
+
+    (** Writes records. *)
+    val write : t -> ?deflate:int -> H5.t -> string -> unit
+
+    (** Reads records. *)
+    val read : H5.t -> ?data:t -> string -> t
   end
 
   val mem : t -> Array.t

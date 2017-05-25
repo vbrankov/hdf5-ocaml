@@ -30,7 +30,7 @@ type open_ = ?meta_block_size:int -> ?split:bool -> string -> t
 
 let open_ (open_ : string -> ?fapl : Hid.t -> H5f.Acc.t list -> Hid.t) acc =
   fun ?meta_block_size ?(split = default_split ()) name ->
-    let fapl = H5p.create FILE_ACCESS in
+    let fapl = H5p.create H5p.Cls_id.FILE_ACCESS in
     begin
       match meta_block_size with
       | None -> ()
