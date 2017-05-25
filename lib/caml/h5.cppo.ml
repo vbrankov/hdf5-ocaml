@@ -173,7 +173,11 @@ let read_float_genarray t ?data name = read_data H5t.native_double
 let read_float_array t ?data name = read_data H5t.native_double
   (fun dims ->
     if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
+#if OCAML_VERSION >= (4, 3, 0)
+    Array.create_float dims.(0))
+#else
     Array.make_float dims.(0))
+#endif
   (fun data dims ->
     if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
     if Array.length data < dims.(0) then
@@ -286,14 +290,22 @@ let read_float_array_array t ?(transpose = true) name =
   let dim2 = Array2.dim1 a in
   if transpose then begin
     Array.init dim1 (fun i ->
+#if OCAML_VERSION >= (4, 3, 0)
+      let e = Array.create_float dim2 in
+#else
       let e = Array.make_float dim2 in
+#endif
       for j = 0 to dim2 - 1 do
         Array.set e j (Array2.get a j i)
       done;
       e)
   end else begin
     Array.init dim1 (fun i ->
+#if OCAML_VERSION >= (4, 3, 0)
+      let e = Array.create_float dim2 in
+#else
       let e = Array.make_float dim2 in
+#endif
       for j = 0 to dim2 - 1 do
         Array.set e j (Array2.get a i j)
       done;

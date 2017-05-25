@@ -83,9 +83,17 @@ module Ptr = struct
     Array1.unsafe_set a i (Obj.magic v)
 
   external unsafe_fill : bytes -> int -> int -> char -> unit
+#if OCAML_VERSION >= (4, 2, 0)
+                       = "caml_fill_string" [@@noalloc]
+#else
                        = "caml_fill_string" "noalloc"
+#endif
   external unsafe_blit_string : string -> int -> bytes -> int -> int -> unit
+#if OCAML_VERSION >= (4, 2, 0)
+                       = "caml_blit_string" [@@noalloc]
+#else
                        = "caml_blit_string" "noalloc"
+#endif
 
   let get_string =
     let rec index ptr c pos l len =
