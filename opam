@@ -19,6 +19,7 @@ remove: [
 depexts: [
   [["ubuntu"] ["libhdf5-serial-dev"]]
   [["debian"] ["libhdf5-serial-dev"]]
+  [["alpine"] ["hdf5-dev"]]
   [["osx" "homebrew"] ["homebrew/science/hdf5"]]
 ]
 depends: [

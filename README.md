@@ -14,7 +14,7 @@ OCaml arrays of records.  See examples/bench/bench_struct.ml`.
 ## Store an array
 
 ```ocaml
-module H5 = Hdf5_caml.H5caml
+open Hdf5_caml
 
 let () =
   let a = [| 0.; 1.; 2. |] in
@@ -33,7 +33,7 @@ let () =
 ## Store a table
 
 ```ocaml
-module H5 = Hdf5_caml.H5caml
+open Hdf5_caml
 
 module Temperature = struct
   [%%h5struct
