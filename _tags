@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: e81fd39d209c0a4cb489a539754c7134)
+# DO NOT EDIT (digest: 10fa3bcc8653d2759c0637b90b7756b2)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -34,6 +34,23 @@ true: annot, bin_annot
 "lib/raw/hid.cmx": for-pack(Hdf5_raw)
 "lib/raw/hsize.cmx": for-pack(Hdf5_raw)
 "lib/raw/layout.cmx": for-pack(Hdf5_raw)
+<lib/raw/*.ml{,i,y}>: oasis_library_hdf5_raw_ccopt
+"lib/raw/h5a_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5d_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5f_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5g_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5i_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5l_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5lt_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5o_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5p_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5r_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5s_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5tb_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5t_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/h5z_stubs.c": oasis_library_hdf5_raw_ccopt
+"lib/raw/hid_stubs.c": oasis_library_hdf5_raw_ccopt
 <lib/raw/hdf5_raw.{cma,cmxa}>: oasis_library_hdf5_raw_cclib
 "lib/raw/libhdf5_raw_stubs.lib": oasis_library_hdf5_raw_cclib
 "lib/raw/dllhdf5_raw_stubs.dll": oasis_library_hdf5_raw_cclib
