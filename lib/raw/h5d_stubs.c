@@ -4,6 +4,7 @@
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
+#include <caml/threads.h>
 #include "hdf5.h"
 #include "hdf5_caml.h"
 
@@ -167,6 +168,8 @@ void hdf5_h5d_read(value dataset_v, value mem_type_v, value mem_space_v,
     xfer_plist_v);
   CAMLxparam1(buf_v);
   void* buf;
+  herr_t err;
+
   if (Is_long(buf_v))
     caml_invalid_argument("H5d.read: immediate values not allowed");
   else if (Tag_hd(Hd_val(buf_v)) == Custom_tag
@@ -175,13 +178,16 @@ void hdf5_h5d_read(value dataset_v, value mem_type_v, value mem_space_v,
   else
     buf = (void*) buf_v;
 
-  raise_if_fail(H5Dread(
+  caml_release_runtime_system();
+  err = H5Dread(
     Hid_val(dataset_v),
     Hid_val(mem_type_v),
     Hid_val(mem_space_v),
     Hid_val(file_space_v),
     H5P_opt_val(xfer_plist_v),
-    buf));
+    buf);
+  caml_acquire_runtime_system();
+  raise_if_fail(err);
 
   CAMLreturn0;
 }
@@ -199,6 +205,7 @@ void hdf5_h5d_write(value dataset_v, value mem_type_v, value mem_space_v,
     xfer_plist_v);
   CAMLxparam1(buf_v);
   const void* buf;
+  herr_t err;
   if (Is_long(buf_v))
     caml_invalid_argument("H5d.write: immediate values not allowed");
   else if (Tag_hd(Hd_val(buf_v)) == Custom_tag
@@ -207,13 +214,16 @@ void hdf5_h5d_write(value dataset_v, value mem_type_v, value mem_space_v,
   else
     buf = (const void*) buf_v;
 
-  raise_if_fail(H5Dwrite(
+  caml_release_runtime_system();
+  err = H5Dwrite(
     Hid_val(dataset_v),
     Hid_val(mem_type_v),
     Hid_val(mem_space_v),
     Hid_val(file_space_v),
     H5P_opt_val(xfer_plist_v),
-    buf));
+    buf);
+  caml_acquire_runtime_system();
+  raise_if_fail(err);
 
   CAMLreturn0;
 }
