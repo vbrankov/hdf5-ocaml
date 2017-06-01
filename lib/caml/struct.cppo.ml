@@ -314,6 +314,7 @@ module Make(S : S) = struct
   let has_next t = t.Ptr.ptr + size64 < t.Ptr.end_
   let has_prev t = t.Ptr.i > 0
   let unsafe_next t = Ptr.unsafe_next t size64
+  let next t = Ptr.next t size64
   let unsafe_move t i = Ptr.unsafe_move t i size64 
 
   module Array = struct
@@ -349,8 +350,6 @@ module Make(S : S) = struct
       if i < 0 || ptr > data + t.Mem.dim then
         raise (Invalid_argument "index out of bounds");
       { ptr; mem = t; begin_ = data; end_ = data + t.Mem.dim; len = -1; i }
-
-    let unsafe_blit t t' = Array2.blit (Obj.magic t) (Obj.magic t')
 
     module H5tb = Hdf5_raw.H5tb
 
@@ -474,13 +473,13 @@ module Make(S : S) = struct
     let realloc t capacity =
       if t.capacity > capacity then begin
         let mem = Array.make capacity in
-        Array.unsafe_blit (Array1.sub (Obj.magic t.mem) 0 (capacity * size))
-          (Obj.magic mem);
+        let dst = Mem.to_array1 mem in
+        Array1.blit (Array1.sub (Mem.to_array1 t.mem) 0 (Array1.dim dst)) dst;
         t.mem <- mem
       end else if t.capacity < capacity then begin
         let mem = Array.make capacity in
-        Array.unsafe_blit (Obj.magic t.mem)
-          (Array1.sub (Obj.magic mem) 0 (t.capacity * size));
+        let src = Mem.to_array1 t.mem in
+        Array1.blit src (Array1.sub (Mem.to_array1 mem) 0 (Array1.dim src));
         t.mem <- mem
       end;
       List.iter (fun ptr ->
@@ -491,29 +490,35 @@ module Make(S : S) = struct
         ptr.end_   <- ptr'.end_;
         ptr.len    <- ptr'.len;
         ptr.i      <- ptr'.i) t.ptrs;
+      t.end_ <- Array.unsafe_get t.mem (t.length - 1);
       t.capacity <- capacity;
       t.on_realloc t
 
+    let set_length t length =
+      t.length <- length;
+      List.iter (fun ptr -> ptr.len <- length) t.ptrs;
+      t.end_.len <- length
+
     let append t =
-      if t.capacity = t.length then begin
+      if t.capacity = t.length then
         realloc t (int_of_float (float t.capacity *. t.growth_factor) + 1);
-        t.end_ <- Array.unsafe_get t.mem (t.length - 1)
-      end;
-      t.length <- t.length + 1;
-      unsafe_next t.end_;
+      set_length t (t.length + 1);
+      next t.end_;
       t.end_
 
     let clear t =
-      t.length <- 0;
+      set_length t 0;
       unsafe_move t.end_ (-1)
 
     let unsafe_get t i =
       let e = Array.unsafe_get t.mem i in
+      e.len <- t.length;
       t.ptrs <- e :: t.ptrs;
       e
 
     let get t i =
       let e = Array.get t.mem i in
+      e.len <- t.length;
       t.ptrs <- e :: t.ptrs;
       e
 
@@ -524,19 +529,29 @@ module Make(S : S) = struct
         f ptr;
         unsafe_next ptr
       done;
-      unsafe_move ptr t.length
+      unsafe_move ptr (t.length - 1)
+
+    let iteri t ~f =
+      let ptr = t.end_ in
+      unsafe_move ptr 0;
+      for i = 0 to t.length - 1 do
+        f i ptr;
+        unsafe_next ptr
+      done;
+      unsafe_move ptr (t.length - 1)
 
     let of_array ?(growth_factor = 1.5) a =
       if growth_factor < 1. then
         invalid_arg (Printf.sprintf "Invalid growth factor %f" growth_factor);
       let len = Array.length a in
       { mem = a; capacity = len; growth_factor; length = len;
-        end_ = Array.unsafe_get a (len - 1); ptrs = []; on_realloc = fun _ -> () }
+        end_ = Array.get a (len - 1); ptrs = []; on_realloc = fun _ -> () }
 
     let to_array t =
       let mem = Array.make t.length in
-      Array.unsafe_blit (Array1.sub (Obj.magic t.mem) 0 (t.length * size)) mem;
-      (Obj.magic mem : Mem.t)
+      let dst = Mem.to_array1 mem in
+      Array1.blit (Array1.sub (Mem.to_array1 t.mem) 0 (Array1.dim dst)) dst;
+      mem
 
     let on_realloc t f = t.on_realloc <- f
   end
