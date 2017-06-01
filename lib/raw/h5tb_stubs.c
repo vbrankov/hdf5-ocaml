@@ -5,9 +5,8 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include <caml/mlvalues.h>
-#include "hdf5.h"
-#include "hdf5_hl.h"
 #include "hdf5_caml.h"
+#include "hdf5_hl.h"
 
 void hdf5_h5tb_make_table(value table_title_v, value loc_v, value dset_name_v,
   value nrecords_v, value type_size_v, value field_names_v, value field_offset_v,

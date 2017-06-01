@@ -1,9 +1,7 @@
 #include <caml/alloc.h>
 #include <caml/custom.h>
 #include <caml/memory.h>
-#include "hdf5.h"
-#include "h5i_stubs.h"
-#include "hid_stubs.h"
+#include "hdf5_caml.h"
 
 static struct custom_operations hid_ops = {
   "hdf5.hid",

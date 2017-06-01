@@ -4,7 +4,6 @@
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
-#include "hdf5.h"
 #include "hdf5_caml.h"
 
 H5L_type_t H5L_type_val(value type)

@@ -2,9 +2,8 @@
 #include <caml/bigarray.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
-#include "hdf5.h"
-#include "hdf5_hl.h"
 #include "hdf5_caml.h"
+#include "hdf5_hl.h"
 
 void hdf5_h5lt_make_dataset(value loc_id_v, value dset_name_v, value type_id_v,
   value buffer_v)

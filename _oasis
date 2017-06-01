@@ -2,7 +2,7 @@ OASISFormat: 0.4
 BuildTools:  ocamlbuild
 Plugins:     META (0.4), DevFiles (0.4)
 Name:        HDF5
-Version:     0.1.1
+Version:     0.1.3
 Synopsis:    OCaml wrapper for HDF5 library
 Authors:     Vladimir Brankov <brankovv@gmail.com>
 License:     MIT
@@ -49,8 +49,7 @@ Library hdf5_raw
             hdf5_caml.h,
             hid_stubs.c,
             hid_stubs.h
-  CCOpt:    -I/usr/include/hdf5/serial
-  CClib:    -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5 -lhdf5_hl
+  CClib:    -lhdf5 -lhdf5_hl
 
 Executable ppx_h5struct
   Path:           lib/ppx

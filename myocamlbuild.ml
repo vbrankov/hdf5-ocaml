@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 31a80a171dd78acb951453699c68c327) *)
+(* DO NOT EDIT (digest: 509e3285ef94563cca52c59e0815a0fe) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -902,34 +902,13 @@ let package_default =
        ];
      flags =
        [
-          (["oasis_library_hdf5_raw_ccopt"; "compile"],
-            [
-               (OASISExpr.EBool true,
-                 S [A "-ccopt"; A "-I/usr/include/hdf5/serial"])
-            ]);
           (["oasis_library_hdf5_raw_cclib"; "link"],
             [
                (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-cclib";
-                      A "-L/usr/lib/x86_64-linux-gnu/hdf5/serial";
-                      A "-cclib";
-                      A "-lhdf5";
-                      A "-cclib";
-                      A "-lhdf5_hl"
-                   ])
+                 S [A "-cclib"; A "-lhdf5"; A "-cclib"; A "-lhdf5_hl"])
             ]);
           (["oasis_library_hdf5_raw_cclib"; "ocamlmklib"; "c"],
-            [
-               (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-L/usr/lib/x86_64-linux-gnu/hdf5/serial";
-                      A "-lhdf5";
-                      A "-lhdf5_hl"
-                   ])
-            ]);
+            [(OASISExpr.EBool true, S [A "-lhdf5"; A "-lhdf5_hl"])]);
           ([
               "oasis_executable_test_comprehensive_byte";
               "ocaml";
@@ -1248,7 +1227,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 1252 "myocamlbuild.ml"
+# 1231 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch
   (MyOCamlbuildBase.dispatch_combine [

@@ -7,7 +7,6 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include <caml/mlvalues.h>
-#include "hdf5.h"
 #include "hdf5_caml.h"
 
 size_t unsigned_int_array_val(value v, unsigned int **a)

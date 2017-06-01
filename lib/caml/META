@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 79ac582ddbc1dd709edfff522f8e10e9)
-version = "0.1.1"
+# DO NOT EDIT (digest: 7c37aed412ea55463b8dbad273885ea6)
+version = "0.1.3"
 description = "OCaml wrapper for HDF5 library"
 requires = "hdf5_raw"
 archive(byte) = "hdf5_caml.cma"

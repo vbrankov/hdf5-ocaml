@@ -4,7 +4,6 @@
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
-#include "hdf5.h"
 #include "hdf5_caml.h"
 
 #define H5F_val(v) *((hid_t*) Data_custom_val(v))
