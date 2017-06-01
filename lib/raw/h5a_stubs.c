@@ -6,7 +6,6 @@
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
-#include <hdf5.h>
 #include "hdf5_caml.h"
 
 void h5a_finalize(value v)

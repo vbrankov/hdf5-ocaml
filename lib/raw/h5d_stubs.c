@@ -205,6 +205,7 @@ void hdf5_h5d_write(value dataset_v, value mem_type_v, value mem_space_v,
   CAMLxparam1(buf_v);
   const void* buf;
   herr_t err;
+
   if (Is_long(buf_v))
     caml_invalid_argument("H5d.write: immediate values not allowed");
   else if (Tag_hd(Hd_val(buf_v)) == Custom_tag
