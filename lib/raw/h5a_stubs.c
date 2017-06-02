@@ -169,15 +169,21 @@ void hdf5_h5a_rename_by_name(value loc_v, value obj_name_v, value lapl_v,
 void hdf5_h5a_write(value attr_v, value mem_type_v, value buf_v)
 {
   CAMLparam3(attr_v, mem_type_v, buf_v);
-  const void* buf;
-  if (Is_long(buf_v))
-    caml_invalid_argument("H5a.write: immediate values not allowed");
-  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag
-      && Custom_ops_val(buf_v) == get_caml_ba_ops())
-    buf = Caml_ba_data_val(buf_v);
-  else
-    buf = (const void*) buf_v;
-  raise_if_fail(H5Awrite(Hid_val(attr_v), Hid_val(mem_type_v), buf));
+  raise_if_fail(H5Awrite(Hid_val(attr_v), Hid_val(mem_type_v), (const void*) buf_v));
+  CAMLreturn0;
+}
+
+void hdf5_h5a_write_bigarray(value attr_v, value mem_type_v, value buf_v)
+{
+  CAMLparam3(attr_v, mem_type_v, buf_v);
+  raise_if_fail(H5Awrite(Hid_val(attr_v), Hid_val(mem_type_v), Caml_ba_data_val(buf_v)));
+  CAMLreturn0;
+}
+
+void hdf5_h5a_write_custom(value attr_v, value mem_type_v, value buf_v)
+{
+  CAMLparam3(attr_v, mem_type_v, buf_v);
+  raise_if_fail(H5Awrite(Hid_val(attr_v), Hid_val(mem_type_v), Data_custom_val(buf_v)));
   CAMLreturn0;
 }
 
@@ -203,12 +209,28 @@ value hdf5_h5a_read_float(value attr_v, value mem_type_v)
   CAMLreturn(caml_copy_double(buf));
 }
 
+value hdf5_h5a_read_int32(value attr_v, value mem_type_v)
+{
+  CAMLparam2(attr_v, mem_type_v);
+  int buf;
+  raise_if_fail(H5Aread(Hid_val(attr_v), Hid_val(mem_type_v), &buf));
+  CAMLreturn(caml_copy_int32(buf));
+}
+
 value hdf5_h5a_read_int64(value attr_v, value mem_type_v)
 {
   CAMLparam2(attr_v, mem_type_v);
   long buf;
   raise_if_fail(H5Aread(Hid_val(attr_v), Hid_val(mem_type_v), &buf));
   CAMLreturn(caml_copy_int64(buf));
+}
+
+value hdf5_h5a_read_nativeint(value attr_v, value mem_type_v)
+{
+  CAMLparam2(attr_v, mem_type_v);
+  long buf;
+  raise_if_fail(H5Aread(Hid_val(attr_v), Hid_val(mem_type_v), &buf));
+  CAMLreturn(caml_copy_nativeint(buf));
 }
 
 void hdf5_h5a_read_string_array(value attr_v, value mem_type_v, value buf_v)

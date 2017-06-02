@@ -86,6 +86,9 @@ module type S_no_ppx = sig
     (** Iterates through all the element of the vector. *)
     val iter : t -> f:(e -> unit) -> unit
 
+    (** Iterates through all the element of the vector. *)
+    val iteri : t -> f:(int -> e -> unit) -> unit
+
     (** Creates a vector of the given array. *)
     val of_array : ?growth_factor:float -> Array.t -> t
 

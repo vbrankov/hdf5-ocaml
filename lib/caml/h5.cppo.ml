@@ -76,6 +76,9 @@ let get_name t = H5f.get_name (hid t)
 let exists t name =
   H5l.exists (hid t) name
 
+let delete t name =
+  H5l.delete (hid t) name
+
 let ls ?(index = H5_raw.Index.NAME) ?(order = H5_raw.Iter_order.NATIVE) t =
   let links = ref [] in
   let _ = H5l.iterate (hid t) index order (fun _ l _ () ->
@@ -322,10 +325,10 @@ module Make_float(F : Float_arg) = struct
         e)
     end
 
-  let write_attribute_float t name (v : float) =
+  let write_attribute_float t name v =
     let dataspace = H5s.create H5s.Class.SCALAR in
     let att = H5a.create (hid t) name F.h5t dataspace in
-    H5a.write att F.h5t v;
+    H5a.write_float att F.h5t v;
     H5a.close att;
     H5s.close dataspace
 
@@ -338,6 +341,25 @@ module Make_float(F : Float_arg) = struct
     H5s.close dataspace;
     H5a.close att;
     f
+
+  let write_attribute_float_array t name v =
+    let dataspace = H5s.create H5s.Class.SCALAR in
+    let att = H5a.create (hid t) name F.h5t dataspace in
+    H5a.write_float_array att F.h5t v;
+    H5a.close att;
+    H5s.close dataspace
+
+  let read_attribute_float_array t name =
+    let att = H5a.open_ (hid t) name in
+    let dataspace = H5a.get_space att in
+    let datatype = H5a.get_type att in
+    let dims, _ = H5s.get_simple_extent_dims dataspace in
+    let a = Array.create_float dims.(0) in
+    H5a.read_float_array att datatype a;
+    H5t.close datatype;
+    H5s.close dataspace;
+    H5a.close att;
+    a
 end
 
 module Float32 = Make_float(struct
@@ -383,10 +405,10 @@ let read_string_array t ?data name =
   H5t.close datatype;
   data
 
-let write_attribute_int64 t name (v : int64) =
+let write_attribute_int64 t name v =
   let dataspace = H5s.create H5s.Class.SCALAR in
   let att = H5a.create (hid t) name H5t.native_int64 dataspace in
-  H5a.write att H5t.native_int64 (Obj.magic v + 4);
+  H5a.write_int64 att H5t.native_int64 v;
   H5a.close att;
   H5s.close dataspace
 
@@ -400,12 +422,12 @@ let read_attribute_int64 t name =
   H5a.close att;
   i
 
-let write_attribute_string t name (v : string) =
+let write_attribute_string t name v =
   let datatype = H5t.copy H5t.c_s1 in
   H5t.set_size datatype (String.length v);
   let dataspace = H5s.create H5s.Class.SCALAR in
   let att = H5a.create (hid t) name datatype dataspace in
-  H5a.write att datatype v;
+  H5a.write_string att datatype v;
   H5a.close att;
   H5s.close dataspace;
   H5t.close datatype
@@ -421,12 +443,12 @@ let read_attribute_string t name =
   H5a.close att;
   a
 
-let write_attribute_string_array t name (a : string array) =
+let write_attribute_string_array t name a =
   let datatype = H5t.copy H5t.c_s1 in
   H5t.set_size datatype H5t.variable; 
   let dataspace = H5s.create_simple [| Array.length a |] in
   let att = H5a.create (hid t) name datatype dataspace in
-  H5a.write att datatype a;
+  H5a.write_string_array att datatype a;
   H5a.close att;
   H5s.close dataspace;
   H5t.close datatype

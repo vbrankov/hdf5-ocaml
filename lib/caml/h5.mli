@@ -56,6 +56,9 @@ val get_name : t -> string
 (** Returns whether the given subgroup or a data set exists. *)
 val exists : t -> string -> bool
 
+(** Deletes the given subgroup or a data set. *)
+val delete : t -> string -> unit
+
 (** Returns all subdirectories and data sets. *)
 val ls : ?index:H5_raw.Index.t -> ?order:H5_raw.Iter_order.t -> t -> string list
 

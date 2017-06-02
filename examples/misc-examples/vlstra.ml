@@ -11,7 +11,7 @@ let write_vlstr_attr () =
   let root = H5g.open_ file "/" in
   let dataspace = H5s.create_simple [| _VDIM |] in
   let att = H5a.create root "VarStrAtt" type_ dataspace in
-  H5a.write att type_ string_att;
+  H5a.write_string_array att type_ string_att;
   H5a.close att;
   H5g.close root;
   H5t.close type_;
@@ -25,7 +25,7 @@ let read_vlstr_attr () =
   H5t.set_size type_ H5t.variable;
   let root = H5g.open_ file "/" in
   let att = H5a.open_name root "VarStrAtt" in
-  H5a.read_vl att type_ string_att;
+  H5a.read_string_array att type_ string_att;
   for i = 0 to _VDIM - 1 do
     Printf.printf " (%i) %s\n" i string_att.(i)
   done;

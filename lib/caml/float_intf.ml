@@ -66,4 +66,10 @@ module type S = sig
 
   (** [read_attribute_float t name] reads the attribute with the given name as a float. *)
   val read_attribute_float : t -> string -> float
+
+  (** Writes the given [float] as an attribute with the given name. *)
+  val write_attribute_float_array : t -> string -> float array -> unit
+
+  (** Reads the attribute with the given name as a float. *)
+  val read_attribute_float_array : t -> string -> float array
 end

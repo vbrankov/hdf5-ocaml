@@ -35,14 +35,13 @@ let attr_info loc_id name _ () =
   begin match H5t.get_class atype with
   | H5t.Class.INTEGER ->
     Printf.printf "Type : INTEGER \n";
-    let point_out = 0l in
-    H5a.read attr atype point_out;
-    Printf.printf "The value of the attribute \"Integer attribute\" is %ld \n" point_out
+    let point_out = H5a.read_nativeint attr atype in
+    Printf.printf "The value of the attribute \"Integer attribute\" is %nd \n" point_out
   | H5t.Class.FLOAT ->
     Printf.printf "Type : FLOAT \n";
     let npoints = H5s.get_simple_extent_npoints aspace in
     let float_array = Array1.create Float32 C_layout npoints in
-    H5a.read attr atype float_array;
+    H5a.read_bigarray attr atype (genarray_of_array1 float_array);
     Printf.printf "Values : ";
     for i = 0 to npoints - 1 do
       Printf.printf "%f " float_array.{i}
@@ -54,7 +53,7 @@ let attr_info loc_id name _ () =
     Printf.printf "Size of Each String is: %i\n" size;
     let totsize = size * sdim.(0) * sdim.(1) in
     let string_out = Bytes.create totsize in
-    H5a.read attr atype string_out;
+    H5a.read_string attr atype string_out;
     Printf.printf "The value of the attribute with index 2 is:\n";
     let j = ref 0 in
     for i = 0 to totsize - 1 do
@@ -77,7 +76,7 @@ let attr_info loc_id name _ () =
 let () =
   let matrix = Array2.create Float32 C_layout _ADIM1 _ADIM2 in
   let vector = Array1.of_array Int32 C_layout [| 1l; 2l; 3l; 4l; 5l; 6l; 7l |] in
-  let point = 1l in
+  let point = 1n in
   let string_ = "testwestvestbest" in
   for i = 0 to _ADIM1 - 1 do
     for j = 0 to _ADIM2 - 1 do
@@ -94,18 +93,18 @@ let () =
   let aid1 = H5s.create H5s.Class.SIMPLE in
   H5s.set_extent_simple aid1 [| _ADIM1; _ADIM2 |];
   let attr1 = H5a.create dataset _ANAME H5t.native_float aid1 in
-  H5a.write attr1 H5t.native_float matrix;
+  H5a.write_bigarray attr1 H5t.native_float (genarray_of_array2 matrix);
 
   let aid2 = H5s.create H5s.Class.SCALAR in
   let attr2 = H5a.create dataset "Integer attribute" H5t.native_int aid2 in
-  H5a.write attr2 H5t.native_int point;
+  H5a.write_nativeint attr2 H5t.native_int point;
 
   let aid3 = H5s.create_simple [| 2; 2 |] in
   let atype = H5t.copy H5t.c_s1 in
   H5t.set_size atype 4;
   H5t.set_strpad atype H5t.Str.NULLTERM;
   let attr3 = H5a.create dataset _ANAMES atype aid3 in
-  H5a.write attr3 atype string_;
+  H5a.write_string attr3 atype string_;
 
   H5s.close aid1;
   H5s.close aid2;

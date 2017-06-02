@@ -39,7 +39,7 @@ let attr_info loc_id name _ () =
     Printf.printf "Type : FLOAT \n";
     let npoints = H5s.get_simple_extent_npoints aspace in
     let float_array = Array1.create float32 c_layout npoints in
-    H5a.read attr atype (genarray_of_array1 float_array);
+    H5a.read_bigarray attr atype (genarray_of_array1 float_array);
     Printf.printf "Values : ";
     for i = 0 to npoints - 1 do
       Printf.printf "%f " float_array.{i}
@@ -74,15 +74,15 @@ let () =
   let aid1 = H5s.create H5s.Class.SIMPLE in
   H5s.set_extent_simple aid1 [| _ADIM1; _ADIM2 |];
   let attr1 = H5a.create dataset _ANAME H5t.native_float aid1 in
-  H5a.write attr1 H5t.native_float (genarray_of_array2 matrix);
+  H5a.write_bigarray attr1 H5t.native_float (genarray_of_array2 matrix);
   let aid2 = H5s.create H5s.Class.SCALAR in
   let attr2 = H5a.create dataset "Integer attribute" H5t.native_int aid2 in
-  H5a.write attr2 H5t.native_int (genarray_of_array1 point);
+  H5a.write_bigarray attr2 H5t.native_int (genarray_of_array1 point);
   let aid3 = H5s.create H5s.Class.SCALAR in
   let atype = H5t.copy H5t.c_s1 in
   H5t.set_size atype 4;
   let attr3 = H5a.create dataset _ANAMES atype aid3 in
-  H5a.write attr3 atype (genarray_of_array1 string_);
+  H5a.write_bigarray attr3 atype (genarray_of_array1 string_);
   H5s.close aid1;
   H5s.close aid2;
   H5s.close aid3;
@@ -96,7 +96,7 @@ let () =
   let file = H5f.open_ _FILE H5f.Acc.([ RDONLY ]) in
   let dataset = H5d.open_ file "Dataset" in
   let attr = H5a.open_name dataset "Integer attribute" in
-  H5a.read attr H5t.native_int (genarray_of_array1 point_out);
+  H5a.read_bigarray attr H5t.native_int (genarray_of_array1 point_out);
   Printf.printf "The value of the attribute \"Integer attribute\" is %ld \n"
     point_out.{0};
   H5a.close attr;
@@ -104,7 +104,7 @@ let () =
   let attr = H5a.open_idx dataset 2 in
   let atype = H5t.copy H5t.c_s1 in
   H5t.set_size atype 4;
-  H5a.read attr atype (genarray_of_array1 string_out);
+  H5a.read_bigarray attr atype (genarray_of_array1 string_out);
   Printf.printf "The value of the attribute with the index 2 is %s \n"
     (array1_to_string string_out);
   H5a.close attr;
