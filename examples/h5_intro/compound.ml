@@ -85,7 +85,7 @@ let () =
   H5t.insert s1_tid "b_name" 4 H5t.native_float;
 
   let dataset = H5d.create file _DATASETNAME s1_tid space in
-  H5d.write dataset s1_tid H5s.all H5s.all (genarray_of_array1 s1);
+  H5d.write_bigarray dataset s1_tid H5s.all H5s.all (genarray_of_array1 s1);
   H5t.close s1_tid;
   H5s.close space;
   H5d.close dataset;
@@ -96,7 +96,7 @@ let () =
   let s2_tid = H5t.create H5t.Class.COMPOUND S2.sizeof in
   H5t.insert s2_tid "c_name" 0 H5t.native_double;
   H5t.insert s2_tid "a_name" 8 H5t.native_int;
-  H5d.read dataset s2_tid H5s.all H5s.all (genarray_of_array1 s2.S2.t0);
+  H5d.read_bigarray dataset s2_tid H5s.all H5s.all (genarray_of_array1 s2.S2.t0);
 
   Printf.printf "\n";
   Printf.printf "Field c : \n";
@@ -114,7 +114,7 @@ let () =
 
   let s3_tid = H5t.create H5t.Class.COMPOUND 4 in
   H5t.insert s3_tid "b_name" 0 H5t.native_float;
-  H5d.read dataset s3_tid H5s.all H5s.all (genarray_of_array1 s3);
+  H5d.read_bigarray dataset s3_tid H5s.all H5s.all (genarray_of_array1 s3);
 
   Printf.printf "\n";
   Printf.printf "Field b : \n";

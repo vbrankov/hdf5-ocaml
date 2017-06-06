@@ -10,12 +10,12 @@ let () =
   let tu32 = Array1.create int32 c_layout _SPACE1_DIM1 in
   let fid1 = H5f.open_ _FILE1 H5f.Acc.([ RDWR ]) in
   let dataset = H5d.open_ fid1 "/Dataset3" in
-  H5d.read dataset H5t.std_ref_obj H5s.all H5s.all
+  H5d.read_bigarray dataset H5t.std_ref_obj H5s.all H5s.all
     (H5r.Hobj_ref.Bigarray.to_genarray rbuf);
   let dset2 = H5r.Hobj_ref.(dereference dataset (Bigarray.unsafe_get rbuf 0)) in
   let sid1 = H5d.get_space dset2 in
   let _ = H5s.get_simple_extent_npoints sid1 in
-  H5d.read dset2 H5t.native_int H5s.all H5s.all (genarray_of_array1 tu32);
+  H5d.read_bigarray dset2 H5t.native_int H5s.all H5s.all (genarray_of_array1 tu32);
   Printf.printf "Dataset data : \n";
   for i = 0 to _SPACE1_DIM1 - 1 do
     Printf.printf " %ld " tu32.{i}

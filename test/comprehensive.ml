@@ -31,19 +31,23 @@ let () =
   let dataspace = H5s.create_simple [| _NX; _NY |] in
 
   let dataset_aaa = H5d.create group_aa "A" H5t.native_int dataspace in
-  H5d.write dataset_aaa H5t.native_int H5s.all H5s.all int32array;
+  H5d.write_bigarray dataset_aaa H5t.native_int H5s.all H5s.all
+    (genarray_of_array2 int32array);
   H5d.close dataset_aaa;
 
   let dataset_aab = H5d.create group_aa "B" H5t.native_int dataspace in
-  H5d.write dataset_aab H5t.native_int H5s.all H5s.all int32array;
+  H5d.write_bigarray dataset_aab H5t.native_int H5s.all H5s.all
+    (genarray_of_array2 int32array);
   H5d.close dataset_aab;
 
   let dataset_aba = H5d.create group_ab "A" H5t.native_int dataspace in
-  H5d.write dataset_aba H5t.native_int H5s.all H5s.all int32array;
+  H5d.write_bigarray dataset_aba H5t.native_int H5s.all H5s.all
+    (genarray_of_array2 int32array);
   H5d.close dataset_aba;
 
   let dataset_abb = H5d.create group_ab "B" H5t.native_int dataspace in
-  H5d.write dataset_abb H5t.native_int H5s.all H5s.all int32array;
+  H5d.write_bigarray dataset_abb H5t.native_int H5s.all H5s.all
+    (genarray_of_array2 int32array);
   H5d.close dataset_abb;
 
   H5l.create_hard group_aa "A" file "AAA-link";
@@ -59,7 +63,8 @@ let () =
   let group_aa = H5g.create group_a "A" in
 
   let dataset_aab = H5d.create group_aa "B" H5t.native_int dataspace in
-  H5d.write dataset_aab H5t.native_int H5s.all H5s.all int32array;
+  H5d.write_bigarray dataset_aab H5t.native_int H5s.all H5s.all
+    (genarray_of_array2 int32array);
   H5d.close dataset_aab;
 
   H5g.close group_aa;
@@ -71,15 +76,15 @@ let () =
 
   let file = H5f.open_ _FILE H5f.Acc.([ RDWR ]) in
   let h5d = H5d.open_ file "AAA-link" in
-  H5d.read h5d H5t.native_int H5s.all H5s.all int32array;
+  H5d.read_bigarray h5d H5t.native_int H5s.all H5s.all (genarray_of_array2 int32array);
   H5d.close h5d;
   assert_array ();
   let h5d = H5d.open_ file "ABA-link" in
-  H5d.read h5d H5t.native_int H5s.all H5s.all int32array;
+  H5d.read_bigarray h5d H5t.native_int H5s.all H5s.all (genarray_of_array2 int32array);
   H5d.close h5d;
   assert_array ();
   let h5d = H5d.open_ file "AAB-link" in
-  H5d.read h5d H5t.native_int H5s.all H5s.all int32array;
+  H5d.read_bigarray h5d H5t.native_int H5s.all H5s.all (genarray_of_array2 int32array);
   H5d.close h5d;
   assert_array ();
   H5f.close file;
@@ -97,7 +102,7 @@ let () =
   let dataspace = H5d.get_space dataset in
   let datatype = H5d.get_type dataset in
   let int32array = Array2.create int32 c_layout _NX _NY in
-  H5d.read dataset datatype dataspace dataspace int32array;
+  H5d.read_bigarray dataset datatype dataspace dataspace (genarray_of_array2 int32array);
   H5t.close datatype;
   H5s.close dataspace;
   H5d.close dataset;
@@ -175,4 +180,32 @@ let () =
   let s = H5.read_attribute_string d "s" in
   assert (s = "abc");
   H5.close d;
-  H5.close h5
+  H5.close h5;
+
+  (* Attributes *)
+  let string_array = Array.init 1024 string_of_int in
+  let float_array = Array.init 1024 float_of_int in
+  let h5 = H5.create_trunc "test.h5" in
+  H5.write_attribute_int64 h5 "int64-a" 123456L;
+  H5.write_attribute_int64 h5 "int64-b" 234567L;
+  H5.write_attribute_string h5 "string" "ABCDEFGH";
+  H5.write_attribute_string_array h5 "string-array" string_array;
+  H5.write_attribute_float h5 "float-a" 0.123456;
+  H5.write_attribute_float h5 "float-b" 0.234567;
+  H5.write_attribute_float_array h5 "float-array" float_array;
+  H5.close h5;
+  let h5 = H5.open_rdonly "test.h5" in
+  assert (H5.attribute_exists h5 "int64-a");
+  let int64_a = H5.read_attribute_int64 h5 "int64-a" in
+  assert (H5.attribute_exists h5 "int64-b");
+  let int64_b = H5.read_attribute_int64 h5 "int64-b" in
+  assert (H5.read_attribute_string h5 "string" = "ABCDEFGH");
+  assert (H5.read_attribute_string_array h5 "string-array" = string_array);
+  let float_a = H5.read_attribute_float h5 "float-a" in
+  let float_b = H5.read_attribute_float h5 "float-b" in
+  assert (H5.read_attribute_float_array h5 "float-array" = float_array);
+  H5.close h5;
+  assert (int64_a = 123456L);
+  assert (int64_b = 234567L);
+  assert (float_a = 0.123456);
+  assert (float_b = 0.234567)

@@ -38,11 +38,11 @@ let () =
     |]
     ~chunk_size:10
     ~compress:false
-    p_data;
+    (Particle.Array.data p_data);
   H5tb.read_table file_id _TABLE_NAME ~dst_size:Particle.size
     ~dst_offset:[| 0; 16; 24; 32; 40 |]
     ~dst_sizes:[| 16; 8; 8; 8; 8 |]
-    dst_buf;
+    (Particle.Array.data dst_buf);
   let p = Particle.Array.unsafe_get dst_buf 0 in
   for _ = 0 to _NRECORDS - 1 do
     Printf.printf "%-5s %-5d %-5d %-5f %-5f\n%!"

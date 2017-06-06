@@ -88,7 +88,7 @@ let () =
   let fid = H5s.create H5s.Class.SIMPLE in
   H5s.set_extent_simple fid [| _SIZE |];
   let dataset = H5d.create file "Dataset" H5t.native_int fid in
-  H5d.write dataset H5t.native_int H5s.all H5s.all vector;
+  H5d.write_bigarray dataset H5t.native_int H5s.all H5s.all (genarray_of_array1 vector);
 
   let aid1 = H5s.create H5s.Class.SIMPLE in
   H5s.set_extent_simple aid1 [| _ADIM1; _ADIM2 |];

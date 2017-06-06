@@ -21,6 +21,8 @@ module Mem = struct
 
   let to_array1 (t : t) : Array1.t = Obj.magic t
   let of_array1 (t : Array1.t) : t = Obj.magic t
+  let to_genarray (t : t) : _ Genarray.t = Obj.magic t
+  let of_genarray (t : _ Genarray.t) : t = Obj.magic t
 end
 
 module Ptr = struct
@@ -325,6 +327,8 @@ module Make(S : S) = struct
 
     let length t = t.Mem.dim / size64
 
+    let data t = Mem.to_genarray t
+
     let unsafe_get t i =
       let data = t.Mem.data in
       { ptr = data + i * size64; mem = t; begin_ = data; end_ = data + t.Mem.dim;
@@ -358,29 +362,30 @@ module Make(S : S) = struct
       let title = match title with Some t -> t | None -> dset_name in
       let chunk_size = match chunk_size with Some s -> s | None -> length t in
       H5tb.make_table title (H5.hid h5) dset_name ~nrecords:(t.Mem.dim / size64)
-        ~type_size:size ~field_names ~field_offset ~field_types ~chunk_size ~compress t
+        ~type_size:size ~field_names ~field_offset ~field_types ~chunk_size ~compress
+        (Mem.to_genarray t)
 
     let append_records t h5 dset_name =
       H5tb.append_records (H5.hid h5) dset_name ~nrecords:(t.Mem.dim / size64)
-        ~type_size:size ~field_offset ~field_sizes t
+        ~type_size:size ~field_offset ~field_sizes (Mem.to_genarray t)
 
     let write_records t h5 ~start dset_name =
       H5tb.write_records (H5.hid h5) dset_name ~start ~nrecords:(t.Mem.dim / size64)
-        ~type_size:size ~field_offset ~field_sizes t
+        ~type_size:size ~field_offset ~field_sizes (Mem.to_genarray t)
 
     let read_table h5 table_name =
       let loc = H5.hid h5 in
       let nrecords = H5tb.get_table_info loc table_name in
       let t = make nrecords in
       H5tb.read_table loc table_name ~dst_size:size ~dst_offset:field_offset
-        ~dst_sizes:field_sizes t;
+        ~dst_sizes:field_sizes (Mem.to_genarray t);
       t
 
     let read_records h5 ~start ~nrecords table_name =
       let loc = H5.hid h5 in
       let t = make nrecords in
       H5tb.read_records loc table_name ~start ~nrecords ~type_size:size ~field_offset
-        ~dst_sizes:field_sizes t;
+        ~dst_sizes:field_sizes (Mem.to_genarray t);
       t
 
     let write t ?(deflate = H5.default_deflate ()) h5 name =
@@ -398,7 +403,7 @@ module Make(S : S) = struct
           Some dcpl
       in
       let dataset = H5d.create (H5.hid h5) name compound_type ?dcpl dataspace in
-      H5d.write dataset compound_type H5s.all H5s.all (Mem.to_array1 t);
+      H5d.write_bigarray dataset compound_type H5s.all H5s.all (Mem.to_genarray t);
       H5d.close dataset;
       H5s.close dataspace;
       match dcpl with
@@ -421,7 +426,7 @@ module Make(S : S) = struct
             invalid_arg "The provided data storage too small";
           data
         | None -> make dims.(0) in
-      H5d.read dataset datatype H5s.all H5s.all data;
+      H5d.read_bigarray dataset datatype H5s.all H5s.all (Mem.to_genarray data);
       H5s.close dataspace;
       H5t.close datatype;
       H5d.close dataset;

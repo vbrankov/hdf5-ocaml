@@ -8,7 +8,7 @@ let () =
   let dtype = H5t.copy H5t.c_s1 in
   H5t.set_size dtype 16;
   let dataset_id = H5d.create file_id "Char Data" dtype dataspace_id in
-  H5d.write dataset_id dtype H5s.all H5s.all "This is a test.";
+  H5d.write_string dataset_id dtype H5s.all H5s.all "This is a test.";
   H5d.close dataset_id;
   H5s.close dataspace_id;
   H5f.close file_id

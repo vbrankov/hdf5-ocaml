@@ -38,7 +38,7 @@ let () =
   for i = 0 to _SPACE1_DIM1 - 1 do
     tu32.{i} <- Int32.of_int (i * 3)
   done;
-  H5d.write dataset H5t.native_int H5s.all H5s.all (genarray_of_array1 tu32);
+  H5d.write_bigarray dataset H5t.native_int H5s.all H5s.all (genarray_of_array1 tu32);
   H5d.close dataset;
   let dataset = H5d.create group "Dataset2" H5t.native_uchar sid1 in
   H5d.close dataset;
@@ -54,7 +54,7 @@ let () =
   H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 1 (create fid1 "/Group1/Dataset2"));
   H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 2 (create fid1 "/Group1"));
   H5r.Hobj_ref.(Bigarray.unsafe_set wbuf 3 (create fid1 "/Group1/Datatype1"));
-  H5d.write dataset H5t.std_ref_obj H5s.all H5s.all
+  H5d.write_bigarray dataset H5t.std_ref_obj H5s.all H5s.all
     (H5r.Hobj_ref.Bigarray.to_genarray wbuf);
   H5s.close sid1;
   H5d.close dataset;

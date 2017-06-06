@@ -1,3 +1,5 @@
+open Bigarray
+
 module Layout = struct
   type t =
   | COMPACT
@@ -45,9 +47,21 @@ external get_space : Hid.t -> Hid.t = "hdf5_h5d_get_space"
 external get_space_status : Hid.t -> Space_status.t = "hdf5_h5d_get_space_status"
 external get_type : Hid.t -> Hid.t = "hdf5_h5d_get_type"
 external get_create_plist : Hid.t -> Hid.t = "hdf5_h5d_get_create_plist"
-external read : Hid.t -> Hid.t -> Hid.t -> Hid.t -> ?xfer_plist:Hid.t -> _ -> unit
-  = "hdf5_h5d_read_bytecode" "hdf5_h5d_read"
-external write : Hid.t -> Hid.t -> Hid.t -> Hid.t -> ?xfer_plist:Hid.t -> _ -> unit
-  = "hdf5_h5d_write_bytecode" "hdf5_h5d_write"
+external read_string : Hid.t -> Hid.t -> Hid.t -> Hid.t -> ?xfer_plist:Hid.t
+  -> string -> unit = "hdf5_h5d_read_bytecode" "hdf5_h5d_read"
+external read_float_array : Hid.t -> Hid.t -> Hid.t -> Hid.t -> ?xfer_plist:Hid.t
+  -> float array -> unit = "hdf5_h5d_read_bytecode" "hdf5_h5d_read"
+external read_string_array : Hid.t -> Hid.t -> Hid.t -> Hid.t -> ?xfer_plist:Hid.t
+  -> string array -> unit = "hdf5_h5d_read_bytecode" "hdf5_h5d_read"
+external read_bigarray : Hid.t -> Hid.t -> Hid.t -> Hid.t -> ?xfer_plist:Hid.t
+  -> _ Genarray.t -> unit = "hdf5_h5d_read_bigarray_bytecode" "hdf5_h5d_read_bigarray"
+external write_string : Hid.t -> Hid.t -> Hid.t -> Hid.t -> ?xfer_plist:Hid.t
+  -> string -> unit = "hdf5_h5d_write_bytecode" "hdf5_h5d_write"
+external write_float_array : Hid.t -> Hid.t -> Hid.t -> Hid.t -> ?xfer_plist:Hid.t
+  -> float array -> unit = "hdf5_h5d_write_bytecode" "hdf5_h5d_write"
+external write_string_array : Hid.t -> Hid.t -> Hid.t -> Hid.t -> ?xfer_plist:Hid.t
+  -> string array -> unit = "hdf5_h5d_write_bytecode" "hdf5_h5d_write"
+external write_bigarray : Hid.t -> Hid.t -> Hid.t -> Hid.t -> ?xfer_plist:Hid.t
+  -> _ Genarray.t -> unit = "hdf5_h5d_write_bigarray_bytecode" "hdf5_h5d_write_bigarray"
 external extend : Hid.t -> Hsize.t array -> unit = "hdf5_h5d_set_extent"
 external set_extent : Hid.t -> Hsize.t array -> unit = "hdf5_h5d_set_extent"

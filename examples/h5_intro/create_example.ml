@@ -18,7 +18,7 @@ let () =
   let datatype = H5t.copy H5t.native_int in
   H5t.set_order datatype H5t.Order.LE;
   let dataset = H5d.create file _DATASETNAME datatype dataspace in
-  H5d.write dataset H5t.native_int H5s.all H5s.all (genarray_of_array2 data);
+  H5d.write_bigarray dataset H5t.native_int H5s.all H5s.all (genarray_of_array2 data);
   H5t.close datatype;
   H5d.close dataset;
   H5s.close dataspace;

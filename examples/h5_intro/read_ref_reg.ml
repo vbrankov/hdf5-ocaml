@@ -14,13 +14,13 @@ let () =
   let drbuf = Array1.create int32 c_layout (_SPACE2_DIM1 * _SPACE2_DIM2) in
   let fid1 = H5f.open_ _FILE2 H5f.Acc.([ RDWR ]) in
   let dset1 = H5d.open_ fid1 "/Dataset1" in
-  H5d.read dset1 H5t.std_ref_dsetreg H5s.all H5s.all
+  H5d.read_bigarray dset1 H5t.std_ref_dsetreg H5s.all H5s.all
     (H5r.Hdset_reg_ref.Bigarray.to_genarray rbuf);
   let dset2 = H5r.Hdset_reg_ref.(dereference dset1 (Bigarray.unsafe_get rbuf 0)) in
   let sid1 = H5d.get_space dset2 in
   let ret = H5s.get_simple_extent_npoints sid1 in
   Printf.printf " Number of elements in the dataset is : %d\n" ret;
-  H5d.read dset2 H5t.native_int H5s.all H5s.all (genarray_of_array1 drbuf);
+  H5d.read_bigarray dset2 H5t.native_int H5s.all H5s.all (genarray_of_array1 drbuf);
   for i = 0 to _SPACE2_DIM1 - 1 do
     for j = 0 to _SPACE2_DIM2 - 1 do
       Printf.printf " %ld " drbuf.{i * _SPACE2_DIM2 + j}

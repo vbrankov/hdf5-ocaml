@@ -39,7 +39,8 @@ let () =
   H5s.select_hyperslab memspace H5s.Select.SET
     ~start:[| 3; 0; 0 |]
     ~count:[| _NX_SUB; _NY_SUB; 1 |] ();
-  H5d.read dataset H5t.native_int memspace dataspace (genarray_of_array3 data_out);
+  H5d.read_bigarray dataset H5t.native_int memspace dataspace
+    (genarray_of_array3 data_out);
   for j = 0 to _NX - 1 do
     for i = 0 to _NY - 1 do
       Printf.printf "%ld " data_out.{j, i, 0}

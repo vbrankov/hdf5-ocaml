@@ -20,4 +20,3 @@ H5_ih_info_t H5_ih_info_val(value);
 value Val_h5_ih_info(H5_ih_info_t);
 value Val_htri(htri_t);
 value Val_ssize(ssize_t);
-struct custom_operations* get_caml_ba_ops();

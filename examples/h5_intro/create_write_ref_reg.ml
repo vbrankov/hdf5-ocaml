@@ -18,7 +18,7 @@ let () =
   for i = 0 to _SPACE2_DIM1 * _SPACE2_DIM2 - 1 do
     dwbuf.{i} <- Int32.of_int (i * 3)
   done;
-  H5d.write dset2 H5t.native_int H5s.all H5s.all (genarray_of_array1 dwbuf);
+  H5d.write_bigarray dset2 H5t.native_int H5s.all H5s.all (genarray_of_array1 dwbuf);
   H5d.close dset2;
   let sid1 = H5s.create_simple [| _SPACE1_DIM1 |] in
   let dset1 = H5d.create fid1 "Dataset1" H5t.std_ref_dsetreg sid1 in
@@ -37,7 +37,7 @@ let () =
     7; 1;
     3; 3 |];
   H5r.Hdset_reg_ref.(Bigarray.unsafe_set wbuf 1 (create fid1 ~space:sid2 "/Dataset2"));
-  H5d.write dset1 H5t.std_ref_dsetreg H5s.all H5s.all
+  H5d.write_bigarray dset1 H5t.std_ref_dsetreg H5s.all H5s.all
     (H5r.Hdset_reg_ref.Bigarray.to_genarray wbuf);
   H5s.close sid1;
   H5d.close dset1;

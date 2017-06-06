@@ -23,17 +23,20 @@ let () =
   H5d.extend dataset [| 3; 3 |];
   let filespace = H5d.get_space dataset in
   H5s.select_hyperslab filespace H5s.Select.SET ~start:[| 0; 0 |] ~count:[| 3; 3 |] ();
-  H5d.write dataset H5t.native_int dataspace filespace (genarray_of_array2 data1);
+  H5d.write_bigarray dataset H5t.native_int dataspace filespace
+    (genarray_of_array2 data1);
   H5d.extend dataset [| 10; 3 |];
   let filespace = H5d.get_space dataset in
   H5s.select_hyperslab filespace H5s.Select.SET ~start:[| 3; 0 |] ~count:[| 7; 1 |] ();
   let dataspace = H5s.create_simple [| 7; 1 |] in
-  H5d.write dataset H5t.native_int dataspace filespace (genarray_of_array1 data2);
+  H5d.write_bigarray dataset H5t.native_int dataspace filespace
+    (genarray_of_array1 data2);
   H5d.extend dataset [| 10; 5 |];
   let filespace = H5d.get_space dataset in
   H5s.select_hyperslab filespace H5s.Select.SET ~start:[| 0; 3 |] ~count:[| 2; 2 |] ();
   let dataspace = H5s.create_simple [| 2; 2 |] in
-  H5d.write dataset H5t.native_int dataspace filespace (genarray_of_array2 data3);
+  H5d.write_bigarray dataset H5t.native_int dataspace filespace
+    (genarray_of_array2 data3);
   H5d.close dataset;
   H5s.close dataspace;
   H5s.close filespace;

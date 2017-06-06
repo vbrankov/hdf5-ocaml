@@ -17,7 +17,7 @@ let () =
   if H5t.get_class tid1 <> H5t.Class.STRING then
     failwith "this is not a variable length string type!!!";
   let dataset = H5d.create file _DSET_VLSTR_NAME tid1 sid1 in
-  H5d.write dataset tid1 H5s.all H5s.all wdata;
+  H5d.write_string_array dataset tid1 H5s.all H5s.all wdata;
   H5d.close dataset;
   let dataset = H5d.open_ file _DSET_VLSTR_NAME in
   let dtype = H5d.get_type dataset in
@@ -27,7 +27,7 @@ let () =
   let xfer_plist = H5p.create H5p.Cls_id.DATASET_XFER in
   H5p.set_vlen_mem_manager xfer_plist (fun i -> Bytes.create (i - 1)) (fun _ -> ());
   let rdata = Array.make 1024 "" in
-  H5d.read dataset dtype H5s.all H5s.all ~xfer_plist rdata;
+  H5d.read_string_array dataset dtype H5s.all H5s.all ~xfer_plist rdata;
   Printf.printf "data read:\n";
   for i = 0 to _SPACE1_DIM - 1 do
     if wdata.(i) <> rdata.(i) then

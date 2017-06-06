@@ -163,19 +163,9 @@ value hdf5_h5d_get_create_plist(value dataset_v)
 void hdf5_h5d_read(value dataset_v, value mem_type_v, value mem_space_v,
   value file_space_v, value xfer_plist_v, value buf_v)
 {
-  CAMLparam5(dataset_v, mem_type_v, mem_space_v, file_space_v,
-    xfer_plist_v);
+  CAMLparam5(dataset_v, mem_type_v, mem_space_v, file_space_v, xfer_plist_v);
   CAMLxparam1(buf_v);
-  void* buf;
   herr_t err;
-
-  if (Is_long(buf_v))
-    caml_invalid_argument("H5d.read: immediate values not allowed");
-  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag
-      && Custom_ops_val(buf_v) == get_caml_ba_ops())
-    buf = Caml_ba_data_val(buf_v);
-  else
-    buf = (void*) buf_v;
 
   caml_release_runtime_system();
   err = H5Dread(
@@ -184,7 +174,7 @@ void hdf5_h5d_read(value dataset_v, value mem_type_v, value mem_space_v,
     Hid_val(mem_space_v),
     Hid_val(file_space_v),
     H5P_opt_val(xfer_plist_v),
-    buf);
+    (void*) buf_v);
   caml_acquire_runtime_system();
   raise_if_fail(err);
 
@@ -197,22 +187,39 @@ void hdf5_h5d_read_bytecode(value *argv, int argn)
   hdf5_h5d_read(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
+void hdf5_h5d_read_bigarray(value dataset_v, value mem_type_v, value mem_space_v,
+  value file_space_v, value xfer_plist_v, value buf_v)
+{
+  CAMLparam5(dataset_v, mem_type_v, mem_space_v, file_space_v, xfer_plist_v);
+  CAMLxparam1(buf_v);
+  herr_t err;
+
+  caml_release_runtime_system();
+  err = H5Dread(
+    Hid_val(dataset_v),
+    Hid_val(mem_type_v),
+    Hid_val(mem_space_v),
+    Hid_val(file_space_v),
+    H5P_opt_val(xfer_plist_v),
+    Caml_ba_data_val(buf_v));
+  caml_acquire_runtime_system();
+  raise_if_fail(err);
+
+  CAMLreturn0;
+}
+
+void hdf5_h5d_read_bigarray_bytecode(value *argv, int argn)
+{
+  assert(argn == 6);
+  hdf5_h5d_read_bigarray(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+}
+
 void hdf5_h5d_write(value dataset_v, value mem_type_v, value mem_space_v,
   value file_space_v, value xfer_plist_v, value buf_v)
 {
-  CAMLparam5(dataset_v, mem_type_v, mem_space_v, file_space_v,
-    xfer_plist_v);
+  CAMLparam5(dataset_v, mem_type_v, mem_space_v, file_space_v, xfer_plist_v);
   CAMLxparam1(buf_v);
-  const void* buf;
   herr_t err;
-
-  if (Is_long(buf_v))
-    caml_invalid_argument("H5d.write: immediate values not allowed");
-  else if (Tag_hd(Hd_val(buf_v)) == Custom_tag
-      && Custom_ops_val(buf_v) == get_caml_ba_ops())
-    buf = Caml_ba_data_val(buf_v);
-  else
-    buf = (const void*) buf_v;
 
   caml_release_runtime_system();
   err = H5Dwrite(
@@ -221,7 +228,7 @@ void hdf5_h5d_write(value dataset_v, value mem_type_v, value mem_space_v,
     Hid_val(mem_space_v),
     Hid_val(file_space_v),
     H5P_opt_val(xfer_plist_v),
-    buf);
+    (void*) buf_v);
   caml_acquire_runtime_system();
   raise_if_fail(err);
 
@@ -232,6 +239,34 @@ void hdf5_h5d_write_bytecode(value *argv, int argn)
 {
   assert(argn == 6);
   hdf5_h5d_write(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+}
+
+void hdf5_h5d_write_bigarray(value dataset_v, value mem_type_v, value mem_space_v,
+  value file_space_v, value xfer_plist_v, value buf_v)
+{
+  CAMLparam5(dataset_v, mem_type_v, mem_space_v, file_space_v,
+    xfer_plist_v);
+  CAMLxparam1(buf_v);
+  herr_t err;
+
+  caml_release_runtime_system();
+  err = H5Dwrite(
+    Hid_val(dataset_v),
+    Hid_val(mem_type_v),
+    Hid_val(mem_space_v),
+    Hid_val(file_space_v),
+    H5P_opt_val(xfer_plist_v),
+    Caml_ba_data_val(buf_v));
+  caml_acquire_runtime_system();
+  raise_if_fail(err);
+
+  CAMLreturn0;
+}
+
+void hdf5_h5d_write_bigarray_bytecode(value *argv, int argn)
+{
+  assert(argn == 6);
+  hdf5_h5d_write_bigarray(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
 void hdf5_h5d_set_extent(value dset_v, value size_v)

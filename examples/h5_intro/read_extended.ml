@@ -22,7 +22,8 @@ let () =
   Printf.printf "chunk rank %d, dimensions %d x %d\n"
     (Array.length chunk_dims) chunk_dims.(0) chunk_dims.(1);
   let memspace = H5s.create_simple dims in
-  H5d.read dataset H5t.native_int memspace filespace (genarray_of_array2 data_out);
+  H5d.read_bigarray dataset H5t.native_int memspace filespace
+    (genarray_of_array2 data_out);
   Printf.printf "\n";
   Printf.printf "Dataset: \n";
   for j = 0 to dims.(0) - 1 do
@@ -34,7 +35,8 @@ let () =
 
   let memspace = H5s.create_simple [| 10 |] in
   H5s.select_hyperslab filespace H5s.Select.SET ~start:[| 0; 2 |] ~count:[| 10; 1 |] ();
-  H5d.read dataset H5t.native_int memspace filespace (genarray_of_array1 column);
+  H5d.read_bigarray dataset H5t.native_int memspace filespace
+    (genarray_of_array1 column);
   Printf.printf "\n";
   Printf.printf "Third column: \n";
   for i = 0 to 9 do
@@ -43,7 +45,8 @@ let () =
 
   let memspace = H5s.create_simple chunk_dims in
   H5s.select_hyperslab filespace H5s.Select.SET ~start:[| 2; 0 |] ~count:chunk_dims ();
-  H5d.read dataset H5t.native_int memspace filespace (genarray_of_array2 chunk_out);
+  H5d.read_bigarray dataset H5t.native_int memspace filespace
+    (genarray_of_array2 chunk_out);
   Printf.printf "\n";
   Printf.printf "Chunk: \n";
   for j = 0 to chunk_dims.(0) - 1 do
