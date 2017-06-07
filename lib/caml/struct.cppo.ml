@@ -22,7 +22,6 @@ module Mem = struct
   let to_array1 (t : t) : Array1.t = Obj.magic t
   let of_array1 (t : Array1.t) : t = Obj.magic t
   let to_genarray (t : t) : _ Genarray.t = Obj.magic t
-  let of_genarray (t : _ Genarray.t) : t = Obj.magic t
 end
 
 module Ptr = struct
@@ -288,7 +287,6 @@ module Make(S : S) = struct
       field_offset) S.fields
     |> Array.of_list
   let field_types =
-    let module H5t = Hdf5_raw.H5t in
     List.map (fun field ->
       match field.Field.type_ with
       | Type.Int | Type.Int64 -> H5t.native_long
@@ -355,8 +353,6 @@ module Make(S : S) = struct
         raise (Invalid_argument "index out of bounds");
       { ptr; mem = t; begin_ = data; end_ = data + t.Mem.dim; len = -1; i }
 
-    module H5tb = Hdf5_raw.H5tb
-
     let make_table t ?title ?chunk_size ?(compress = true) h5
         dset_name =
       let title = match title with Some t -> t | None -> dset_name in
@@ -389,7 +385,6 @@ module Make(S : S) = struct
       t
 
     let write t ?(deflate = H5.default_deflate ()) h5 name =
-      let open Hdf5_raw in
       let len = length t in
       let dims = [| len |] in
       let dataspace = H5s.create_simple dims in

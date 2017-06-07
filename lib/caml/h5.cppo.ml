@@ -204,28 +204,30 @@ module Make_float(F : Float_arg) = struct
   let write_float_array3 t name ?deflate (a : (float, F.float_elt, _) Array3.t) =
     write_float_genarray t name ?deflate (genarray_of_array3 a)
 
-  let read_float_genarray t ?data name layout = read_data H5d.write_bigarray F.h5t
-    (fun dims -> Genarray.create F.kind layout dims)
-    (fun data dims ->
-      if Genarray.dims data <> dims then
-        invalid_arg "The provided storage not of adequate size and dimensions";
-      data)
-    t data name
+  let read_float_genarray t ?data name layout =
+    read_data H5d.write_bigarray F.h5t
+      (fun dims -> Genarray.create F.kind layout dims)
+      (fun data dims ->
+        if Genarray.dims data <> dims then
+          invalid_arg "The provided storage not of adequate size and dimensions";
+        data)
+      t data name
 
-  let read_float_array t ?data name = read_data H5d.read_float_array F.h5t
-    (fun dims ->
-      if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
+  let read_float_array t ?data name =
+    read_data H5d.read_float_array F.h5t
+      (fun dims ->
+        if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
 #if OCAML_VERSION >= (4, 3, 0)
-      Array.create_float dims.(0))
+        Array.create_float dims.(0))
 #else
-      Array.make_float dims.(0))
+        Array.make_float dims.(0))
 #endif
-    (fun data dims ->
-      if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
-      if Array.length data < dims.(0) then
-        invalid_arg "The provided data storage too small";
-      data)
-    t data name
+      (fun data dims ->
+        if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
+        if Array.length data < dims.(0) then
+          invalid_arg "The provided data storage too small";
+        data)
+      t data name
 
   let read_float_array1 t ?data name layout =
     read_data H5d.read_bigarray F.h5t
