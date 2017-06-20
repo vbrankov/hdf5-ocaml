@@ -219,12 +219,9 @@ let () =
   let h5 = H5.open_rdonly "test.h5" in
   let s = ref 0. in
   let threads =
-    Array.init 256 (fun i ->
+    Array.init 32 (fun _ ->
       Thread.create (fun () ->
-        Printf.printf "Started %d\n%!" i;
         let a = H5.read_float_array h5 "a" in
-        Array.iter (fun x -> s := !s +. x) a;
-        Printf.printf "Finished %d\n%!" i;
-        ) ()) in
+        Array.iter (fun x -> s := !s +. x) a) ()) in
   Array.iter Thread.join threads;
   H5.close h5;
