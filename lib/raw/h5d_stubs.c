@@ -167,7 +167,9 @@ void hdf5_h5d_read(value dataset_v, value mem_type_v, value mem_space_v,
   CAMLxparam1(buf_v);
   herr_t err;
 
+#if defined H5_HAVE_THREADSAFE
   caml_release_runtime_system();
+#endif
   err = H5Dread(
     Hid_val(dataset_v),
     Hid_val(mem_type_v),
@@ -175,7 +177,9 @@ void hdf5_h5d_read(value dataset_v, value mem_type_v, value mem_space_v,
     Hid_val(file_space_v),
     H5P_opt_val(xfer_plist_v),
     (void*) buf_v);
+#if defined H5_HAVE_THREADSAFE
   caml_acquire_runtime_system();
+#endif
   raise_if_fail(err);
 
   CAMLreturn0;
@@ -194,7 +198,9 @@ void hdf5_h5d_read_bigarray(value dataset_v, value mem_type_v, value mem_space_v
   CAMLxparam1(buf_v);
   herr_t err;
 
+#if defined H5_HAVE_THREADSAFE
   caml_release_runtime_system();
+#endif
   err = H5Dread(
     Hid_val(dataset_v),
     Hid_val(mem_type_v),
@@ -202,7 +208,9 @@ void hdf5_h5d_read_bigarray(value dataset_v, value mem_type_v, value mem_space_v
     Hid_val(file_space_v),
     H5P_opt_val(xfer_plist_v),
     Caml_ba_data_val(buf_v));
+#if defined H5_HAVE_THREADSAFE
   caml_acquire_runtime_system();
+#endif
   raise_if_fail(err);
 
   CAMLreturn0;
@@ -221,7 +229,9 @@ void hdf5_h5d_write(value dataset_v, value mem_type_v, value mem_space_v,
   CAMLxparam1(buf_v);
   herr_t err;
 
+#if defined H5_HAVE_THREADSAFE
   caml_release_runtime_system();
+#endif
   err = H5Dwrite(
     Hid_val(dataset_v),
     Hid_val(mem_type_v),
@@ -229,7 +239,9 @@ void hdf5_h5d_write(value dataset_v, value mem_type_v, value mem_space_v,
     Hid_val(file_space_v),
     H5P_opt_val(xfer_plist_v),
     (void*) buf_v);
+#if defined H5_HAVE_THREADSAFE
   caml_acquire_runtime_system();
+#endif
   raise_if_fail(err);
 
   CAMLreturn0;
@@ -249,7 +261,9 @@ void hdf5_h5d_write_bigarray(value dataset_v, value mem_type_v, value mem_space_
   CAMLxparam1(buf_v);
   herr_t err;
 
+#if defined H5_HAVE_THREADSAFE
   caml_release_runtime_system();
+#endif
   err = H5Dwrite(
     Hid_val(dataset_v),
     Hid_val(mem_type_v),
@@ -257,7 +271,9 @@ void hdf5_h5d_write_bigarray(value dataset_v, value mem_type_v, value mem_space_
     Hid_val(file_space_v),
     H5P_opt_val(xfer_plist_v),
     Caml_ba_data_val(buf_v));
+#if defined H5_HAVE_THREADSAFE
   caml_acquire_runtime_system();
+#endif
   raise_if_fail(err);
 
   CAMLreturn0;

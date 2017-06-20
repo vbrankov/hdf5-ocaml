@@ -71,7 +71,7 @@ Executable test_comprehensive
   Path:           test
   MainIs:         comprehensive.ml
   CompiledObject: best
-  BuildDepends:   bigarray, hdf5_caml
+  BuildDepends:   bigarray, threads, hdf5_caml
   Install:        false
 
 Test test_comprehensive

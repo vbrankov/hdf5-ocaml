@@ -208,4 +208,23 @@ let () =
   assert (int64_a = 123456L);
   assert (int64_b = 234567L);
   assert (float_a = 0.123456);
-  assert (float_b = 0.234567)
+  assert (float_b = 0.234567);
+
+  (* Threads *)
+  let h5 = H5.create_trunc "test.h5" in
+  let a = Array.init (1024 * 1024) float_of_int in
+  H5.write_float_array h5 "a" a;
+  H5.close h5;
+
+  let h5 = H5.open_rdonly "test.h5" in
+  let s = ref 0. in
+  let threads =
+    Array.init 256 (fun i ->
+      Thread.create (fun () ->
+        Printf.printf "Started %d\n%!" i;
+        let a = H5.read_float_array h5 "a" in
+        Array.iter (fun x -> s := !s +. x) a;
+        Printf.printf "Finished %d\n%!" i;
+        ) ()) in
+  Array.iter Thread.join threads;
+  H5.close h5;
