@@ -1,5 +1,6 @@
 open Hdf5_raw
 open Hdf5_caml
+open Bigarray
 
 let _NRECORDS   = 8
 let _TABLE_NAME = "table"
@@ -38,11 +39,11 @@ let () =
     |]
     ~chunk_size:10
     ~compress:false
-    (Particle.Array.data p_data);
+    (Particle.Array.data p_data |> genarray_of_array1);
   H5tb.read_table file_id _TABLE_NAME ~dst_size:Particle.size
     ~dst_offset:[| 0; 16; 24; 32; 40 |]
     ~dst_sizes:[| 16; 8; 8; 8; 8 |]
-    (Particle.Array.data dst_buf);
+    (Particle.Array.data dst_buf |> genarray_of_array1);
   let p = Particle.Array.unsafe_get dst_buf 0 in
   for _ = 0 to _NRECORDS - 1 do
     Printf.printf "%-5s %-5d %-5d %-5f %-5f\n%!"

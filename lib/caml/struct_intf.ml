@@ -1,3 +1,5 @@
+open Bigarray
+
 module type S_no_ppx = sig
   val fields : Field.t list
   val nfields : int
@@ -27,7 +29,7 @@ module type S_no_ppx = sig
     val iter : t -> f:(e -> unit) -> unit
     val iteri : t -> f:(int -> e -> unit) -> unit
 
-    val data : t -> _ Bigarray.Genarray.t
+    val data : t -> (char, int8_unsigned_elt, c_layout) Array1.t
 
     (** Creates and writes a table. *)
     val make_table : t -> ?title:string -> ?chunk_size:int -> ?compress:bool -> H5.t

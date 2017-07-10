@@ -19,7 +19,7 @@ let () =
   let dst_buf = Particle.Array.make _NRECORDS in
   let fill_data = Particle.create () in
   Particle.set fill_data ~name:"no_data" ~lati:(-1) ~longi:(-1) ~pressure:(-99.0) ~temperature:(-99.0);
-  let fill_data = Particle.Array.data (Particle.mem fill_data) in
+  let fill_data = Particle.Array.data (Particle.mem fill_data) |> genarray_of_array1 in
 
   let particle_in = Particle.Vector.create () in
   Particle.(set (Vector.append particle_in) ~name:"zero"  ~lati: 0 ~longi: 0 ~pressure:0. ~temperature: 0.);
@@ -44,11 +44,11 @@ let () =
     ~type_size:Particle.size
     ~field_offset:[| 0; 16; 24; 32; 40 |]
     ~field_sizes:[| 16; 8; 8; 8; 8 |]
-    (Particle.Array.data particle_in);
+    (Particle.Array.data particle_in |> genarray_of_array1);
   H5tb.read_table file_id _TABLE_NAME ~dst_size:Particle.size
     ~dst_offset:[| 0; 16; 24; 32; 40 |]
     ~dst_sizes:[| 16; 8; 8; 8; 8 |]
-    (Particle.Array.data dst_buf);
+    (Particle.Array.data dst_buf |> genarray_of_array1);
   let p = Particle.Array.unsafe_get dst_buf 0 in
   for _ = 0 to _NRECORDS - 1 do
     Printf.printf "%-5s %-5d %-5d %-5f %-5f\n%!"

@@ -186,21 +186,24 @@ and obj_magic ~loc exp =
 let construct_field_get field pos loc =
   construct_function ~loc field.Field.id [ "t", Longident.Lident "t" ] (
     Exp.constraint_ ~loc
-      (construct_function_call ~loc Longident.(Ldot (Lident "Obj", "magic"))
-        [`Exp (
-          construct_function_call ~loc
-            Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
-              ( match field.Field.type_ with
-                | Type.Float64    -> "get_float64"
-                | Type.Int        -> "get_int"
-                | Type.Int64      -> "get_int64"
-                | Type.String _   -> "get_string" )))
-            (   [ `Mgc "t" ]
-              @ ( match field.Field.type_ with
-                  | Type.Float64
-                  | Type.Int
-                  | Type.Int64 -> [ `Int pos ]
-                  | Type.String length -> [ `Int (pos * 8); `Int length ] ) ))])
+      (* Types [Discrete], [Time] and [Time_ns] are stored as [int] or [float] and to
+         access them we need to use [Obj.magic]. *)
+      (obj_magic ~loc (
+        construct_function_call ~loc
+          Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
+            ( match field.Field.type_ with
+              | Type.Float64    -> "get_float64"
+              | Type.Int        -> "get_int"
+              | Type.Int64      -> "get_int64"
+              | Type.String _   -> "get_string" )))
+          (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
+             [Obj.magic] to access it. *)
+          (   [ `Mgc "t" ]
+            @ ( match field.Field.type_ with
+                | Type.Float64
+                | Type.Int
+                | Type.Int64 -> [ `Int pos ]
+                | Type.String length -> [ `Int pos; `Int length ] ) )))
       (Typ.constr ~loc { txt = field.Field.ocaml_type; loc } []))
 
 let construct_field_set field pos loc =
@@ -213,12 +216,16 @@ let construct_field_set field pos loc =
           | Type.Int        -> "set_int"
           | Type.Int64      -> "set_int64"
           | Type.String _   -> "set_string" )))
+      (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
+         [Obj.magic] to access it. *)
       (   [ `Mgc "t" ]
         @ ( match field.Field.type_ with
             | Type.Float64
             | Type.Int
             | Type.Int64 -> [ `Int pos ]
-            | Type.String length -> [ `Int (pos * 8); `Int length ] )
+            | Type.String length -> [ `Int pos; `Int length ] )
+        (* Types [Discrete], [Time] and [Time_ns] are stored as [int] or [float] and to
+           access them we need to use [Obj.magic]. *)
         @ [ `Mgc "v" ] ))
 
 let construct_field_seek field ~bsize pos loc =
@@ -231,13 +238,17 @@ let construct_field_seek field ~bsize pos loc =
           | Type.Int        -> "seek_int"
           | Type.Int64      -> "seek_int64"
           | Type.String _   -> "seek_string" )))
+      (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
+         [Obj.magic] to access it. *)
       ( [ `Mgc "t"; `Int (bsize / 2) ]
         @ (
           match field.Field.type_ with
           | Type.Float64
           | Type.Int
           | Type.Int64 -> [ `Int pos ]
-          | Type.String len -> [ `Int (pos * 8); `Int len ] )
+          | Type.String len -> [ `Int pos; `Int len ] )
+        (* Types [Discrete], [Time] and [Time_ns] are stored as [int] or [float] and to
+           access them we need to use [Obj.magic]. *)
         @ [ `Mgc "v" ] ))
 
 let construct_set_all_fields fields loc =
@@ -278,10 +289,9 @@ let construct_size_dependent_fun name ~bsize ~index loc =
       (Exp.ident ~loc
         { loc; txt =
             Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"), name)) })
-      ( [ Nolabel,
-            Exp.apply ~loc
-              (Exp.ident ~loc { txt = Longident.(Ldot (Lident "Obj", "magic")); loc })
-              [ Nolabel, Exp.ident ~loc { txt = Longident.Lident "t"; loc } ]]
+      (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
+         [Obj.magic] to access it. *)
+      ( [ Nolabel, obj_magic ~loc (Exp.ident ~loc { txt = Longident.Lident "t"; loc }) ]
         @ (
           if index
           then [ Nolabel, Exp.ident ~loc { txt = Longident.Lident "i"; loc } ]
@@ -343,8 +353,8 @@ let map_structure_item mapper structure_item =
             else [] ) in
         pos := !pos + (
           match field.Field.type_ with
-          | Type.Float64 | Type.Int | Type.Int64 -> 1
-          | Type.String length -> (length + 7) / 8);
+          | Type.Float64 | Type.Int | Type.Int64 -> 4
+          | Type.String length -> (length + 7) / 8 * 4);
         functions) fields
       |> List.concat
     in
