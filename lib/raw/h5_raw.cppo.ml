@@ -33,11 +33,8 @@ module Ih_info = struct
     heap_size  : int }
 end
 
-#if OCAML_VERSION >= (4, 2, 0)
-external init : unit -> unit = "hdf5_h5_init" [@@noalloc]
-#else
-external init : unit -> unit = "hdf5_h5_init" "noalloc"
-#endif
+external init : unit -> unit = "hdf5_h5_init"
+
 let init () =
   Callback.register_exception "HDF5.H5I.Fail" H5i.Fail;
   init ()
