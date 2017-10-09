@@ -415,10 +415,10 @@ value hdf5_h5a_get_name(value attr_v)
   size = H5Aget_name(attr_id, 0, NULL);
   if (size < 0)
     fail();
-  buf = malloc(size);
+  buf = malloc(size + 1);
   if (buf == NULL)
     caml_raise_out_of_memory();
-  size = H5Aget_name(attr_id, size, buf);
+  size = H5Aget_name(attr_id, size+1, buf);
   if (size < 0)
   {
     free(buf);
