@@ -94,10 +94,8 @@ val read_uint8_array1 : t -> ?data:(char, int8_unsigned_elt, 'a) Array1.t -> str
 (** Writes the given string array to the data set. *)
 val write_string_array : t -> string -> ?deflate:int -> string array -> unit
 
-(** Reads the data set into a string array.
-    
-    @param data If provided, the storage for the data. *)
-val read_string_array : t -> ?data:string array -> string -> string array
+(** Reads the data set into a string array. *)
+val read_string_array : t -> string -> string array
 
 (** [write_attribute_int64 t name v] writes the given [int64] as an attribute with the
     given name. *)

@@ -343,7 +343,7 @@ module Make(S : S) = struct
   open Bigarray
 
   let pos t = t.Ptr.pos
-  let has_next t = Ext.badd t.Ptr.ptr bsize < t.Ptr.end_
+  let has_next t = Ext.(<) (Ext.badd t.Ptr.ptr bsize) t.Ptr.end_
   let has_prev t = t.Ptr.pos > 0
   let unsafe_next t = Ptr.unsafe_next t bsize
   let next t = Ptr.next t bsize

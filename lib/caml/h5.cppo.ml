@@ -398,23 +398,20 @@ let read_uint8_array1 t ?data name layout =
     t data name
   |> array1_of_genarray
 
-let read_string_array t ?data name =
+let read_string_array t name =
   let datatype = H5t.copy H5t.c_s1 in
   H5t.set_size datatype H5t.variable;
-  let xfer_plist = H5p.create H5p.Cls_id.DATASET_XFER in
-  H5p.set_vlen_mem_manager xfer_plist (fun i -> Bytes.create (i - 1)) ignore;
-  let data = read_data H5d.read_string_array datatype
+
+  let data = read_data H5d.read_c_string_array datatype
     (fun dims ->
       if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
-      Array.make dims.(0) "")
-    (fun data dims ->
-      if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
-      if Array.length data < dims.(0) then
-        invalid_arg "The provided data storage too small";
-      data) t data ~xfer_plist name in
-  H5p.close xfer_plist;
+      Array.make dims.(0) H5d.C_string.null)
+    (fun _ _ -> assert false) t None name in
   H5t.close datatype;
-  data
+  Array.map (fun cs ->
+    let s = H5d.C_string.to_string cs in
+    H5d.C_string.free cs;
+    s) data
 
 let write_attribute_int64 t name v =
   let dataspace = H5s.create H5s.Class.SCALAR in
@@ -456,7 +453,7 @@ let read_attribute_string t name =
 
 let write_attribute_string_array t name a =
   let datatype = H5t.copy H5t.c_s1 in
-  H5t.set_size datatype H5t.variable; 
+  H5t.set_size datatype H5t.variable;
   let dataspace = H5s.create_simple [| Array.length a |] in
   let att = H5a.create (hid t) name datatype dataspace in
   H5a.write_string_array att datatype a;
