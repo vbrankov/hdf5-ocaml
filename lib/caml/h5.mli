@@ -36,7 +36,7 @@ val open_rdonly : open_
 val open_rdwr : open_
 
 (** Opens the named subgroup.  The subgroup is created if it does not already exist. *)
-val open_dir : t -> string -> t
+val open_group : t -> string -> t
 
 (** Opens the dataset with the given name. *)
 val open_dataset : t -> string -> t
@@ -45,7 +45,7 @@ val open_dataset : t -> string -> t
 val close : t -> unit
 
 (** Performs the given function on the given dir. *)
-val with_dir : t -> string -> (t -> 'a) -> 'a
+val with_group : t -> string -> (t -> 'a) -> 'a
 
 (** Flushes all buffers associated with a file to disk. *)
 val flush : t -> unit

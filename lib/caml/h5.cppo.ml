@@ -51,7 +51,7 @@ let open_rdonly = open_ H5f.open_ H5f.Acc.([ RDONLY ])
 
 let open_rdwr = open_ H5f.open_ H5f.Acc.([ CREAT; RDWR ])
 
-let open_dir t name =
+let open_group t name =
   let t = hid t in
   Group (if name = "." || H5l.exists t name then H5g.open_ t name else H5g.create t name)
 
@@ -63,8 +63,8 @@ let close = function
 | File f -> H5f.close f
 | Group g -> H5g.close g
 
-let with_dir t name f =
-  let t = open_dir t name in
+let with_group t name f =
+  let t = open_group t name in
   let r = f t in
   close t;
   r
@@ -363,7 +363,11 @@ module Make_float(F : Float_arg) = struct
     let dataspace = H5a.get_space att in
     let datatype = H5a.get_type att in
     let dims, _ = H5s.get_simple_extent_dims dataspace in
+#if OCAML_VERSION >= (4, 3, 0)
     let a = Array.create_float dims.(0) in
+#else
+    let a = Array.make_float dims.(0) in
+#endif
     H5a.read_float_array att datatype a;
     H5t.close datatype;
     H5s.close dataspace;
