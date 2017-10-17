@@ -48,14 +48,14 @@ module Ext = struct
     let len = index t '\000' 0 len in
     let s = Bytes.create len in
     Bytes.unsafe_blit (Obj.magic t) 0 s 0 len;
-    s
+    Bytes.unsafe_to_string s
 
   (* [set_string t boffset v] sets a string [2 * boffset] bytes from [t]. *)
   let set_string (t : t) pos len v =
     let t = badd t pos in
     let vlen = String.length v in
     let mlen = if len < vlen then len else vlen in
-    Bytes.unsafe_blit v 0 (Obj.magic t) 0 mlen;
+    Bytes.unsafe_blit (Bytes.unsafe_of_string v) 0 (Obj.magic t) 0 mlen;
     Bytes.unsafe_fill (Obj.magic t) mlen (len - mlen) '\000'
 
   (* Compares pointers as addresses in memory. *)

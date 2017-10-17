@@ -453,7 +453,7 @@ let read_attribute_string t name =
   H5t.close datatype;
   H5s.close dataspace;
   H5a.close att;
-  a
+  Bytes.unsafe_to_string a
 
 let write_attribute_string_array t name a =
   let datatype = H5t.copy H5t.c_s1 in
