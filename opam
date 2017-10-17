@@ -1,5 +1,5 @@
 opam-version: "1.2.2"
-name: "hdf5-ocaml"
+name: "hdf5"
 version: "0.1.4"
 maintainer: "Vladimir Brankov <vbrankov@janestreet.com>"
 authors: "Vladimir Brankov <vbrankov@janestreet.com>"
