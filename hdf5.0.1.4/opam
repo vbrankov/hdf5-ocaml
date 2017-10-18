@@ -1,6 +1,4 @@
 opam-version: "1.2"
-name: "hdf5"
-version: "0.1.4"
 maintainer: "Vladimir Brankov <vbrankov@janestreet.com>"
 authors: "Vladimir Brankov <vbrankov@janestreet.com>"
 homepage: "https://github.com/vbrankov/hdf5-ocaml"
@@ -22,7 +20,7 @@ depends: [
   "cppo_ocamlbuild" {build}
 ]
 depexts: [
-  [["alpine"] ["hdf5"]]
+  [["alpine"] ["hdf5-dev"]]
   [["centos"] ["epel-release" "hdf5-devel"]]
   [["debian"] ["libhdf5-serial-dev"]]
   [["homebrew" "osx"] ["homebrew/science/hdf5"]]
