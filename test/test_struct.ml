@@ -21,12 +21,12 @@ let () =
     let f   = float_of_int  i in
     let i64 = Int64.of_int  i in
     let s   = string_of_int i in
-       Record.sf64 e = f  
-    && Record.si   e = i  
+       Record.sf64 e = f
+    && Record.si   e = i
     && Record.si64 e = i64
-    && Record.ss   e = s  
-    && Record.f64  e = f  
-    && Record.i    e = i  
+    && Record.ss   e = s
+    && Record.f64  e = f
+    && Record.i    e = i
     && Record.i64  e = i64
     && Record.s    e = s
     && Record.pos  e = i
@@ -71,7 +71,7 @@ let () =
     Record.seek_si64 e (Int64.of_int r.(i));
     assert (expected_val e r.(i))
   done;
-  for i = 0 to len - 1 do
+  for _ = 0 to len - 1 do
     let f = Random.float (float_of_int len) in
     Record.seek_sf64 e f;
     assert (Record.sf64 e <= f);
@@ -80,7 +80,7 @@ let () =
     assert (Record.sf64 e <= f);
     assert (Record.sf64 e +. 1. > f);
   done;
-  for i = 0 to len - 1 do
+  for _ = 0 to len - 1 do
     let i = Random.int len in
     Record.seek_si e i;
     assert (Record.si e <= i);
@@ -89,7 +89,7 @@ let () =
     assert (Record.si e <= i);
     assert (Record.si e + 1 > i);
   done;
-  for i = 0 to len - 1 do
+  for _ = 0 to len - 1 do
     let i = Int64.of_int (Random.int len) in
     Record.seek_si64 e i;
     assert (Record.si64 e <= i);
@@ -107,4 +107,6 @@ let () =
       Record.next e;
     Record.set_i e' i;
     assert (Record.i e = i)
-  done
+  done;
+
+  let _ = Marshal.to_string (module Record : Hdf5_caml.Struct_intf.S) [Closures] in ()

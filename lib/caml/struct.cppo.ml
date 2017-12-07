@@ -304,6 +304,18 @@ end
 module Make(S : S) = struct
   include S
 
+  (* This is necessary to prevent external pointers from being top level values of the
+     module, which would prevent it from being marshaled *)
+  let memoize f =
+    let memo = ref None in
+    fun () ->
+      match !memo with
+      | Some value -> value
+      | None ->
+        let value = f () in
+        memo := Some value;
+        value
+
   let nfields = List.length S.fields
   let bsize = List.fold_left (fun s field ->
     s + (Type.size field.Field.type_ + 7) / 8 * 8 / 2) 0 S.fields
@@ -318,7 +330,7 @@ module Make(S : S) = struct
       offset := !offset + (Type.size field.Field.type_ + 7) / 8 * 8;
       field_offset) S.fields
     |> Array.of_list
-  let field_types =
+  let field_types = memoize (fun () ->
     List.map (fun field ->
       match field.Field.type_ with
       | Type.Int | Type.Int64 -> H5t.native_long
@@ -327,16 +339,17 @@ module Make(S : S) = struct
         let type_ = H5t.copy H5t.c_s1 in
         H5t.set_size type_ l;
         type_) S.fields
-    |> Array.of_list
+    |> Array.of_list)
   let field_sizes =
     List.map (fun field -> Type.size field.Field.type_) S.fields
     |> Array.of_list
-  let compound_type =
+  let compound_type = memoize (fun () ->
     let datatype = H5t.create H5t.Class.COMPOUND size in
+    let field_types = field_types () in
     for i = 0 to nfields - 1 do
       H5t.insert datatype field_names.(i) field_offset.(i) field_types.(i)
     done;
-    datatype
+    datatype)
 
   include Ptr
 
@@ -399,8 +412,8 @@ module Make(S : S) = struct
       let title = match title with Some t -> t | None -> dset_name in
       let chunk_size = match chunk_size with Some s -> s | None -> length t in
       H5tb.make_table title (H5.hid h5) dset_name ~nrecords:(length t)
-        ~type_size:size ~field_names ~field_offset ~field_types ~chunk_size ~compress
-        (genarray_of_array1 t)
+        ~type_size:size ~field_names ~field_offset ~field_types:(field_types ())
+        ~chunk_size ~compress (genarray_of_array1 t)
 
     let append_records t h5 dset_name =
       H5tb.append_records (H5.hid h5) dset_name ~nrecords:(length t)
@@ -438,6 +451,7 @@ module Make(S : S) = struct
           H5p.set_deflate dcpl deflate;
           Some dcpl
       in
+      let compound_type = compound_type () in
       let dataset = H5d.create (H5.hid h5) name compound_type ?dcpl dataspace in
       H5d.write_bigarray dataset compound_type H5s.all H5s.all (genarray_of_array1 t);
       H5d.close dataset;
@@ -450,6 +464,7 @@ module Make(S : S) = struct
       let hid = H5.hid h5 in
       let dataset = H5d.open_ hid name in
       let datatype = H5d.get_type dataset in
+      let compound_type = compound_type () in
       if not (H5t.equal compound_type datatype) then
         invalid_arg "Unexpected datatype";
       let dataspace = H5d.get_space dataset in
