@@ -225,3 +225,13 @@ let () =
         Array.iter (fun x -> s := !s +. x) a) ()) in
   Array.iter Thread.join threads;
   H5.close h5;
+
+  let h5 = H5.create_trunc "test.h5" in
+  H5.with_group h5 "fo/o" (fun h5 ->
+    H5.write_float_array h5 "ba/r" [| 0. |]);
+  H5.close h5;
+
+  let h5 = H5.open_rdonly "test.h5" in
+  H5.with_group h5 "fo/o" (fun h5 ->
+    assert (H5.read_float_array h5 "ba/r" = [| 0. |]));
+  H5.close h5

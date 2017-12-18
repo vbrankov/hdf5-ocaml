@@ -1,6 +1,12 @@
 open Bigarray
 open Hdf5_raw
 
+(** Escape slash characters in the given string with '\-'. *)
+val escape : string -> string
+
+(** Unescape slash characters in the given string with '\-'. *)
+val unescape : string -> string
+
 (** Sets the default deflate to be used when writing data. *)
 val set_default_deflate : int -> unit
 

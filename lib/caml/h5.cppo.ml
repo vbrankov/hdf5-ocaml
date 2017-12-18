@@ -1,6 +1,45 @@
 open Bigarray
 open Hdf5_raw
 
+let escape s =
+  let i = try String.index s '\\' with Not_found -> -1 in
+  let j = try String.index s '/'  with Not_found -> -1 in
+  if i = -1 && j = -1 then s
+  else begin
+    let len = String.length s in
+    let buf = Buffer.create (len + 16) in
+    for i = 0 to len - 1 do
+      let c = String.get s i in
+      if c == '\\' then begin
+        Buffer.add_char buf '\\';
+        Buffer.add_char buf '\\'
+      end else if c == '/' then begin
+        Buffer.add_char buf '\\';
+        Buffer.add_char buf '-'
+      end else
+        Buffer.add_char buf c
+    done;
+    Buffer.contents buf
+  end
+
+let unescape s =
+  try
+    let _ = String.index s '\\' in
+    let len = String.length s in
+    let pos = ref 0 in
+    let buf = Buffer.create len in
+    while !pos < len do
+      let c = String.get s !pos in
+      if c == '\\' then begin
+        incr pos;
+        Buffer.add_char buf (String.get s !pos)
+      end else
+        Buffer.add_char buf c;
+      incr pos
+    done;
+    Buffer.contents buf
+  with Not_found -> s
+
 let () = H5_raw.init ()
 
 let default_get_set init =
@@ -52,11 +91,12 @@ let open_rdonly = open_ H5f.open_ H5f.Acc.([ RDONLY ])
 let open_rdwr = open_ H5f.open_ H5f.Acc.([ CREAT; RDWR ])
 
 let open_group t name =
+  let name = escape name in
   let t = hid t in
   Group (if name = "." || H5l.exists t name then H5g.open_ t name else H5g.create t name)
 
 let open_dataset t name =
-  Dataset (H5d.open_ (hid t) name)
+  Dataset (H5d.open_ (hid t) (escape name))
 
 let close = function
 | Dataset d -> H5d.close d
@@ -71,23 +111,21 @@ let with_group t name f =
 
 let flush t = H5f.flush (hid t) H5f.Scope.LOCAL
 
-let get_name t = H5f.get_name (hid t)
+let get_name t = H5f.get_name (hid t) |> unescape
 
-let exists t name =
-  H5l.exists (hid t) name
+let exists t name = H5l.exists (hid t) (escape name)
 
-let delete t name =
-  H5l.delete (hid t) name
+let delete t name = H5l.delete (hid t) (escape name)
 
 let ls ?(index = H5_raw.Index.NAME) ?(order = H5_raw.Iter_order.NATIVE) t =
   let links = ref [] in
   let _ = H5l.iterate (hid t) index order (fun _ l _ () ->
-    links := l :: !links;
+    links := unescape l :: !links;
     H5_raw.Iter.CONT) () in
   List.rev !links
 
 let copy ~src ~src_name ~dst ~dst_name =
-  H5o.copy (hid src) src_name (hid dst) dst_name
+  H5o.copy (hid src) (escape src_name) (hid dst) (escape dst_name)
 
 let rec merge ~src ~dst =
   let _ = H5l.iterate src H5_raw.Index.NAME H5_raw.Iter_order.NATIVE
@@ -125,13 +163,13 @@ let rec merge ~src ~dst =
 let merge ~src ~dst = merge ~src:(hid src) ~dst:(hid dst)
 
 let create_hard_link ~obj ~obj_name ~link ~link_name =
-  H5l.create_hard (hid obj) obj_name (hid link) link_name
+  H5l.create_hard (hid obj) (escape obj_name) (hid link) (escape link_name)
 
 let create_soft_link ~target_path ~link ~link_name =
-  H5l.create_soft target_path (hid link) link_name
+  H5l.create_soft target_path (hid link) (escape link_name)
 
 let create_external_link t ~target_file_name ~target_obj_name ~link_name =
-  H5l.create_external target_file_name target_obj_name (hid t) link_name
+  H5l.create_external target_file_name (escape target_obj_name) (hid t) (escape link_name)
 
 let write_data write t datatype dims name ?(deflate = 6) data =
   let dataspace = H5s.create_simple dims in
@@ -144,7 +182,7 @@ let write_data write t datatype dims name ?(deflate = 6) data =
       H5p.set_deflate dcpl deflate;
       Some dcpl
   in
-  let dataset = H5d.create (hid t) name datatype ?dcpl dataspace in
+  let dataset = H5d.create (hid t) (escape name) datatype ?dcpl dataspace in
   write dataset datatype H5s.all H5s.all ?xfer_plist:None data;
   H5d.close dataset;
   H5s.close dataspace;
@@ -154,7 +192,7 @@ let write_data write t datatype dims name ?(deflate = 6) data =
 
 let read_data read expected_datatype create verify t data ?xfer_plist name =
   let hid = hid t in
-  let dataset = H5d.open_ hid name in
+  let dataset = H5d.open_ hid (escape name) in
   let datatype = H5d.get_type dataset in
   if not (H5t.equal expected_datatype datatype) then
     invalid_arg "Unexpected datatype";
