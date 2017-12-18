@@ -210,6 +210,14 @@ let () =
   assert (float_a = 0.123456);
   assert (float_b = 0.234567);
 
+  let h5 = H5.open_rdwr _FILE in
+  H5.delete_attribute h5 "int64-a";
+  H5.close h5;
+
+  let h5 = H5.open_rdwr _FILE in
+  assert (not (H5.attribute_exists h5 "int64-a"));
+  H5.close h5;
+
   (* Threads *)
   let h5 = H5.create_trunc "test.h5" in
   let a = Array.init (1024 * 1024) float_of_int in

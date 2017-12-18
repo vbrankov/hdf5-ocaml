@@ -128,6 +128,9 @@ val read_attribute_string_array : t -> string -> string array
 (** Returns whether the given attribute exists. *)
 val attribute_exists : t -> string -> bool
 
+(** Deletes the given attribute. *)
+val delete_attribute : t -> string -> unit
+
 include Float_intf.S with type t := t and type float_elt := float64_elt
 
 module Float32 : Float_intf.S with type t := t and type float_elt := float32_elt

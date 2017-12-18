@@ -516,3 +516,5 @@ let read_attribute_string_array t name =
   a
 
 let attribute_exists t name = H5a.exists (hid t) name
+
+let delete_attribute t name = H5a.delete (hid t) name
