@@ -411,19 +411,20 @@ module Make(S : S) = struct
         dset_name =
       let title = match title with Some t -> t | None -> dset_name in
       let chunk_size = match chunk_size with Some s -> s | None -> length t in
-      H5tb.make_table title (H5.hid h5) dset_name ~nrecords:(length t)
+      H5tb.make_table title (H5.hid h5) (H5.escape dset_name) ~nrecords:(length t)
         ~type_size:size ~field_names ~field_offset ~field_types:(field_types ())
         ~chunk_size ~compress (genarray_of_array1 t)
 
     let append_records t h5 dset_name =
-      H5tb.append_records (H5.hid h5) dset_name ~nrecords:(length t)
+      H5tb.append_records (H5.hid h5) (H5.escape dset_name) ~nrecords:(length t)
         ~type_size:size ~field_offset ~field_sizes (genarray_of_array1 t)
 
     let write_records t h5 ~start dset_name =
-      H5tb.write_records (H5.hid h5) dset_name ~start ~nrecords:(length t)
+      H5tb.write_records (H5.hid h5) (H5.escape dset_name) ~start ~nrecords:(length t)
         ~type_size:size ~field_offset ~field_sizes (genarray_of_array1 t)
 
     let read_table h5 table_name =
+      let table_name = H5.escape table_name in
       let loc = H5.hid h5 in
       let nrecords = H5tb.get_table_info loc table_name in
       let t = make nrecords in
@@ -434,8 +435,8 @@ module Make(S : S) = struct
     let read_records h5 ~start ~nrecords table_name =
       let loc = H5.hid h5 in
       let t = make nrecords in
-      H5tb.read_records loc table_name ~start ~nrecords ~type_size:size ~field_offset
-        ~dst_sizes:field_sizes (genarray_of_array1 t);
+      H5tb.read_records loc (H5.escape table_name) ~start ~nrecords ~type_size:size
+        ~field_offset ~dst_sizes:field_sizes (genarray_of_array1 t);
       t
 
     let write t ?(deflate = H5.default_deflate ()) h5 name =
@@ -452,7 +453,8 @@ module Make(S : S) = struct
           Some dcpl
       in
       let compound_type = compound_type () in
-      let dataset = H5d.create (H5.hid h5) name compound_type ?dcpl dataspace in
+      let dataset =
+        H5d.create (H5.hid h5) (H5.escape name) compound_type ?dcpl dataspace in
       H5d.write_bigarray dataset compound_type H5s.all H5s.all (genarray_of_array1 t);
       H5d.close dataset;
       H5s.close dataspace;
@@ -462,7 +464,7 @@ module Make(S : S) = struct
 
     let read h5 ?data name =
       let hid = H5.hid h5 in
-      let dataset = H5d.open_ hid name in
+      let dataset = H5d.open_ hid (H5.escape name) in
       let datatype = H5d.get_type dataset in
       let compound_type = compound_type () in
       if not (H5t.equal compound_type datatype) then

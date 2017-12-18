@@ -1,3 +1,5 @@
+open Hdf5_caml
+
 module Record = struct
   [%%h5struct
     sf64 "sf64" Float64     Seek;
@@ -109,4 +111,19 @@ let () =
     assert (Record.i e = i)
   done;
 
-  let _ = Marshal.to_string (module Record : Hdf5_caml.Struct_intf.S) [Closures] in ()
+  let _ = Marshal.to_string (module Record : Hdf5_caml.Struct_intf.S) [Closures] in
+
+  let h5 = H5.create_trunc "test.h5" in
+  Record.Array.make_table a h5 "f\\o/o";
+  Record.Array.write a h5 "b\\a/r";
+  H5.close h5;
+
+  let h5 = H5.open_rdonly "test.h5" in
+  assert (H5.ls ~order:INC h5 = ["b\\a/r"; "f\\o/o"]);
+  Record.Array.read_table h5 "f\\o/o"
+  |> Record.Array.iteri ~f:(fun i e ->
+    assert (expected_val e i));
+  Record.Array.read h5 "b\\a/r"
+  |> Record.Array.iteri ~f:(fun i e ->
+    assert (expected_val e i));
+  H5.close h5
