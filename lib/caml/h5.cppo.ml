@@ -32,7 +32,8 @@ let unescape s =
       let c = String.get s !pos in
       if c == '\\' then begin
         incr pos;
-        Buffer.add_char buf (String.get s !pos)
+        let c = String.get s !pos in
+        Buffer.add_char buf (if c = '-' then '/' else c)
       end else
         Buffer.add_char buf c;
       incr pos

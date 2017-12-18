@@ -240,6 +240,8 @@ let () =
   H5.close h5;
 
   let h5 = H5.open_rdonly "test.h5" in
+  assert (H5.ls h5 = [ "fo/o" ]);
   H5.with_group h5 "fo/o" (fun h5 ->
+    assert (H5.ls h5 = [ "ba/r" ]);
     assert (H5.read_float_array h5 "ba/r" = [| 0. |]));
   H5.close h5
