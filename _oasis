@@ -16,6 +16,16 @@ OCamlVersion:          >= 4.01
 AlphaFeatures:         ocamlbuild_more_args
 XOCamlbuildPluginTags: package(cppo_ocamlbuild)
 
+AlphaFeatures: ocamlbuild_more_args
+Document "hdf5"
+  Type: ocamlbuild (0.4)
+  BuildTools: ocamldoc
+  Title: API reference for hdf5-caml
+  XOCamlbuildPath: .
+  XOCamlbuildExtraArgs:
+    "-docflags '-colorize-code -charset utf-8'"
+  XOCamlbuildLibraries: hdf5_caml, hdf5_raw
+
 Library hdf5_raw
   Path:     lib/raw
   Pack:     true
@@ -62,7 +72,7 @@ Library hdf5_caml
   Path:         lib/caml
   Pack:         true
   Modules:      Field, H5, Struct, Struct_intf, Type
-  BuildDepends: hdf5_raw
+  BuildDepends: bigarray, hdf5_raw
 
 Executable test_comprehensive
   Build$:         flag(tests)
