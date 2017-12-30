@@ -13,7 +13,6 @@ Description:
   records. It is much faster than OCaml arrays of records
 
 OCamlVersion:          >= 4.01
-AlphaFeatures:         ocamlbuild_more_args
 XOCamlbuildPluginTags: package(cppo_ocamlbuild)
 
 AlphaFeatures: ocamlbuild_more_args
