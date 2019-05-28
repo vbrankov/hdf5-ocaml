@@ -10,7 +10,10 @@ static struct custom_operations hid_ops = {
   custom_compare_ext_default,
   custom_hash_default,
   custom_serialize_default,
-  custom_deserialize_default
+  custom_deserialize_default,
+#ifdef custom_fixed_length_default
+  custom_fixed_length_default,
+#endif
 };
 
 value alloc_hid(hid_t id)

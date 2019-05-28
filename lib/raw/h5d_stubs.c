@@ -21,7 +21,10 @@ static struct custom_operations h5d_ops = {
   custom_compare_ext_default,
   custom_hash_default,
   custom_serialize_default,
-  custom_deserialize_default
+  custom_deserialize_default,
+#ifdef custom_fixed_length_default
+  custom_fixed_length_default,
+#endif
 };
 
 static value alloc_h5d(hid_t id)
