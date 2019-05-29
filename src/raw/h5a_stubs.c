@@ -285,7 +285,6 @@ herr_t hdf5_h5a_operator(hid_t location_id, const char *attr_name,
   if (Is_exception_result(ret))
   {
     *(operator_data->exception) = Extract_exception(ret);
-    return -1;
   }
   CAMLreturnT(herr_t, H5_iter_val(ret));
 }
@@ -440,10 +439,10 @@ value hdf5_h5a_get_name(value attr_v)
   size = H5Aget_name(attr_id, 0, NULL);
   if (size < 0)
     fail();
-  buf = malloc(size + 1);
+  buf = malloc(size);
   if (buf == NULL)
     caml_raise_out_of_memory();
-  size = H5Aget_name(attr_id, size+1, buf);
+  size = H5Aget_name(attr_id, size, buf);
   if (size < 0)
   {
     free(buf);
