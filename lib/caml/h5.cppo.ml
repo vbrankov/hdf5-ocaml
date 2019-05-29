@@ -244,7 +244,7 @@ module Make_float(F : Float_arg) = struct
     write_float_genarray t name ?deflate (genarray_of_array3 a)
 
   let read_float_genarray t ?data name layout =
-    read_data H5d.write_bigarray F.h5t
+    read_data H5d.read_bigarray F.h5t
       (fun dims -> Genarray.create F.kind layout dims)
       (fun data dims ->
         if Genarray.dims data <> dims then
