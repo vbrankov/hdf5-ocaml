@@ -136,7 +136,7 @@ value hdf5_h5g_get_comment(value loc_id_v, value name_v)
   CAMLlocal1(v);
   int bufsize;
 
-  bufsize = H5Gget_comment(Hid_val(loc_id_v), String_val(name_v), 0, NULL);
+  bufsize = H5Gget_comment(Hid_val(loc_id_v), (char*) Bytes_val(name_v), 0, NULL);
   v = caml_alloc_string(bufsize);
   H5Gget_comment(Hid_val(loc_id_v), String_val(name_v), bufsize, String_val(v));
   CAMLreturn(v);
@@ -170,10 +170,7 @@ herr_t hdf5_h5g_operator(hid_t group, const char *name, void *op_data)
   args[2] = args2;
   ret = caml_callbackN_exn(*operator_data->callback, 3, args);
   if (Is_exception_result(ret))
-  {
     *(operator_data->exception) = Extract_exception(ret);
-    return -1;
-  }
   CAMLreturnT(herr_t, H5_iter_val(ret));
 }
 

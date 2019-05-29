@@ -1,5 +1,14 @@
-open Bigarray
 open Hdf5_raw
+
+(* This is an interface to HDF5 tables, which have memory representation as C arrays of
+   structs.  [Mem.t] represents an array of structs and [Ptr.t] represents a pointer to
+   element of such array.  Both are implemented as custom blocks to support marshalling.
+   Since GC does not examine custom blocks, memory management of the tables is done usin
+   reference counting.  Both [Mem.t] and [Ptr.t] point to a C struct [Mem.T.t] which is
+   allocated outside of the OCaml heap and which contains the reference count.  [Mem.T.t
+   also contains [nmemb] and [size] which describe the size and the shape of the table.
+
+   Marshalling supports sharing. *)
 
 module type S = sig
   val fields : Field.t list
@@ -7,7 +16,7 @@ end
 
 (* Pointer outside of the OCaml heap. *)
 module Ext = struct
-  type t
+  type t = private int
 
   (* [badd t i] adds [2 * i] bytes offset to the pointer [t]. *)
   let badd (t : t) i : t = Obj.magic (Obj.magic t + i)
@@ -57,50 +66,58 @@ module Ext = struct
     let mlen = if len < vlen then len else vlen in
     Bytes.unsafe_blit (Bytes.unsafe_of_string v) 0 (Obj.magic t) 0 mlen;
     Bytes.unsafe_fill (Obj.magic t) mlen (len - mlen) '\000'
-
-  (* Compares pointers as addresses in memory. *)
-  let (<)  (t : t) (t' : t) = (Obj.magic t : int) <  (Obj.magic t' : int)
-  let (>)  (t : t) (t' : t) = (Obj.magic t : int) >  (Obj.magic t' : int)
-  let (>=) (t : t) (t' : t) = (Obj.magic t : int) >= (Obj.magic t' : int)
 end
 
+(* See the explanation at the top. *)
 module Mem = struct
-  type t = (char, int8_unsigned_elt, c_layout) Array1.t
-
-  module Fields = struct
-    (* The internal representation of a [Bigarray] type. *)
+  (* This is a C structure living outside of the OCaml heap.  This is not an OCaml recor
+     so nothing other than [Mem.t] and [Ptr.t] should keep a reference to it.  It is
+     implemented this was to allow quick access to the fields, otherwise we would have t
+     use relatively slow C calls to read each field. *)
+  module T = struct
     type t = {
-      ops      : Ext.t;
+      refcount : int:
       data     : Ext.t;
-      num_dims : int;
-      flags    : int;
-      proxy    : Ext.t;
-      bdim     : int;
+      capacity      : int; (* The capacity of [data] *)
+      mutable nmemb : int; (* The number of records in the table *)
+      size          : int; (* The length of a record *)
     }
   end
 
-  let create len = Array1.create Char C_layout len
+  type t = {
+    ops : Ext.t; (* Custom operations field *)
+    t   : T.t;
+  }
 
-  let bdim (t : t) = (Obj.magic t).Fields.bdim
-  let data (t : t) = (Obj.magic t).Fields.data
+  external create : int -> int -> t = "hdf5_caml_struct_mem_create"
+
+  external of_t : T.t -> t = "hdf5_caml_struct_mem_of_mem"
+
+  external write_buf : T.t -> Common.buf -> int -> unit = "hdf5_caml_struct_mem_write_buf"
+
+  external read_buf : T.t -> Common.buf -> int -> unit = "hdf5_caml_struct_mem_read_buf"
+
+  external realloc : t -> int -> unit = "hdf5_caml_struct_mem_realloc"
+
+  external blit : src:t -> src_pos:int -> dst:t -> dst_pos:int -> len:int -> unit
+    = "hdf5_caml_struct_mem_blit"
+
+  let data t : H5tb.Data.t = Obj.magic t.t.data
 end
 
 module Ptr = struct
   (* A pointer into an array of C structs wrapped in [Mem.t]. *)
   type t = {
+    ops         : Ext.t;
     (* Pointer to the [pos]-th element of the array. *)
-    mutable ptr    : Ext.t;
+    mutable ptr : Ext.t;
     (* The underlying [Mem.t]. *)
-    mutable mem    : Mem.t;
-    (* The pointer to the beginning of the array. *)
-    mutable begin_ : Ext.t;
-    (* The pointer to the first byte after the end of the array. *)
-    mutable end_   : Ext.t;
-    (* The length of the array or [-1] if not initialized. *)
-    mutable len    : int;
+    mutable mem : Mem.T.t;
     (* The index of the element of the array pointed by [ptr]. *)
-    mutable pos    : int;
+    mutable pos : int;
   }
+
+  external create : Mem.t -> int -> t = "hdf5_caml_struct_ptr_create"
 
   (* [unsafe_next t bsize] moves the pointer to the next element of the array provided
      that the length of the struct is [2 * bsize] bytes. *)
@@ -117,57 +134,55 @@ module Ptr = struct
   (* [unsafe_move t pos bsize] moves the pointer to the [pos]-th element of the array
      provided that the length of the struct is [2 * bsize] bytes. *)
   let unsafe_move t pos bsize =
-    t.ptr <- Ext.badd t.begin_ (pos * bsize);
+    t.ptr <- Ext.badd t.mem.data (pos * bsize);
     t.pos <- pos
+
+  (* Moves the pointer to the appropriate place in the array when [t.mem.data] changes. *)
+  let reset t bsize = t.ptr <- Ext.badd t.mem.data (t.pos * bsize)
 
   (* Like [unsafe_next] but raises exception if the pointer is out of bounds. *)
   let next t bsize =
-    let ptr = Ext.badd t.ptr bsize in
-    if Ext.(>) ptr t.end_
+    let pos = t.pos + 1 in
+    if pos >= t.mem.nmemb
     then raise (Invalid_argument "index out of bounds")
     else begin
-      t.ptr <- ptr;
-      t.pos <- t.pos + 1
+      t.ptr <- Ext.badd t.ptr bsize;
+      t.pos <- pos
     end
 
   (* Like [unsafe_prev] but raises exception if the pointer is out of bounds. *)
   let prev t bsize =
-    let ptr = Ext.bsub t.ptr bsize in
-    if Ext.(<) ptr t.begin_
+    let pos = t.pos - 1 in
+    if pos < 0
     then raise (Invalid_argument "index out of bounds")
     else begin
-      t.ptr <- ptr;
-      t.pos <- t.pos - 1
+      t.ptr <- Ext.bsub t.ptr bsize;
+      t.pos <- pos
     end
 
   (* Like [unsafe_move] but raises exception if the pointer is out of bounds. *)
   let move t pos bsize =
-    let ptr = Ext.badd t.begin_ (pos * bsize) in
-    if pos < 0 || Ext.(>) ptr t.end_
+    if pos < 0 || pos >= t.mem.nmemb
     then raise (Invalid_argument "index out of bounds")
     else begin
-      t.ptr <- ptr;
+      t.ptr <- Ext.badd t.mem.data (pos * bsize);
       t.pos <- pos
     end
 
-  let get_len t bsize =
-    if t.len < 0 then t.len <- Mem.bdim t.mem / bsize;
-    t.len
-
-  let get_float64 t bo   = Ext.get_float64 t.ptr bo
-  let set_float64 t bo v = Ext.set_float64 t.ptr bo v
-  let get_int64   t bo   = Ext.get_int64   t.ptr bo
-  let set_int64   t bo v = Ext.set_int64   t.ptr bo v
-  let get_int     t bo   = Ext.get_int     t.ptr bo
-  let set_int     t bo v = Ext.set_int     t.ptr bo v
-  let get_string  t bo   = Ext.get_string  t.ptr bo
-  let set_string  t bo v = Ext.set_string  t.ptr bo v
+  let get_float64 t bo       = Ext.get_float64 t.ptr bo
+  let set_float64 t bo v     = Ext.set_float64 t.ptr bo v
+  let get_int64   t bo       = Ext.get_int64   t.ptr bo
+  let set_int64   t bo v     = Ext.set_int64   t.ptr bo v
+  let get_int     t bo       = Ext.get_int     t.ptr bo
+  let set_int     t bo v     = Ext.set_int     t.ptr bo v
+  let get_string  t bo len   = Ext.get_string  t.ptr bo len
+  let set_string  t bo len v = Ext.set_string  t.ptr bo len v
 
   let seek_float64 t bsize bfield ~min ~max v =
     let mid = ref min in
     let min = ref min in
     let max = ref max in
-    let data = Ext.badd (Mem.data t.mem) bfield in
+    let data = Ext.badd t.mem.data bfield in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
       let v' = Ext.get_float64 data (!mid * bsize) in
@@ -184,8 +199,8 @@ module Ptr = struct
      beginning of the struct.  The length of the struct is [2 * bsize] bytes.  The array
      elements are sorted increasingly by the given field. *)
   let seek_float64 t bsize bfield v =
-    let len = get_len t bsize in
-    let data = Ext.badd t.begin_ bfield in
+    let len = t.mem.nmemb in
+    let data = Ext.badd t.mem.data bfield in
     let v' = Ext.get_float64 t.ptr bfield in
     let pos = t.pos in
     let min = ref pos in
@@ -213,7 +228,7 @@ module Ptr = struct
     let mid = ref min in
     let min = ref min in
     let max = ref max in
-    let data = Ext.badd t.begin_ bfield in
+    let data = Ext.badd t.mem.data bfield in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
       let v' = Ext.get_int data (!mid * bsize) in
@@ -222,7 +237,7 @@ module Ptr = struct
       else
         max := !mid
     done;
-    let v' = Ext.get_int data (!mid * bsize) in
+    let v' = Ext.get_int data (!max * bsize) in
     if v' <= v then !max else !min
 
   (* [seek_int t bsize bfield v] seeks the last element of the array with the value of
@@ -230,8 +245,8 @@ module Ptr = struct
      beginning of the struct.  The length of the struct is [2 * bsize] bytes.  The array
      elements are sorted increasingly by the given field. *)
   let seek_int t bsize bfield v =
-    let len = get_len t bsize in
-    let data = Ext.badd t.begin_ bfield in
+    let len = t.mem.nmemb in
+    let data = Ext.badd t.mem.data bfield in
     let v' = Ext.get_int t.ptr bfield in
     let pos = t.pos in
     let min = ref pos in
@@ -257,7 +272,7 @@ module Ptr = struct
     let mid = ref min in
     let min = ref min in
     let max = ref max in
-    let data = Ext.badd (Mem.data t.mem) bfield in
+    let data = Ext.badd t.mem.data bfield in
     while !max > !min + 1 do
       mid := (!min + !max) asr 1;
       let v' = Ext.get_int64 data (!mid * bsize) in
@@ -274,8 +289,8 @@ module Ptr = struct
      beginning of the struct.  The length of the struct is [2 * bsize] bytes.  The array
      elements are sorted increasingly by the given field. *)
   let seek_int64 t bsize bfield v =
-    let len = get_len t bsize in
-    let data = Ext.badd t.begin_ bfield in
+    let len = t.mem.nmemb in
+    let data = Ext.badd t.mem.data bfield in
     let v' = Ext.get_int64 t.ptr bfield in
     let pos = t.pos in
     let min = ref pos in
@@ -294,11 +309,54 @@ module Ptr = struct
       done;
       if !min < 0 then min := 0
     end;
-    unsafe_move t (
-      if !max > !min then seek_int64 t bsize bfield ~min:!min ~max:!max v else !max) bsize
+    unsafe_move t
+      (if !max > !min then seek_int64 t bsize bfield ~min:!min ~max:!max v else !max)
+      bsize
 
-  let seek_string _t _bsize _bfield _len _v =
-    failwith "[seek_string] not implemented"
+  let seek_string t bsize bfield len ~min ~max (v : string) =
+    let mid = ref min in
+    let min = ref min in
+    let max = ref max in
+    let data = Ext.badd t.mem.data bfield in
+    while !max > !min + 1 do
+      mid := (!min + !max) asr 1;
+      let v' = Ext.get_string data (!mid * bsize) len in
+      if v' < v then
+        min := !mid
+      else
+        max := !mid
+    done;
+    let v' = Ext.get_string data (!max * bsize) len in
+    if v' <= v then !max else !min
+
+  (* [seek_string t bsize bfield len v] seeks the last element of the array with the value
+     of the given field less or equal [v].  The field is [2 * bfield] bytes from the
+     beginning of the struct.  The length of the struct is [2 * bsize] bytes.  The array
+     elements are sorted increasingly by the given field. *)
+  let seek_string t bsize bfield slen v =
+    let len = t.mem.nmemb in
+    let data = Ext.badd t.mem.data bfield in
+    let v' = Ext.get_string t.ptr bfield slen in
+    let pos = t.pos in
+    let min = ref pos in
+    let max = ref pos in
+    let step = ref 1 in
+    if v' < v then begin
+      while !max < len && Ext.get_string data (!max * bsize) slen < v do
+        max := !max + !step;
+        step := !step * 2
+      done;
+      if !max >= len then max := len - 1
+    end else if v' > v then begin
+      while !min > 0 && Ext.get_string data (!min * bsize) slen > v do
+        min := !min - !step;
+        step := !step * 2
+      done;
+      if !min < 0 then min := 0
+    end;
+    unsafe_move t (
+      if !max > !min then seek_string t bsize bfield slen ~min:!min ~max:!max v else !max)
+      bsize
 end
 
 module Make(S : S) = struct
@@ -317,9 +375,9 @@ module Make(S : S) = struct
         value
 
   let nfields = List.length S.fields
-  let bsize = List.fold_left (fun s field ->
+  let type_bsize = List.fold_left (fun s field ->
     s + (Type.size field.Field.type_ + 7) / 8 * 8 / 2) 0 S.fields
-  let size = 2 * bsize
+  let type_size = 2 * type_bsize
   let field_names =
     List.map (fun field -> field.Field.name) S.fields
     |> Array.of_list
@@ -344,7 +402,7 @@ module Make(S : S) = struct
     List.map (fun field -> Type.size field.Field.type_) S.fields
     |> Array.of_list
   let compound_type = memoize (fun () ->
-    let datatype = H5t.create H5t.Class.COMPOUND size in
+    let datatype = H5t.create H5t.Class.COMPOUND type_size in
     let field_types = field_types () in
     for i = 0 to nfields - 1 do
       H5t.insert datatype field_names.(i) field_offset.(i) field_types.(i)
@@ -353,22 +411,19 @@ module Make(S : S) = struct
 
   include Ptr
 
-  open Bigarray
-
   let pos t = t.Ptr.pos
-  let has_next t = Ext.(<) (Ext.badd t.Ptr.ptr bsize) t.Ptr.end_
+  let has_next (t : t) = t.pos + 1 < t.mem.nmemb
   let has_prev t = t.Ptr.pos > 0
-  let unsafe_next t = Ptr.unsafe_next t bsize
-  let next t = Ptr.next t bsize
-  let unsafe_move t i = Ptr.unsafe_move t i bsize
+  let unsafe_next t = Ptr.unsafe_next t type_bsize
+  let next t = Ptr.next t type_bsize
+  let move t i = Ptr.move t i type_bsize
+  let unsafe_move t i = Ptr.unsafe_move t i type_bsize
 
   module Array = struct
     type e = t
     type t = Mem.t
 
-    let data (t : t) = t
-
-    let make len = Mem.create (len * size)
+    let make len = Mem.create len type_size
 
     let length t = Mem.bdim t / bsize
 

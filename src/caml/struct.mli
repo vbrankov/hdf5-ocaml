@@ -5,18 +5,11 @@ module Ext : sig
 end
 
 module Mem : sig
-  type t = (char, int8_unsigned_elt, c_layout) Array1.t
+  type t
 end
 
 module Ptr : sig
-  type t = {
-    mutable ptr    : Ext.t;
-    mutable mem    : Mem.t;
-    mutable begin_ : Ext.t;
-    mutable end_   : Ext.t;
-    mutable len    : int;
-    mutable pos    : int;
-  }
+  type t
 
   val unsafe_next : t -> int -> unit
   val unsafe_prev : t -> int -> unit
