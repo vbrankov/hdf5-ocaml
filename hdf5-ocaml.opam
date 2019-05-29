@@ -18,9 +18,9 @@ depends: [
 depexts: [
   [["alpine"] ["hdf5"]]
   [["centos"] ["epel-release" "hdf5-devel"]]
-  [["debian"] ["abcddbca" "libhdf5-dev"]]
-  [["homebrew" "osx"] ["hdf5"]]
-  [["ubuntu"] ["abcddbca" "libhdf5-dev"]]
+  [["debian"] ["libhdf5-dev"]]
+  [["homebrew"] ["hdf5"]]
+  [["ubuntu"] ["libhdf5-dev"]]
 ]
 synopsis: "Manages HDF5 files used for storing large amounts of data"
 description: "The library manages reading and writing to HDF5 files. HDF5 file
