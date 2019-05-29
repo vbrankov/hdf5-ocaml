@@ -1,7 +1,7 @@
 (library
-   (name hdf5_caml)
-   (public_name hdf5_caml)
-   (libraries bigarray hdf5_raw))
+ (name hdf5_caml)
+ (public_name hdf5-ocaml.caml)
+ (libraries bigarray hdf5_raw))
 
 (rule
  (targets h5.ml)
