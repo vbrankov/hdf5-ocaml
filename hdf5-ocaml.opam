@@ -4,11 +4,12 @@ authors: "Vladimir Brankov <vbrankov@janestreet.com>"
 homepage: "https://github.com/vbrankov/hdf5-ocaml"
 bug-reports: "https://github.com/vbrankov/hdf5-ocaml/issues"
 license: "MIT"
-dev-repo: "git@github.com:vbrankov/hdf5-ocaml.git"
+dev-repo: "git+https://github.com/vbrankov/hdf5-ocaml.git"
 build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
+  "ocaml" {>= "4.02"}
   "dune" {build & >= "1.1.0"}
 ]
 depexts: [
@@ -18,4 +19,8 @@ depexts: [
   [["homebrew" "osx"] ["hdf5"]]
   [["ubuntu"] ["libhdf5-serial-dev"]]
 ]
-available: [ocaml-version >= "4.02"]
+synopsis: "Manages HDF5 files used for storing large amounts of data"
+description: "The library manages reading and writing to HDF5 files. HDF5 file
+format is used for storing and organizing large amounts of data. Also provided
+is a fast way of working with large arrays of records, much faster than OCaml
+arrays of records."
