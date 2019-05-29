@@ -9,8 +9,10 @@ build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
-  "ocaml" {>= "4.02"}
   "dune" {build & >= "1.1.0"}
+  "ocaml" {>= "4.02"}
+  "ppx_tools_versioned"
+  "stdio"
 ]
 depexts: [
   [["alpine"] ["hdf5"]]
