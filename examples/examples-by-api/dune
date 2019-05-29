@@ -1,3 +1,3 @@
 (executable
-   (name h5ex_g_traverse)
-   (libraries hdf5_raw))
+ (name h5ex_g_traverse)
+ (libraries hdf5_raw))

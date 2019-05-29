@@ -1,8 +1,7 @@
 (executables
-   (names
-   check_and_read_example compound create_example create_extend_write
-   create_groups create_write_ref_obj create_write_ref_reg
-   read_extended read_ref_obj read_ref_reg read_write_attributes
-   write_selected)
-   (libraries 
-   bigarray hdf5_caml hdf5_raw))
+ (names
+  check_and_read_example compound create_example create_extend_write
+  create_groups create_write_ref_obj create_write_ref_reg
+  read_extended read_ref_obj read_ref_reg read_write_attributes
+  write_selected)
+ (libraries bigarray hdf5_caml hdf5_raw))

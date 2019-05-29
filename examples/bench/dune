@@ -1,4 +1,4 @@
 (executable
-   (name bench_struct)
-   (preprocess (pps ppx_h5struct))
-   (libraries hdf5_caml))
+ (name bench_struct)
+ (preprocess (pps ppx_h5struct))
+ (libraries hdf5_caml))

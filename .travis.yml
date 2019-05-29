@@ -1,21 +1,21 @@
 language: c
 sudo: required
-install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
+install: test -e .travis.opam.sh || wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
 script: bash -ex .travis-opam.sh
 matrix:
   include:
   - os: osx
     osx_image: xcode10.1
-    env: OCAML_VERSION=4.07
+    env: OCAML_VERSION=4.07 OPAM_VERSION=2.0
   - os: linux
-    env: OCAML_VERSION=4.07
+    env: OCAML_VERSION=4.07 OPAM_VERSION=2.0
   - os: linux
-    env: OCAML_VERSION=4.06
+    env: OCAML_VERSION=4.06 OPAM_VERSION=2.0
   - os: linux
-    env: OCAML_VERSION=4.05
+    env: OCAML_VERSION=4.05 OPAM_VERSION=2.0
   - os: linux
-    env: OCAML_VERSION=4.04
+    env: OCAML_VERSION=4.04 OPAM_VERSION=2.0
   - os: linux
-    env: OCAML_VERSION=4.03
+    env: OCAML_VERSION=4.03 OPAM_VERSION=2.0
   - os: linux
-    env: OCAML_VERSION=4.02
+    env: OCAML_VERSION=4.02 OPAM_VERSION=2.0
