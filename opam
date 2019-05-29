@@ -25,7 +25,7 @@ depexts: [
   [["alpine"] ["hdf5"]]
   [["centos"] ["epel-release" "hdf5-devel"]]
   [["debian"] ["libhdf5-serial-dev"]]
-  [["homebrew" "osx"] ["homebrew/science/hdf5"]]
+  [["homebrew" "osx"] ["hdf5"]]
   [["ubuntu"] ["libhdf5-serial-dev"]]
 ]
 available: [ocaml-version >= "4.02"]
