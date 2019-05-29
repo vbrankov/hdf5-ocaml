@@ -19,7 +19,3 @@ matrix:
     env: OCAML_VERSION=4.03
   - os: linux
     env: OCAML_VERSION=4.02
-  - os: linux
-    env: OCAML_VERSION=4.01
-  - os: linux
-    env: OCAML_VERSION=4.00
