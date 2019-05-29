@@ -1,3 +1,6 @@
+open Migrate_parsetree
+open Ast_406
+
 open Ast_mapper
 open Ast_helper
 open Asttypes
@@ -369,6 +372,6 @@ let map_structure_item mapper structure_item =
       @ (construct_size_dependent_fun "move"        ~bsize ~index:true  loc))))
   | s -> default_mapper.structure_item mapper s
 
-let h5struct_mapper _ = { default_mapper with structure_item = map_structure_item }
+let h5struct_mapper _config _cookies = { default_mapper with structure_item = map_structure_item }
 
-let () = register "h5struct" h5struct_mapper
+let () = Driver.register ~name:"h5struct" Versions.ocaml_406 h5struct_mapper

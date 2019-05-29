@@ -1,0 +1,3 @@
+(executables
+   (names attrs crtstr mafisc varlen vlstra)
+   (libraries bigarray hdf5_caml hdf5_raw))

@@ -1,0 +1,21 @@
+opam-version: "2.0"
+maintainer: "Vladimir Brankov <vbrankov@janestreet.com>"
+authors: "Vladimir Brankov <vbrankov@janestreet.com>"
+homepage: "https://github.com/vbrankov/hdf5-ocaml"
+bug-reports: "https://github.com/vbrankov/hdf5-ocaml/issues"
+license: "MIT"
+dev-repo: "git@github.com:vbrankov/hdf5-ocaml.git"
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]
+depends: [
+  "dune" {build & >= "1.1.0"}
+]
+depexts: [
+  [["alpine"] ["hdf5"]]
+  [["centos"] ["epel-release" "hdf5-devel"]]
+  [["debian"] ["libhdf5-serial-dev"]]
+  [["homebrew" "osx"] ["homebrew/science/hdf5"]]
+  [["ubuntu"] ["libhdf5-serial-dev"]]
+]
+available: [ocaml-version >= "4.02"]
