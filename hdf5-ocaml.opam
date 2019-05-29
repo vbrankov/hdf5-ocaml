@@ -9,6 +9,7 @@ build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
+  "cppo"
   "dune" {build & >= "1.1.0"}
   "ocaml" {>= "4.02"}
   "ppx_tools_versioned"
