@@ -10,3 +10,5 @@ setup.log
 *.o
 *.so
 *.swp
+*.merlin
+*.install

@@ -1,0 +1,3 @@
+(executable
+   (name h5_interm_group)
+   (libraries hdf5_raw))

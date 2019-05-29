@@ -1,9 +1,9 @@
 open Bigarray
-open Hdf5_raw
 
 module type S = sig
   type t
   type float_elt
+
   (** Writes the given float array to the data set. *)
   val write_float_array : t -> string -> ?deflate:int -> float array
     -> unit
