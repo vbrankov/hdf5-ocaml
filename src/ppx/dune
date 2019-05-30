@@ -6,8 +6,5 @@
 (library
  (name ppx_h5struct)
  (public_name hdf5-ocaml.ppx)
- (preprocess (pps ppx_tools_versioned.metaquot_406))
  (kind ppx_rewriter) 
- (libraries ppx_tools_versioned 
-  ppx_tools_versioned.metaquot_406 
-  ocaml-migrate-parsetree))
+ (libraries ppx_tools_versioned))

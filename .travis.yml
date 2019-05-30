@@ -17,5 +17,3 @@ matrix:
     env: OCAML_VERSION=4.04 OPAM_VERSION=2.0
   - os: linux
     env: OCAML_VERSION=4.03 OPAM_VERSION=2.0
-  - os: linux
-    env: OCAML_VERSION=4.02 OPAM_VERSION=2.0

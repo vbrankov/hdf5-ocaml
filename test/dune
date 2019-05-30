@@ -1,6 +1,4 @@
-(executables
-   (names comprehensive test_h5tb test_struct)
-   (preprocess (pps ppx_h5struct))
-   (libraries bigarray hdf5_caml hdf5_raw threads ppx_h5struct))
-
-
+(tests
+ (names comprehensive test_h5tb test_struct)
+ (preprocess (pps ppx_h5struct))
+ (libraries bigarray hdf5_caml hdf5_raw threads ppx_h5struct))
