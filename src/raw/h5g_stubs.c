@@ -136,9 +136,9 @@ value hdf5_h5g_get_comment(value loc_id_v, value name_v)
   CAMLlocal1(v);
   int bufsize;
 
-  bufsize = H5Gget_comment(Hid_val(loc_id_v), (char*) Bytes_val(name_v), 0, NULL);
+  bufsize = H5Gget_comment(Hid_val(loc_id_v), String_val(name_v), 0, NULL);
   v = caml_alloc_string(bufsize);
-  H5Gget_comment(Hid_val(loc_id_v), String_val(name_v), bufsize, String_val(v));
+  H5Gget_comment(Hid_val(loc_id_v), String_val(name_v), bufsize, (char*) Bytes_val(v));
   CAMLreturn(v);
 }
 

@@ -1,5 +1,3 @@
-open Bigarray
-
 module Ext : sig
   type t
 end
@@ -38,3 +36,9 @@ module type S = sig
 end
 
 module Make(S : S) : Struct_intf.S_no_ppx
+
+(** Must be called before each call to [Marshal.to_*] to preserve sharing. *)
+external reset_serialize : unit -> unit = "hdf5_caml_struct_reset_serialize"
+
+(** Must be called before each call to [Marshal.from_*] to preserve sharing. *)
+external reset_deserialize : unit -> unit = "hdf5_caml_struct_reset_deserialize"

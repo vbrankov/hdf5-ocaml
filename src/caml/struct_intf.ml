@@ -1,9 +1,7 @@
-open Bigarray
-
 module type S_no_ppx = sig
   val fields : Field.t list
   val nfields : int
-  val size : int
+  val type_size : int
   val field_names : string array
   val field_offset : int array
   val field_sizes : int array
@@ -29,8 +27,6 @@ module type S_no_ppx = sig
     val iter : t -> f:(e -> unit) -> unit
     val iteri : t -> f:(int -> e -> unit) -> unit
 
-    val data : t -> (char, int8_unsigned_elt, c_layout) Array1.t
-
     (** Creates and writes a table. *)
     val make_table : t -> ?title:string -> ?chunk_size:int -> ?compress:bool -> H5.t
       -> string -> unit
@@ -52,6 +48,9 @@ module type S_no_ppx = sig
 
     (** Reads records. *)
     val read : H5.t -> ?data:t -> string -> t
+
+    (** Retrieves the pointer to the data. *)
+    val data : t -> Hdf5_raw.H5tb.Data.t
   end
 
   val mem : t -> Array.t
@@ -66,11 +65,21 @@ module type S_no_ppx = sig
     (** Returns the current capacity of the given vector. *)
     val capacity : t -> int
 
+    (** Ensures that the vector has at least the given capacity. *)
+    val ensure_capacity : t -> int -> unit
+
     (** Returns the growth factor of the given vector. *)
     val growth_factor : t -> float
 
+    (** Sets the growth factor to the given value. *)
+    val set_growth_factor : t -> float -> unit
+
     (** Returns the length of the given vector. *)
     val length : t -> int
+
+    (** Returns the end of the given vector or raises an exception if the vector is empty
+     *)
+    val end_ : t -> e
 
     (** Sets the capacity of the vector to the given size. *)
     val realloc : t -> int -> unit

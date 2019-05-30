@@ -16,17 +16,35 @@ void h5f_finalize(value v)
   H5F_closed(v) = true;
 }
 
+/* [hid_t] is defined as [int] and HDF5 library assigns arbitrary values so the semantics
+   of this comparison is purely arbitrary.  We still need it to be able to compare whether
+   two [H5f.t] are equal and use [H5.t] in data structures such as maps and hash tables.
+*/
+int h5f_compare(value v1, value v2)
+{
+  hid_t h1, h2;
+  h1 = H5F_val(v1);
+  h2 = H5F_val(v2);
+  return h2 - h1;
+}
+
+/* See [h5f_compare]. */
+intnat h5f_hash(value v)
+{
+  return H5F_val(v);
+}
+
 static struct custom_operations h5f_ops = {
   "hdf5.h5f",
   h5f_finalize,
-  custom_compare_default,
-  custom_compare_ext_default,
-  custom_hash_default,
+  h5f_compare,
+  h5f_hash,
   custom_serialize_default,
   custom_deserialize_default,
 #ifdef custom_fixed_length_default
   custom_fixed_length_default,
 #endif
+  custom_compare_ext_default,
 };
 
 static value alloc_h5f(hid_t id)

@@ -362,7 +362,7 @@ uintnat hdf5_ptr_deserialize(void *dst)
 
 static bool initialized = false;
 
-void initialize()
+void hdf5_initialize()
 {
   initialized = true;
   caml_register_custom_operations(&hdf5_mem_ops);
@@ -372,7 +372,7 @@ void initialize()
 void hdf5_caml_struct_reset_serialize()
 {
   if (!initialized)
-    initialize();
+    hdf5_initialize();
   serialize_count++;
   serialize_id = 0;
 }
@@ -381,7 +381,7 @@ void hdf5_caml_struct_reset_deserialize()
 {
   CAMLparam0();
   if (!initialized)
-    initialize();
+    hdf5_initialize();
   if (mems_capacity == 0)
   {
     mems_capacity = 256;

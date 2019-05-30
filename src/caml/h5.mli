@@ -71,8 +71,11 @@ val ls : ?index:H5_raw.Index.t -> ?order:H5_raw.Iter_order.t -> t -> string list
 (** Copies data. *)
 val copy : src:t -> src_name:string -> dst:t -> dst_name:string -> unit
 
-(** Merges the source into the destination. *)
-val merge : src:t -> dst:t -> unit
+(** Merges the source into the destination.  Every group and dataset from the source is
+    copied to the destination.  [on_duplicate] defines what is done in the case of a
+    conflict.  The argument to [`Call] is the path of the conflicting dataset. *)
+val merge : src:t -> dst:t
+  -> on_duplicate:[`Skip | `Raise | `Call of (string list -> unit)] -> unit
 
 (** Creates a hard link. *)
 val create_hard_link : obj:t -> obj_name:string -> link:t -> link_name:string -> unit
@@ -96,6 +99,12 @@ val write_uint8_array1 : t -> string -> ?deflate:int
     @param data If provided, the storage for the data. *)
 val read_uint8_array1 : t -> ?data:(char, int8_unsigned_elt, 'a) Array1.t -> string
   -> 'a layout -> (char, int8_unsigned_elt, 'a) Array1.t
+
+(** Writes the given string to the data set. *)
+val write_string : t -> string -> ?deflate:int -> string -> unit
+
+(** Reads the data set into a string. *)
+val read_string : t -> string -> string
 
 (** Writes the given string array to the data set. *)
 val write_string_array : t -> string -> ?deflate:int -> string array -> unit

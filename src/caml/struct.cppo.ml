@@ -1,11 +1,11 @@
 open Hdf5_raw
 
 (* This is an interface to HDF5 tables, which have memory representation as C arrays of
-   structs.  [Mem.t] represents an array of structs and [Ptr.t] represents a pointer to
+   structs.  [Mem.t] represents an array of structs and [Ptr.t] represents a pointer to an
    element of such array.  Both are implemented as custom blocks to support marshalling.
-   Since GC does not examine custom blocks, memory management of the tables is done usin
+   Since GC does not examine custom blocks, memory management of the tables is done using
    reference counting.  Both [Mem.t] and [Ptr.t] point to a C struct [Mem.T.t] which is
-   allocated outside of the OCaml heap and which contains the reference count.  [Mem.T.t
+   allocated outside of the OCaml heap and which contains the reference count.  [Mem.T.t]
    also contains [nmemb] and [size] which describe the size and the shape of the table.
 
    Marshalling supports sharing. *)
@@ -70,14 +70,14 @@ end
 
 (* See the explanation at the top. *)
 module Mem = struct
-  (* This is a C structure living outside of the OCaml heap.  This is not an OCaml recor
+  (* This is a C structure living outside of the OCaml heap.  This is not an OCaml record
      so nothing other than [Mem.t] and [Ptr.t] should keep a reference to it.  It is
-     implemented this was to allow quick access to the fields, otherwise we would have t
+     implemented this was to allow quick access to the fields, otherwise we would have to
      use relatively slow C calls to read each field. *)
   module T = struct
     type t = {
-      refcount : int:
-      data     : Ext.t;
+      refcount      : int;
+      data          : Ext.t;
       capacity      : int; (* The capacity of [data] *)
       mutable nmemb : int; (* The number of records in the table *)
       size          : int; (* The length of a record *)
@@ -92,10 +92,6 @@ module Mem = struct
   external create : int -> int -> t = "hdf5_caml_struct_mem_create"
 
   external of_t : T.t -> t = "hdf5_caml_struct_mem_of_mem"
-
-  external write_buf : T.t -> Common.buf -> int -> unit = "hdf5_caml_struct_mem_write_buf"
-
-  external read_buf : T.t -> Common.buf -> int -> unit = "hdf5_caml_struct_mem_read_buf"
 
   external realloc : t -> int -> unit = "hdf5_caml_struct_mem_realloc"
 
@@ -425,16 +421,9 @@ module Make(S : S) = struct
 
     let make len = Mem.create len type_size
 
-    let length t = Mem.bdim t / bsize
+    let length (t : t) = t.t.nmemb
 
-    let unsafe_get t pos =
-      let data = Mem.data t in
-      { ptr = Ext.badd data (pos * bsize);
-        mem = t;
-        begin_ = data;
-        end_ = Ext.badd data (Mem.bdim t);
-        len = -1;
-        pos }
+    let unsafe_get (t : t) pos = Ptr.create t pos
 
     let init len f =
       if len < 0 then invalid_arg "Hdf5_caml.Struct.Array.init";
@@ -450,57 +439,56 @@ module Make(S : S) = struct
         t
       end
 
-    let get t pos =
-      let data = Mem.data t in
-      let ptr = Ext.badd data (pos * bsize) in
-      let end_ = Ext.badd data (Mem.bdim t) in
-      if pos < 0 || Ext.(>=) ptr end_ then raise (Invalid_argument "index out of bounds");
-      { ptr;
-        mem = t;
-        begin_ = data;
-        end_;
-        len = -1;
-        pos }
+    let get (t : t) pos =
+      if pos < 0 || pos >= t.t.nmemb then raise (Invalid_argument "index out of bounds");
+      Ptr.create t pos
 
     let make_table t ?title ?chunk_size ?(compress = true) h5
         dset_name =
       let title = match title with Some t -> t | None -> dset_name in
-      let chunk_size = match chunk_size with Some s -> s | None -> length t in
+      let chunk_size =
+        match chunk_size with
+        | Some s -> s
+        (* Chunk size must be <4GB *)
+        | None -> min (1024 * 1024) (max 1 (length t)) in
       H5tb.make_table title (H5.hid h5) (H5.escape dset_name) ~nrecords:(length t)
-        ~type_size:size ~field_names ~field_offset ~field_types:(field_types ())
-        ~chunk_size ~compress (genarray_of_array1 t)
+        ~type_size ~field_names ~field_offset ~field_types:(field_types ()) ~chunk_size
+        ~compress (Mem.data t)
 
     let append_records t h5 dset_name =
       H5tb.append_records (H5.hid h5) (H5.escape dset_name) ~nrecords:(length t)
-        ~type_size:size ~field_offset ~field_sizes (genarray_of_array1 t)
+        ~type_size ~field_offset ~field_sizes (Mem.data t)
 
     let write_records t h5 ~start dset_name =
       H5tb.write_records (H5.hid h5) (H5.escape dset_name) ~start ~nrecords:(length t)
-        ~type_size:size ~field_offset ~field_sizes (genarray_of_array1 t)
+        ~type_size ~field_offset ~field_sizes (Mem.data t)
 
     let read_table h5 table_name =
       let table_name = H5.escape table_name in
       let loc = H5.hid h5 in
       let nrecords = H5tb.get_table_info loc table_name in
       let t = make nrecords in
-      H5tb.read_table loc table_name ~dst_size:size ~dst_offset:field_offset
-        ~dst_sizes:field_sizes (genarray_of_array1 t);
+      H5tb.read_table loc table_name ~dst_size:type_size ~dst_offset:field_offset
+        ~dst_sizes:field_sizes (Mem.data t);
       t
 
     let read_records h5 ~start ~nrecords table_name =
       let loc = H5.hid h5 in
       let t = make nrecords in
-      H5tb.read_records loc (H5.escape table_name) ~start ~nrecords ~type_size:size
-        ~field_offset ~dst_sizes:field_sizes (genarray_of_array1 t);
+      H5tb.read_records loc (H5.escape table_name) ~start ~nrecords ~type_size
+        ~field_offset ~dst_sizes:field_sizes (Mem.data t);
       t
 
     let write t ?(deflate = H5.default_deflate ()) h5 name =
       let len = length t in
       let dims = [| len |] in
       let dataspace = H5s.create_simple dims in
+      (* Chunk size must be <4GB *)
+      dims.(0) <- min (1024 * 1024) dims.(0);
       let dcpl =
         match deflate with
         | 0 -> None
+        | _ when len = 0 -> None
         | deflate ->
           let dcpl = H5p.create H5p.Cls_id.DATASET_CREATE in
           H5p.set_chunk dcpl dims;
@@ -510,7 +498,7 @@ module Make(S : S) = struct
       let compound_type = compound_type () in
       let dataset =
         H5d.create (H5.hid h5) (H5.escape name) compound_type ?dcpl dataspace in
-      H5d.write_bigarray dataset compound_type H5s.all H5s.all (genarray_of_array1 t);
+      H5d.write_string dataset compound_type H5s.all H5s.all (Mem.data t |> Obj.magic);
       H5d.close dataset;
       H5s.close dataspace;
       match dcpl with
@@ -534,7 +522,7 @@ module Make(S : S) = struct
             invalid_arg "The provided data storage too small";
           data
         | None -> make dims.(0) in
-      H5d.read_bigarray dataset datatype H5s.all H5s.all (genarray_of_array1 data);
+      H5d.read_string dataset datatype H5s.all H5s.all (Mem.data data |> Obj.magic);
       H5s.close dataspace;
       H5t.close datatype;
       H5d.close dataset;
@@ -553,67 +541,63 @@ module Make(S : S) = struct
         f i e;
         unsafe_next e
       done
+
+    let data t = Mem.data t
   end
 
   let create () = Array.unsafe_get (Array.make 1) 0
-  let mem t = t.mem
+  let mem t = Mem.of_t t.mem
 
   module Vector = struct
     type e = t
     type t = {
-      mutable mem        : Mem.t;
-      mutable capacity   : int;
-      growth_factor      : float;
-      mutable length     : int;
-      mutable end_       : e;
-      mutable ptrs       : e list;
-      mutable on_realloc : t -> unit;
+      mem                   : Mem.t;
+      mutable growth_factor : float;
+      mutable end_          : e;
+      mutable ptrs          : e list;
+      mutable on_realloc    : t -> unit;
     }
 
     let create ?(capacity = 16) ?(growth_factor = 1.5) () =
       if growth_factor < 1. then
         invalid_arg (Printf.sprintf "Invalid growth factor %f" growth_factor);
       let mem = Array.make capacity in
-      { mem; capacity; growth_factor; length = 0; end_ = Array.unsafe_get mem (-1);
+      mem.t.nmemb <- 0;
+      { mem; growth_factor; end_ = Array.unsafe_get mem (-1);
         ptrs = []; on_realloc = fun _ -> () }
 
-    let capacity t = t.capacity
+    let capacity t = t.mem.t.capacity
 
     let growth_factor t = t.growth_factor
 
-    let length t = t.length
+    let set_growth_factor t growth_factor =
+      if growth_factor <= 0. then
+        invalid_arg (Printf.sprintf "Given negative growth factor %g" growth_factor);
+      t.growth_factor <- growth_factor
+
+    let length t = t.mem.t.nmemb
+
+    let set_length t length = t.mem.t.nmemb <- length
+
+    let end_ t =
+      if length t <= 0 then raise (Invalid_argument "index out of bounds");
+      t.end_
 
     let realloc t capacity =
-      if t.capacity > capacity then begin
-        let mem = Array.make capacity in
-        Array1.blit (Array1.sub t.mem 0 (Array1.dim mem)) mem;
-        t.mem <- mem
-      end else if t.capacity < capacity then begin
-        let mem = Array.make capacity in
-        Array1.blit t.mem (Array1.sub mem 0 (Array1.dim t.mem));
-        t.mem <- mem
-      end;
-      List.iter (fun ptr ->
-        let ptr' = Array.get t.mem ptr.pos in
-        ptr.ptr    <- ptr'.ptr;
-        ptr.mem    <- ptr'.mem;
-        ptr.begin_ <- ptr'.begin_;
-        ptr.end_   <- ptr'.end_;
-        ptr.len    <- ptr'.len;
-        ptr.pos    <- ptr'.pos) t.ptrs;
-      t.end_ <- Array.unsafe_get t.mem (t.length - 1);
-      t.capacity <- capacity;
+      Mem.realloc t.mem capacity;
+      List.iter (fun ptr -> Ptr.reset ptr type_bsize) t.ptrs;
+      Ptr.reset t.end_ type_bsize;
       t.on_realloc t
 
-    let set_length t length =
-      t.length <- length;
-      List.iter (fun ptr -> ptr.len <- length) t.ptrs;
-      t.end_.len <- length
+    let ensure_capacity t c = if c > capacity t then realloc t c
 
     let append t =
-      if t.capacity = t.length then
-        realloc t (int_of_float (float t.capacity *. t.growth_factor) + 1);
-      set_length t (t.length + 1);
+      let mem = t.mem.t in
+      let nmemb = mem.nmemb in
+      let capacity = mem.capacity in
+      if capacity = nmemb then
+        realloc t (int_of_float (float capacity *. t.growth_factor) + 1);
+      mem.nmemb <- nmemb + 1;
       next t.end_;
       t.end_
 
@@ -623,44 +607,49 @@ module Make(S : S) = struct
 
     let unsafe_get t i =
       let e = Array.unsafe_get t.mem i in
-      e.len <- t.length;
       t.ptrs <- e :: t.ptrs;
       e
 
     let get t i =
+      if i < 0 || i >= length t then raise (Invalid_argument "index out of bounds");
       let e = Array.get t.mem i in
-      e.len <- t.length;
       t.ptrs <- e :: t.ptrs;
       e
 
     let iter t ~f =
       let ptr = t.end_ in
       unsafe_move ptr 0;
-      for _ = 0 to t.length - 1 do
+      let len = length t in
+      for _ = 0 to len - 1 do
         f ptr;
         unsafe_next ptr
       done;
-      unsafe_move ptr (t.length - 1)
+      unsafe_move ptr (len - 1)
 
     let iteri t ~f =
       let ptr = t.end_ in
       unsafe_move ptr 0;
-      for i = 0 to t.length - 1 do
+      let len = length t in
+      for i = 0 to len - 1 do
         f i ptr;
         unsafe_next ptr
       done;
-      unsafe_move ptr (t.length - 1)
+      unsafe_move ptr (len - 1)
 
     let of_array ?(growth_factor = 1.5) a =
       if growth_factor < 1. then
         invalid_arg (Printf.sprintf "Invalid growth factor %f" growth_factor);
       let len = Array.length a in
-      { mem = a; capacity = len; growth_factor; length = len;
-        end_ = Array.get a (len - 1); ptrs = []; on_realloc = fun _ -> () }
+      { mem = a;
+        growth_factor;
+        end_ = Array.unsafe_get a (if len > 0 then len - 1 else 0);
+        ptrs = [];
+        on_realloc = fun _ -> () }
 
     let to_array t =
-      let mem = Array.make t.length in
-      Array1.blit (Array1.sub t.mem 0 (Array1.dim mem)) mem;
+      let len = length t in
+      let mem = Array.make len in
+      Mem.blit ~src:t.mem ~src_pos:0 ~dst:mem ~dst_pos:0 ~len;
       mem
 
     let on_realloc t f = t.on_realloc <- f
@@ -706,20 +695,12 @@ module Make(S : S) = struct
         t.hd   <- Array.get t.a 0;
         t.tl   <- Array.get t.a 0;
         t.peek <- Array.get t.a 0;
-        let open Bigarray in
         let pos = pos hd in
-        let size = size in
-        let bpos = pos * size in
-        let bcapacity = capacity * size in
         if pos = 0 then
-          Array1.blit a (Array1.sub t.a 0 bcapacity)
+          Mem.blit ~src:a ~src_pos:0 ~dst:t.a ~dst_pos:0 ~len:capacity
         else begin
-          Bigarray.Array1.blit
-            (Array1.sub a   bpos (bcapacity - bpos))
-            (Array1.sub t.a 0    (bcapacity - bpos));
-          Bigarray.Array1.blit
-            (Array1.sub a   0                  bpos)
-            (Array1.sub t.a (bcapacity - bpos) bpos)
+          Mem.blit ~src:a ~src_pos:pos ~dst:t.a ~dst_pos:0 ~len:(capacity - pos);
+          Mem.blit ~src:a ~src_pos:0   ~dst:t.a ~dst_pos:(capacity - pos) ~len:pos
         end;
         unsafe_move t.hd capacity;
         t.hd
@@ -737,3 +718,111 @@ module Make(S : S) = struct
       peek
   end
 end
+
+external reset_serialize : unit -> unit = "hdf5_caml_struct_reset_serialize"
+external reset_deserialize : unit -> unit = "hdf5_caml_struct_reset_deserialize"
+
+let%test_module "" = (module struct
+  module Foo = struct
+    include Make(struct
+      let fields = [
+        Field.create "id" Int;
+        Field.create "name" (String 10);
+      ]
+    end)
+
+    let id t = get_int t 0
+    let name t = get_string t 4 10
+
+    let set t ~id ~name =
+      set_int    t 0 id;
+      set_string t 4 10 name
+  end
+
+  let%test_unit _ =
+    let v = Foo.Vector.create () in
+    let _ = Foo.Vector.append v in
+    let f = Foo.Vector.get v 0 in
+    for i = 0 to 999 do
+      let s = string_of_int i in
+      let e = Foo.Vector.append v in
+      Foo.set e ~id:i ~name:s;
+      Foo.next f;
+      assert (Foo.id f = i);
+      assert (Foo.name f = s);
+    done;
+    let a = Foo.Vector.to_array v in
+    let f = Foo.Array.get a 0 in
+    assert (not (Foo.has_prev f));
+    assert (Foo.has_next f);
+    Foo.next f;
+    assert (Foo.has_prev f);
+    assert (Foo.has_next f);
+    Foo.move f 1000;
+    assert (Foo.has_prev f);
+    assert (not (Foo.has_next f))
+
+  let%test_unit _ =
+    let len = 32 in
+    let create_array () =
+      Foo.Array.init (1 + Random.int len) (fun i e ->
+        Foo.set e ~id:i ~name:(string_of_int i)) in
+    let a = ref (Array.init len (fun _ -> create_array ())) in
+    let create_element () =
+      let a = !a.(Random.int len) in
+      let pos = Random.int (Foo.Array.length a) in
+      pos, Foo.Array.get a pos in
+    let e = ref (Array.init (len * len) (fun _ -> create_element ())) in
+    for _ = 0 to len - 1 do
+      for _ = 0 to len - 1 do
+        let a = !a in
+        let e = !e in
+        for _ = 0 to len - 1 do
+          a.(Random.int len) <- create_array ();
+          for _ = 0 to len - 1 do
+            e.(Random.int (len * len)) <- create_element ();
+            let pos, e = e.(Random.int (len * len)) in
+            assert (Foo.id e = pos);
+            assert (Foo.name e = string_of_int pos)
+          done
+        done;
+        Gc.full_major ()
+      done;
+      Gc.compact ();
+      reset_serialize ();
+      let s = Marshal.to_string (!a, !e) [] in
+      reset_deserialize ();
+      let a', e' = Marshal.from_string s 0 in
+      a := a';
+      e := e'
+    done
+
+  let%test_unit _ =
+    begin try
+      let _ = Foo.Array.init (-1) (fun _ _ -> ()) in
+      assert false
+    with Invalid_argument _ -> ()
+    end
+
+  let%test_unit _ =
+    let a = Foo.Array.init 16 (fun i e -> Foo.set e ~id:i ~name:(string_of_int i)) in
+
+    reset_serialize ();
+    let s = Marshal.to_string a [Closures] in
+    reset_deserialize ();
+    let b = Marshal.from_string s 0 in
+    assert (Foo.Array.length a = Foo.Array.length b);
+    let f = Foo.Array.get b 0 in
+    Foo.Array.iteri a ~f:(fun i e ->
+      Foo.move f i;
+      assert (Foo.id e = Foo.id f);
+      assert (Foo.name e = Foo.name f));
+
+    let e = Foo.Array.get a 8 in
+    reset_serialize ();
+    let s = Marshal.to_string e [Closures] in
+    reset_deserialize ();
+    let e = Marshal.from_string s 0 in
+    assert (Foo.id e = 8);
+    assert (Foo.name e = "8")
+end)

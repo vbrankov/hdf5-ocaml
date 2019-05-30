@@ -3,6 +3,7 @@
 #include <string.h>
 #include <caml/alloc.h>
 #include <caml/bigarray.h>
+#include <caml/callback.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
