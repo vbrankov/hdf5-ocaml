@@ -11,7 +11,7 @@ build: [
 depends: [
   "cppo"
   "dune" {build & >= "1.1.0"}
-  "ocaml" {>= "4.02"}
+  "ocaml" {>= "4.03"}
   "ppx_tools_versioned"
   "stdio"
 ]
