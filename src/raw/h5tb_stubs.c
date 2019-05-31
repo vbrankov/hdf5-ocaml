@@ -58,12 +58,12 @@ void hdf5_h5tb_make_table(value table_title_v, value loc_v, value dset_name_v,
   if (fill_data_v == Val_unit)
     fill_data = NULL;
   else
-    fill_data = Caml_ba_data_val(Field(fill_data_v, 0));
+    fill_data = (void*) Field(fill_data_v, 0);
 
   err = H5TBmake_table(String_val(table_title_v), Hid_val(loc_v), String_val(dset_name_v),
     nfields, Int_val(nrecords_v), Int_val(type_size_v), (const char**) field_names,
     field_offset, field_types, Int_val(chunk_size_v), fill_data, Int_val(compress_v),
-    Caml_ba_data_val(data_v));
+    (void*) data_v);
   for (i = 0; i < nfields; i++)
     free(field_names[i]);
   free(field_names);
@@ -118,7 +118,7 @@ void hdf5_h5tb_append_records(value loc_v, value dset_name_v, value nrecords_v,
   }
 
   err = H5TBappend_records(loc_id, dset_name, Int_val(nrecords_v), Int_val(type_size_v),
-    field_offset, field_sizes, Caml_ba_data_val(data_v));
+    field_offset, field_sizes, (void*) data_v);
   free(field_offset);
   free(field_sizes);
   raise_if_fail(err);
@@ -170,7 +170,7 @@ void hdf5_h5tb_write_records(value loc_v, value table_name_v, value start_v,
   }
 
   err = H5TBwrite_records(loc_id, table_name, Int_val(start_v), Int_val(nrecords_v),
-    Int_val(type_size_v), field_offset, field_sizes, Caml_ba_data_val(data_v));
+    Int_val(type_size_v), field_offset, field_sizes, (void*) data_v);
   free(field_offset);
   free(field_sizes);
   raise_if_fail(err);
@@ -221,7 +221,7 @@ void hdf5_h5tb_read_table(value loc_v, value table_name_v, value dst_size_v,
   }
 
   err = H5TBread_table(loc_id, table_name, Int_val(dst_size_v), dst_offset, dst_sizes,
-    Caml_ba_data_val(dst_buf_v));
+    (void*) dst_buf_v);
   free(dst_offset);
   free(dst_sizes);
   raise_if_fail(err);
@@ -272,7 +272,7 @@ void hdf5_h5tb_read_records(value loc_v, value table_name_v, value start_v,
   }
 
   err = H5TBread_records(loc_id, table_name, Int_val(start_v), Int_val(nrecords_v),
-    Int_val(type_size_v), field_offset, dst_sizes, Caml_ba_data_val(data_v));
+    Int_val(type_size_v), field_offset, dst_sizes, (void*) data_v);
   free(field_offset);
   free(dst_sizes);
   raise_if_fail(err);

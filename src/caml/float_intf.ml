@@ -52,14 +52,6 @@ module type S = sig
   val read_float_array3 : t -> ?data:(float, float_elt, 'a) Array3.t -> string
     -> 'a layout -> (float, float_elt, 'a) Array3.t
 
-  (** Writes the given array of float arrays as a matrix. *)
-  val write_float_array_array : t -> string -> ?transpose:bool
-    -> ?deflate:int -> float array array -> unit
-
-  (** Reads the given matrix as an array of float arrays. *)
-  val read_float_array_array : t -> ?transpose:bool -> string
-    -> float array array
-
   (** [write_attribute_float t name v] writes the given [float] as an attribute with the
       given name. *)
   val write_attribute_float : t -> string -> float -> unit

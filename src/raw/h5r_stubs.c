@@ -54,7 +54,7 @@ value hdf5_h5r_create(value loc_id_v, value name_v, value space_id_opt_v,
   CAMLlocal1(v);
   H5R_type_t ref_type = H5R_type_val(ref_type_v);
   v = caml_alloc_string(ref_type == H5R_DATASET_REGION ? 12 : 8);
-  raise_if_fail(H5Rcreate(String_val(v), Hid_val(loc_id_v), String_val(name_v), ref_type,
+  raise_if_fail(H5Rcreate(Bytes_val(v), Hid_val(loc_id_v), String_val(name_v), ref_type,
     H5S_opt_val(space_id_opt_v)));
   CAMLreturn(v);
 }

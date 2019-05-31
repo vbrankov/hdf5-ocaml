@@ -185,7 +185,6 @@ herr_t hdf5_h5l_operator(hid_t group, const char *name, const H5L_info_t *info,
   if (Is_exception_result(ret))
   {
     *(operator_data->exception) = Extract_exception(ret);
-    return -1;
   }
   CAMLreturnT(herr_t, H5_iter_val(ret));
 }

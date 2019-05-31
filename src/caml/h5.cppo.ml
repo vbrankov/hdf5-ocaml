@@ -22,9 +22,16 @@ let escape s =
     Buffer.contents buf
   end
 
+let string_contains s c =
+  let i = ref 0 in
+  let len = String.length s in
+  while !i < len && String.unsafe_get s !i <> c do
+    incr i
+  done;
+  !i < len
+
 let unescape s =
-  try
-    let _ = String.index s '\\' in
+  if string_contains s '\\' then begin
     let len = String.length s in
     let pos = ref 0 in
     let buf = Buffer.create len in
@@ -39,7 +46,7 @@ let unescape s =
       incr pos
     done;
     Buffer.contents buf
-  with Not_found -> s
+  end else s
 
 let () = H5_raw.init ()
 
@@ -66,7 +73,7 @@ type open_ = ?meta_block_size:int -> ?split:bool -> string -> t
 
 let open_ (open_ : string -> ?fapl : Hid.t -> H5f.Acc.t list -> Hid.t) acc =
   fun ?meta_block_size ?(split = default_split ()) name ->
-    let fapl = H5p.create H5p.Cls_id.FILE_ACCESS in
+    let fapl = H5p.create FILE_ACCESS in
     begin
       match meta_block_size with
       | None -> ()
@@ -128,7 +135,7 @@ let ls ?(index = H5_raw.Index.NAME) ?(order = H5_raw.Iter_order.NATIVE) t =
 let copy ~src ~src_name ~dst ~dst_name =
   H5o.copy (hid src) (escape src_name) (hid dst) (escape dst_name)
 
-let rec merge ~src ~dst =
+let rec merge ~src ~dst ~on_duplicate path =
   let _ = H5l.iterate src H5_raw.Index.NAME H5_raw.Iter_order.NATIVE
     (fun _ name _ () ->
       if H5l.exists dst name then begin
@@ -139,8 +146,21 @@ let rec merge ~src ~dst =
           invalid_arg (Printf.sprintf
             "Object %s not of the same type in source and destination" name)
         | H5i.Type.FILE, _
-        | H5i.Type.GROUP, _ -> merge ~src ~dst
-        | H5i.Type.DATASET, _ -> ()
+        | H5i.Type.GROUP, _ -> merge ~src ~dst ~on_duplicate (name :: path)
+        | H5i.Type.DATASET, _ ->
+          begin
+            match on_duplicate with
+            | `Skip -> ()
+            | `Raise ->
+              let b = Buffer.create 64 in
+              Buffer.add_string b "H5.merge: duplicate dataset at ";
+              List.iter (fun s ->
+                Buffer.add_string b s;
+                Buffer.add_string b "/") (List.rev path);
+              Buffer.add_string b name;
+              failwith (Buffer.contents b)
+            | `Call f -> f (List.rev (name :: path))
+          end
         | H5i.Type.DATATYPE, _
         | H5i.Type.DATASPACE, _
         | H5i.Type.ATTR, _
@@ -161,7 +181,7 @@ let rec merge ~src ~dst =
       H5_raw.Iter.CONT
     ) () in ()
 
-let merge ~src ~dst = merge ~src:(hid src) ~dst:(hid dst)
+let merge ~src ~dst ~on_duplicate = merge ~src:(hid src) ~dst:(hid dst) ~on_duplicate []
 
 let create_hard_link ~obj ~obj_name ~link ~link_name =
   H5l.create_hard (hid obj) (escape obj_name) (hid link) (escape link_name)
@@ -213,6 +233,9 @@ let write_uint8_array1 t name ?deflate (a : (char, int8_unsigned_elt, _) Array1.
   write_data H5d.write_bigarray t H5t.native_b8 [| Array1.dim a |] name ?deflate
     (genarray_of_array1 a)
 
+let write_string t name ?deflate (a : string) =
+  write_data H5d.write_string t H5t.c_s1 [| String.length a |] name ?deflate a
+
 let write_string_array t name ?deflate (a : string array) =
   let datatype = H5t.copy H5t.c_s1 in
   H5t.set_size datatype H5t.variable;
@@ -232,6 +255,7 @@ module Make_float(F : Float_arg) = struct
     write_data H5d.write_float_array t F.h5t [| Array.length a |] name ?deflate a
 
   let write_float_genarray t name ?deflate (a : (float, F.float_elt, _) Genarray.t) =
+    let a = Genarray.change_layout a C_layout in
     write_data H5d.write_bigarray t F.h5t (Genarray.dims a) name ?deflate a
 
   let write_float_array1 t name ?deflate (a : (float, F.float_elt, _) Array1.t) =
@@ -244,13 +268,25 @@ module Make_float(F : Float_arg) = struct
     write_float_genarray t name ?deflate (genarray_of_array3 a)
 
   let read_float_genarray t ?data name layout =
-    read_data H5d.read_bigarray F.h5t
-      (fun dims -> Genarray.create F.kind layout dims)
+    let a = read_data H5d.read_bigarray F.h5t
+      (fun dims -> Genarray.create F.kind c_layout dims)
       (fun data dims ->
-        if Genarray.dims data <> dims then
-          invalid_arg "The provided storage not of adequate size and dimensions";
+        let data = Genarray.change_layout data C_layout in
+        let dims' = Genarray.dims data in
+        let n  = Array.length dims in
+        let n' = Array.length dims' in
+        let smaller = ref false in
+        for i = 0 to min n n' - 1 do
+          if dims'.(i) < dims.(i) then smaller := true
+        done;
+        if n <> n' || !smaller then
+          invalid_arg (Printf.sprintf
+            "The provided storage (%s) not of adequate size and dimensions (%s)"
+            (Array.map string_of_int dims' |> Array.to_list |> String.concat " ")
+            (Array.map string_of_int dims  |> Array.to_list |> String.concat " "));
         data)
-      t data name
+      t data name in
+    Genarray.change_layout a layout
 
   let read_float_array t ?data name =
     read_data H5d.read_float_array F.h5t
@@ -269,109 +305,19 @@ module Make_float(F : Float_arg) = struct
       t data name
 
   let read_float_array1 t ?data name layout =
-    read_data H5d.read_bigarray F.h5t
-      (fun dims ->
-        if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
-        genarray_of_array1 (Array1.create F.kind layout dims.(0)))
-      (fun data dims ->
-        if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
-        if Array1.dim data < dims.(0) then
-          invalid_arg "The provided data storage too small";
-        genarray_of_array1 data)
-      t data name
+    read_float_genarray t name layout
+      ?data:(match data with None -> None | Some data -> Some (genarray_of_array1 data))
     |> array1_of_genarray
 
   let read_float_array2 t ?data name layout =
-    read_data H5d.read_bigarray F.h5t
-      (fun dims ->
-        if Array.length dims <> 2 then invalid_arg "Dataset not two dimensional";
-        genarray_of_array2 (Array2.create F.kind layout dims.(0) dims.(1)))
-      (fun data dims ->
-        if Array.length dims <> 2 then invalid_arg "Dataset not two dimensional";
-        if Array2.dim1 data < dims.(0) then
-          invalid_arg "The provided data storage too small";
-          if Array2.dim2 data <> dims.(1) then
-          invalid_arg "Dim1 of the provided data has wrong size";
-        genarray_of_array2 data)
-      t data name
+    read_float_genarray t name layout
+      ?data:(match data with None -> None | Some data -> Some (genarray_of_array2 data))
     |> array2_of_genarray
 
   let read_float_array3 t ?data name layout =
-    read_data H5d.read_bigarray F.h5t
-      (fun dims ->
-        if Array.length dims <> 3 then invalid_arg "Dataset not three dimensional";
-        genarray_of_array3 (Array3.create F.kind layout dims.(0) dims.(1) dims.(2)))
-      (fun data dims ->
-        if Array.length dims <> 3 then invalid_arg "Dataset not three dimensional";
-        if Array3.dim1 data < dims.(0) then
-          invalid_arg "The provided data storage too small";
-        if Array3.dim2 data <> dims.(1) then
-          invalid_arg "Dim2 of the provided data has wrong size";
-        if Array3.dim3 data <> dims.(2) then
-          invalid_arg "Dim3 of the provided data has wrong size";
-        genarray_of_array3 data)
-      t data name
+    read_float_genarray t name layout
+      ?data:(match data with None -> None | Some data -> Some (genarray_of_array3 data))
     |> array3_of_genarray
-
-  let write_float_array_array t name ?(transpose = true) ?deflate (a : float array array) =
-    let dim1 = Array.length a in
-    if dim1 = 0 then invalid_arg "Empty array";
-    let e = Obj.repr a.(0) in
-    let dim2 = Obj.size e in
-    write_float_array2 t name ?deflate (
-      if transpose then begin
-        let a' = Array2.create F.kind C_layout dim2 dim1 in
-        for i = 0 to dim1 - 1 do
-          let e = Obj.repr (Array.unsafe_get a i) in
-          if Obj.tag e <> Obj.double_array_tag then
-            invalid_arg "All elements not float array";
-          if Obj.size e <> dim2 then invalid_arg "All elements not of the same size";
-          for j = 0 to dim2 - 1 do
-            Array2.set a' j i (Obj.double_field e j)
-          done
-        done;
-        a'
-      end else begin
-        let a' = Array2.create F.kind C_layout dim1 dim2 in
-        for i = 0 to dim1 - 1 do
-          let e = Obj.repr (Array.unsafe_get a i) in
-          if Obj.tag e <> Obj.double_array_tag then
-            invalid_arg "All elements not float array";
-          if Obj.size e <> dim2 then invalid_arg "All elements not of the same size";
-          for j = 0 to dim2 - 1 do
-            Array2.set a' i j (Obj.double_field e j)
-          done
-        done;
-        a'
-      end)
-
-  let read_float_array_array t ?(transpose = true) name =
-    let a = read_float_array2 t name C_layout in
-    let dim1 = Array2.dim2 a in
-    let dim2 = Array2.dim1 a in
-    if transpose then begin
-      Array.init dim1 (fun i ->
-#if OCAML_VERSION >= (4, 3, 0)
-        let e = Array.create_float dim2 in
-#else
-        let e = Array.make_float dim2 in
-#endif
-        for j = 0 to dim2 - 1 do
-          Array.set e j (Array2.get a j i)
-        done;
-        e)
-    end else begin
-      Array.init dim1 (fun i ->
-#if OCAML_VERSION >= (4, 3, 0)
-        let e = Array.create_float dim2 in
-#else
-        let e = Array.make_float dim2 in
-#endif
-        for j = 0 to dim2 - 1 do
-          Array.set e j (Array2.get a i j)
-        done;
-        e)
-    end
 
   let write_attribute_float t name v =
     let dataspace = H5s.create H5s.Class.SCALAR in
@@ -440,6 +386,13 @@ let read_uint8_array1 t ?data name layout =
       genarray_of_array1 data)
     t data name
   |> array1_of_genarray
+
+let read_string t name =
+  read_data H5d.read_string H5t.c_s1
+    (fun dims ->
+      if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
+      Bytes.create dims.(0) |> Bytes.to_string)
+    (fun _ _ -> assert false) t None name
 
 let read_string_array t name =
   let datatype = H5t.copy H5t.c_s1 in

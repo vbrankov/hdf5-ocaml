@@ -1,22 +1,13 @@
-open Bigarray
-
 module Ext : sig
   type t
 end
 
 module Mem : sig
-  type t = (char, int8_unsigned_elt, c_layout) Array1.t
+  type t
 end
 
 module Ptr : sig
-  type t = {
-    mutable ptr    : Ext.t;
-    mutable mem    : Mem.t;
-    mutable begin_ : Ext.t;
-    mutable end_   : Ext.t;
-    mutable len    : int;
-    mutable pos    : int;
-  }
+  type t
 
   val unsafe_next : t -> int -> unit
   val unsafe_prev : t -> int -> unit
@@ -45,3 +36,9 @@ module type S = sig
 end
 
 module Make(S : S) : Struct_intf.S_no_ppx
+
+(** Must be called before each call to [Marshal.to_*] to preserve sharing. *)
+external reset_serialize : unit -> unit = "hdf5_caml_struct_reset_serialize"
+
+(** Must be called before each call to [Marshal.from_*] to preserve sharing. *)
+external reset_deserialize : unit -> unit = "hdf5_caml_struct_reset_deserialize"

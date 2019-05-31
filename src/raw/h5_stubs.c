@@ -3,6 +3,7 @@
 #include <string.h>
 #include <caml/alloc.h>
 #include <caml/bigarray.h>
+#include <caml/callback.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
@@ -91,7 +92,8 @@ value val_hsize_t_array(size_t length, hsize_t *a)
 size_t string_array_val(value v, char ***a)
 {
   long i, j, length, avlen;
-  char *vv, *av;
+  const char *vv;
+  char *av;
 
   length = Wosize_val(v);
   *a = calloc(length, sizeof(char*));
@@ -160,8 +162,9 @@ value Val_h5_iter_order(H5_iter_order_t iter_order)
   }
 }
 
-int H5_iter_val(value iter)
+herr_t H5_iter_val(value iter)
 {
+  if (Is_exception_result(iter)) return -1;
   switch (Int_val(iter))
   {
     case 0: return H5_ITER_CONT;
@@ -170,7 +173,7 @@ int H5_iter_val(value iter)
   }
 }
 
-value Val_h5_iter(int iter)
+value Val_h5_iter(herr_t iter)
 {
   switch (iter)
   {

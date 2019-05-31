@@ -91,7 +91,7 @@ let () =
 
   let src = H5.open_rdwr _FILE in
   let dst = H5.open_rdwr "dest.h5" in
-  H5.merge ~src ~dst;
+  H5.merge ~src ~dst ~on_duplicate:`Skip;
   H5.close src;
   H5.close dst;
 
@@ -134,6 +134,8 @@ let () =
     done
   done;
   H5.write_float_array3 h5 "d" d;
+  let e = "abcdefghijkl" in
+  H5.write_string h5 "e" e;
   H5.close h5;
   let h5 = H5.open_rdonly _FILE in
   assert (a = H5.read_string_array h5 "a");
@@ -161,6 +163,7 @@ let () =
       done
     done
   done;
+  assert (e = H5.read_string h5 "e");
   H5.close h5;
 
   let h5 = H5.create_trunc _FILE in
@@ -221,7 +224,7 @@ let () =
   (* Threads *)
   let h5 = H5.create_trunc "test.h5" in
   let a = Array.init (1024 * 1024) float_of_int in
-  H5.write_float_array h5 "a" a;
+  H5.write_float_array h5 ~deflate:0 "a" a;
   H5.close h5;
 
   let h5 = H5.open_rdonly "test.h5" in
@@ -244,4 +247,33 @@ let () =
   H5.with_group h5 "fo/o" (fun h5 ->
     assert (H5.ls h5 = [ "ba/r" ]);
     assert (H5.read_float_array h5 "ba/r" = [| 0. |]));
-  H5.close h5
+  H5.close h5;
+
+  let h5 = H5.create_trunc "test.h5" in
+  let a = Array2.create float64 fortran_layout 10 3 in
+  for i = 1 to Array2.dim1 a do
+    for j = 1 to Array2.dim2 a do
+      a.{i, j} <- float i *. float j
+    done
+  done;
+  H5.write_float_array2 h5 "a" a;
+  H5.close h5;
+
+  let h5 = H5.open_rdonly "test.h5" in
+  let b = H5.read_float_array2 h5 "a" fortran_layout in
+  for i = 1 to Array2.dim1 a do
+    for j = 1 to Array2.dim2 a do
+      assert (a.{i, j} = b.{i, j})
+    done
+  done;
+
+  let c = Array2.create float64 fortran_layout 5 3 in
+  begin
+    try
+      let _ = H5.read_float_array2 h5 "a" ~data:c fortran_layout in
+      assert false
+    with _ -> ()
+  end;
+  H5.close h5;
+  Sys.remove "dest.h5";
+  Sys.remove "test.h5"

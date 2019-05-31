@@ -1,7 +1,10 @@
 (library
  (name hdf5_caml)
  (public_name hdf5-ocaml.caml)
- (libraries bigarray hdf5_raw))
+ (c_names struct_stubs)
+ (libraries bigarray hdf5_raw)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test)))
 
 (rule
  (targets h5.ml)
