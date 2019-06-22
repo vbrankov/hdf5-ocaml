@@ -90,14 +90,17 @@ val create_external_link : t -> target_file_name:string -> target_obj_name:strin
 (** Returns the HDF5 handle *)
 val hid : t -> Hid.t
 
-(** Construct Dataset H5.t from HDF5 handle *)
+(** Construct H5.t from dataset HDF5 handle *)
 val dataset : Hid.t -> t
 
-(** Construct File H5.t from HDF5 handle *)
+(** Construct H5.t from file HDF5 handle *)
 val file : Hid.t -> t
 
-(** Construct Group H5.t from HDF5 handle *)
+(** Construct H5.t from group HDF5 handle *)
 val group : Hid.t -> t
+
+(** Construct H5.t from group, file, or dataset HDF5 handle *)
+val h5t : Hid.t -> t
 
 (** Writes the given uint8 Array1.t to the data set. *)
 val write_uint8_array1 : t -> string -> ?deflate:int
