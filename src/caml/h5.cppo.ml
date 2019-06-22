@@ -69,6 +69,12 @@ let hid = function
 | File f -> f
 | Group g -> g
 
+let dataset d = Dataset d
+
+let file f = File f
+
+let group g = Group g
+
 type open_ = ?meta_block_size:int -> ?split:bool -> string -> t
 
 let open_ (open_ : string -> ?fapl : Hid.t -> H5f.Acc.t list -> Hid.t) acc =
