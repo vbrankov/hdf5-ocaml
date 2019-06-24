@@ -69,6 +69,30 @@ let hid = function
 | File f -> f
 | Group g -> g
 
+let dataset d =
+  match H5i.get_type d with
+  | H5i.Type.DATASET -> File d
+  | _ -> raise H5i.Fail
+
+let file f =
+  match H5i.get_type f with
+  | H5i.Type.FILE -> File f
+  | _ -> raise H5i.Fail
+
+let group g =
+  match H5i.get_type g with
+  | H5i.Type.GROUP -> Group g
+  | _ -> raise H5i.Fail
+
+let h5t x =
+  let open H5i in
+  let open Type in
+  match get_type x with
+  | FILE -> File x
+  | GROUP-> Group x
+  | DATASET-> Dataset x
+  | _ -> raise Fail
+
 type open_ = ?meta_block_size:int -> ?split:bool -> string -> t
 
 let open_ (open_ : string -> ?fapl : Hid.t -> H5f.Acc.t list -> Hid.t) acc =
