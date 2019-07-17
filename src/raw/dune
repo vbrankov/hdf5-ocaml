@@ -1,6 +1,6 @@
 (library
  (name hdf5_raw)
- (public_name hdf5-ocaml.raw)
+ (public_name hdf5.raw)
  (c_names
   h5a_stubs
   h5d_stubs

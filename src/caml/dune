@@ -1,6 +1,6 @@
 (library
  (name hdf5_caml)
- (public_name hdf5-ocaml.caml)
+ (public_name hdf5.caml)
  (c_names struct_stubs)
  (libraries bigarray hdf5_raw)
  (inline_tests)
