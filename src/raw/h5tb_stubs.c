@@ -309,12 +309,12 @@ value hdf5_h5tb_get_field_info(value loc_v, value table_name_v)
   loc_id = Hid_val(loc_v);
   table_name = String_val(table_name_v);
   raise_if_fail(H5TBget_table_info(loc_id, table_name, &nfields, &nrecords));
-  field_names = calloc(nfields, sizeof(char*));
+  field_names = malloc(nfields * sizeof(char*));
   if (field_names == NULL)
     caml_raise_out_of_memory();
   for (i = 0; i < nfields; i++)
   {
-    field_names[i] = calloc(255, sizeof(char*));
+    field_names[i] = malloc(255 * sizeof(char*));
     if (field_names[i] == NULL)
     {
       for (j = 0; j < i; j++)
@@ -323,13 +323,13 @@ value hdf5_h5tb_get_field_info(value loc_v, value table_name_v)
       caml_raise_out_of_memory();
     }
   }
-  field_sizes = calloc(nfields, sizeof(size_t));
+  field_sizes = malloc(nfields * sizeof(size_t));
   if (field_sizes == NULL)
   {
     free(field_names);
     caml_raise_out_of_memory();
   }
-  field_offsets = calloc(nfields, sizeof(size_t));
+  field_offsets = malloc(nfields * sizeof(size_t));
   if (field_offsets == NULL)
   {
     free(field_names);

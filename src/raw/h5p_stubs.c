@@ -192,7 +192,7 @@ value hdf5_h5p_get_chunk(value plist_v)
   CAMLlocal1(v);
 
   max_ndims = H5Pget_chunk(Hid_val(plist_v), 0, NULL);
-  dims = calloc(max_ndims, sizeof(hsize_t));
+  dims = malloc(max_ndims * sizeof(hsize_t));
   if (dims == NULL)
     caml_raise_out_of_memory();
   H5Pget_chunk(Hid_val(plist_v), max_ndims, dims);

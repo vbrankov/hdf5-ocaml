@@ -15,7 +15,7 @@ size_t unsigned_int_array_val(value v, unsigned int **a)
   long i, length, e;
 
   length = Wosize_val(v);
-  *a = calloc(length, sizeof(unsigned int));
+  *a = malloc(length * sizeof(unsigned int));
   if (*a == NULL)
     return length;
   for (i = 0; i < length; i++)
@@ -31,7 +31,7 @@ size_t size_t_array_val(value v, size_t **a)
   size_t i, length;
 
   length = Wosize_val(v);
-  *a = calloc(length, sizeof(size_t));
+  *a = malloc(length * sizeof(size_t));
   if (*a == NULL)
     return length;
   for (i = 0; i < length; i++)
@@ -58,7 +58,7 @@ size_t hsize_t_array_val(value v, hsize_t **a)
   long i, length, e;
 
   length = Wosize_val(v);
-  *a = calloc(length, sizeof(hsize_t));
+  *a = malloc(length * sizeof(hsize_t));
   if (*a == NULL)
     return length;
   for (i = 0; i < length; i++)
@@ -96,7 +96,7 @@ size_t string_array_val(value v, char ***a)
   char *av;
 
   length = Wosize_val(v);
-  *a = calloc(length, sizeof(char*));
+  *a = malloc(length * sizeof(char*));
   if (*a == NULL)
     return length;
   for (i = 0; i < length; i++)

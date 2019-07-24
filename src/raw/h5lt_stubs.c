@@ -28,7 +28,7 @@ value hdf5_h5lt_get_dataset_info(value loc_id_v, value dset_name_v)
   herr_t err;
   
   raise_if_fail(H5LTget_dataset_ndims(loc_id, dset_name, &rank));
-  dims = calloc(rank, sizeof(hsize_t));
+  dims = malloc(rank * sizeof(hsize_t));
   if (dims == NULL)
     caml_raise_out_of_memory();
   err = H5LTget_dataset_info(loc_id, dset_name, dims, &class_id, &type_size);

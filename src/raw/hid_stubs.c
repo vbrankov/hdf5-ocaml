@@ -30,7 +30,7 @@ size_t hid_array_val(value v, hid_t **a)
   size_t i, length;
 
   length = Wosize_val(v);
-  *a = calloc(length, sizeof(hid_t));
+  *a = malloc(length * sizeof(hid_t));
   if (*a == NULL)
     return length;
   for (i = 0; i < length; i++)

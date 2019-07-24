@@ -250,7 +250,7 @@ value hdf5_h5f_get_obj_ids(value file_v, value types_v)
   ssize_t max_objs = H5Fget_obj_count(file_id, types), ret;
   hid_t *obj_id_list;
   raise_if_fail(max_objs);
-  obj_id_list = (hid_t*) calloc(max_objs, sizeof(hid_t));
+  obj_id_list = (hid_t*) malloc(max_objs * sizeof(hid_t));
   if (obj_id_list == NULL)
     caml_raise_out_of_memory();
   ret = H5Fget_obj_ids(file_id, types, max_objs, obj_id_list);

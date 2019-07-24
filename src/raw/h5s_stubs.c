@@ -133,10 +133,10 @@ value hdf5_h5s_get_simple_extent_dims(value space_id_v)
   int ndims = H5Sget_simple_extent_ndims(space_id);
   if (ndims < 0)
     fail();
-  dims = calloc(ndims, sizeof(hsize_t));
+  dims = malloc(ndims * sizeof(hsize_t));
   if (dims == NULL)
     caml_raise_out_of_memory();
-  maxdims = calloc(ndims, sizeof(hsize_t));
+  maxdims = malloc(ndims * sizeof(hsize_t));
   if (maxdims == NULL)
   {
     free(dims);
@@ -227,7 +227,7 @@ value hdf5_h5s_get_select_hyper_blocklist(value startblock_opt_v, value numblock
     if (nblocks < 0) fail();
     numblocks = nblocks - startblock;
   }
-  buf = calloc(numblocks * 2 * ndims, sizeof(hsize_t));
+  buf = malloc(numblocks * 2 * ndims * sizeof(hsize_t));
   if (buf == NULL)
     caml_raise_out_of_memory();
   err = H5Sget_select_hyper_blocklist(space_id, startblock, numblocks, buf);
@@ -259,7 +259,7 @@ value hdf5_h5s_get_select_elem_pointlist(value startblock_opt_v, value numpoints
     if (npoints < 0) fail();
     numpoints = npoints - startblock;
   }
-  buf = calloc(numpoints * 2 * ndims, sizeof(hsize_t));
+  buf = malloc(numpoints * 2 * ndims * sizeof(hsize_t));
   if (buf == NULL)
     caml_raise_out_of_memory();
   err = H5Sget_select_elem_pointlist(space_id, startblock, numpoints, buf);

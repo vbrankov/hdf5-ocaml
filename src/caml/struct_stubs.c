@@ -76,7 +76,7 @@ value hdf5_caml_struct_mem_create(value capacity_v, value size_v)
   capacity = Long_val(capacity_v);
   size = Long_val(size_v);
 
-  data = calloc(capacity, size);
+  data = malloc(capacity * size);
   if (data == NULL)
     caml_hdf5_raise_out_of_memory();
 
@@ -196,7 +196,7 @@ struct hdf5_caml_mem* deserialize_mem()
     mem = malloc(sizeof(struct hdf5_caml_mem));
     if (mem == NULL)
       caml_hdf5_raise_out_of_memory();
-    data = calloc(capacity, size);
+    data = malloc(capacity * size);
     if (data == NULL)
     {
       free(mem);
@@ -385,7 +385,7 @@ void hdf5_caml_struct_reset_deserialize()
   if (mems_capacity == 0)
   {
     mems_capacity = 256;
-    mems = calloc(mems_capacity, sizeof(struct hdf5_caml_mem*));
+    mems = malloc(mems_capacity * sizeof(struct hdf5_caml_mem*));
     if (mems == NULL)
       caml_hdf5_raise_out_of_memory();
   }
