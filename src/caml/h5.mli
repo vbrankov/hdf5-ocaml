@@ -124,6 +124,11 @@ val write_string_array : t -> string -> ?deflate:int -> string array -> unit
 (** Reads the data set into a string array. *)
 val read_string_array : t -> string -> string array
 
+(** Reads the data set into a bigstring array.  It is slightly faster than
+    [read_string_array] because it does not do [memcpy] for each element. *)
+val read_bigstring_array : t -> string
+  -> (char, int8_unsigned_elt, c_layout) Array1.t array
+
 (** [write_attribute_int64 t name v] writes the given [int64] as an attribute with the
     given name. *)
 val write_attribute_int64 : t -> string -> int64 -> unit

@@ -42,6 +42,8 @@ module C_string : sig
 
   val null : t
   external to_string : t -> string = "caml_copy_string"
+  external to_bigstring : t -> (char, int8_unsigned_elt, c_layout) Array1.t
+    = "hdf5_h5d_c_string_to_bigstring"
   external free : t -> unit = "free"
 end
 

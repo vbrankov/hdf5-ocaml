@@ -43,6 +43,8 @@ module C_string = struct
   external int_as_pointer : 'a -> 'b = "%int_as_pointer"
   let null = int_as_pointer 0
   external to_string : t -> string = "caml_copy_string"
+  external to_bigstring : t -> (char, int8_unsigned_elt, c_layout) Array1.t
+    = "hdf5_h5d_c_string_to_bigstring"
   external free : t -> unit = "free"
 end
 

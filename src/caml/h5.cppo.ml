@@ -433,6 +433,24 @@ let read_string_array t name =
     H5d.C_string.free cs;
     s) data
 
+let read_bigstring_array t name =
+  let datatype = H5t.copy H5t.c_s1 in
+  H5t.set_size datatype H5t.variable;
+
+  let data = read_data H5d.read_c_string_array datatype
+    (fun dims ->
+      if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
+      Array.make dims.(0) H5d.C_string.null)
+    (fun _ _ -> assert false) t None name in
+  H5t.close datatype;
+  (* We will reuse [data] *)
+  for i = 0 to Array.length data - 1 do
+    Array.unsafe_get data i
+    |> H5d.C_string.to_bigstring
+    |> Array.unsafe_set (Obj.magic data) i
+  done;
+  Obj.magic data
+
 let write_attribute_int64 t name v =
   let dataspace = H5s.create H5s.Class.SCALAR in
   let att = H5a.create (hid t) name H5t.native_int64 dataspace in

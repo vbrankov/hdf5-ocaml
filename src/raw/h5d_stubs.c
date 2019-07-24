@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <string.h>
 #include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/custom.h>
@@ -83,6 +84,19 @@ value Val_h5d_space_status(H5D_space_status_t s)
     case H5D_SPACE_STATUS_ALLOCATED:      return Val_int(2);
     default: caml_failwith("unrecognized H5D_space_status_t");
   }
+}
+
+value hdf5_h5d_c_string_to_bigstring(char *v)
+{
+  CAMLparam0();
+  size_t len;
+  const size_t maxlen = 1024 * 1024 * 1024;
+
+  len = strnlen(v, maxlen);
+  if (len == maxlen)
+    caml_failwith("The given C_string bigger than 1 Gb");
+  CAMLreturn(
+    caml_ba_alloc_dims(CAML_BA_CHAR | CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, v, len));
 }
 
 value hdf5_h5d_create(value loc_v, value name_v, value dtype_v, value lcpl_v,

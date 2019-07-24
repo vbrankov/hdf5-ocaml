@@ -276,4 +276,29 @@ let () =
   end;
   H5.close h5;
   Sys.remove "dest.h5";
-  Sys.remove "test.h5"
+  Sys.remove "test.h5";
+
+  let len = 1024 in
+  let a = Array.init len (fun i -> Printf.sprintf "%d" i) in
+  let h5 = H5.create_trunc "test.h5" in
+  H5.write_string_array h5 "a" a;
+  H5.close h5;
+
+  let h5 = H5.open_rdonly "test.h5" in
+  let b = H5.read_string_array h5 "a" in
+  assert (Array.length b = len);
+  for i = 0 to len - 1 do
+    assert (a.(i) = b.(i))
+  done;
+  let c = H5.read_bigstring_array h5 "a" in
+  assert (Array.length c = len);
+  for i = 0 to len - 1 do
+    let a = a.(i) in
+    let c = c.(i) in
+    let len = String.length a in
+    assert (Array1.dim c = len);
+    for j = 0 to len - 1 do
+      assert (a.[j] = c.{j})
+    done
+  done;
+  H5.close h5
