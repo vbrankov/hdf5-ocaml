@@ -358,52 +358,43 @@ end
 module Make(S : S) = struct
   include S
 
-  (* This is necessary to prevent external pointers from being top level values of the
-     module, which would prevent it from being marshaled *)
-  let memoize f =
-    let memo = ref None in
-    fun () ->
-      match !memo with
-      | Some value -> value
-      | None ->
-        let value = f () in
-        memo := Some value;
-        value
-
-  let nfields = List.length S.fields
+  let afields = Array.of_list S.fields
+  let nfields = Array.length afields
   let type_bsize = List.fold_left (fun s field ->
     s + (Type.size field.Field.type_ + 7) / 8 * 8 / 2) 0 S.fields
   let type_size = 2 * type_bsize
-  let field_names =
-    List.map (fun field -> field.Field.name) S.fields
-    |> Array.of_list
+
+  let field_names = Array.map (fun field -> field.Field.name) afields
+
   let field_offset =
     let offset = ref 0 in
-    List.map (fun field ->
+    Array.map (fun field ->
       let field_offset = !offset in
       offset := !offset + (Type.size field.Field.type_ + 7) / 8 * 8;
-      field_offset) S.fields
-    |> Array.of_list
-  let field_types = memoize (fun () ->
-    List.map (fun field ->
-      match field.Field.type_ with
-      | Type.Int | Type.Int64 -> H5t.native_long
-      | Type.Float64 -> H5t.native_double
-      | Type.String l ->
-        let type_ = H5t.copy H5t.c_s1 in
-        H5t.set_size type_ l;
-        type_) S.fields
-    |> Array.of_list)
-  let field_sizes =
-    List.map (fun field -> Type.size field.Field.type_) S.fields
-    |> Array.of_list
-  let compound_type = memoize (fun () ->
+      field_offset) afields
+
+  let field_type (field : Field.t) =
+    match field.Field.type_ with
+    | Int | Int64 -> H5t.native_long
+    | Float64 -> H5t.native_double
+    | String l ->
+      let type_ = H5t.copy H5t.c_s1 in
+      H5t.set_size type_ l;
+      type_
+
+  let field_sizes = Array.map (fun field -> Type.size field.Field.type_) afields
+
+  let compound_type () =
     let datatype = H5t.create H5t.Class.COMPOUND type_size in
-    let field_types = field_types () in
     for i = 0 to nfields - 1 do
-      H5t.insert datatype field_names.(i) field_offset.(i) field_types.(i)
+      let field = afields.(i) in
+      let field_type = field_type field in
+      H5t.insert datatype field.name field_offset.(i) field_type;
+      match field.type_ with
+      | String _ -> H5t.close field_type
+      | _ -> ()
     done;
-    datatype)
+    datatype
 
   include Ptr
 
@@ -451,9 +442,15 @@ module Make(S : S) = struct
         | Some s -> s
         (* Chunk size must be <4GB *)
         | None -> min (1024 * 1024) (max 1 (length t)) in
+      let field_types = Array.map field_type afields in
       H5tb.make_table title (H5.hid h5) (H5.escape dset_name) ~nrecords:(length t)
-        ~type_size ~field_names ~field_offset ~field_types:(field_types ()) ~chunk_size
-        ~compress (Mem.data t)
+        ~type_size ~field_names ~field_offset ~field_types ~chunk_size ~compress
+        (Mem.data t);
+      for i = 0 to nfields - 1 do
+        match afields.(i).type_ with
+        | String _ -> H5t.close field_types.(i)
+        | _ -> ()
+      done
 
     let append_records t h5 dset_name =
       H5tb.append_records (H5.hid h5) (H5.escape dset_name) ~nrecords:(length t)
@@ -500,6 +497,7 @@ module Make(S : S) = struct
         H5d.create (H5.hid h5) (H5.escape name) compound_type ?dcpl dataspace in
       H5d.write_string dataset compound_type H5s.all H5s.all (Mem.data t |> Obj.magic);
       H5d.close dataset;
+      H5t.close compound_type;
       H5s.close dataspace;
       match dcpl with
       | None -> ()
@@ -524,6 +522,7 @@ module Make(S : S) = struct
         | None -> make dims.(0) in
       H5d.read_string dataset datatype H5s.all H5s.all (Mem.data data |> Obj.magic);
       H5s.close dataspace;
+      H5t.close compound_type;
       H5t.close datatype;
       H5d.close dataset;
       data

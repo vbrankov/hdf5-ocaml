@@ -132,8 +132,6 @@ let () =
     assert (Record.Vector.end_ v |> Record.i = i)
   done;
 
-  let _ = Marshal.to_string (module Record : Hdf5_caml.Struct_intf.S) [Closures] in
-
   let h5 = H5.create_trunc "test.h5" in
   Record.Array.make_table a h5 "f\\o/o";
   Record.Array.write a h5 "b\\a/r";
@@ -196,6 +194,8 @@ let () =
   Record.Vector.append v
   |> Record.set ~sf64:0. ~si:0 ~si64:0L ~ss:"              " ~f64:0. ~i:0 ~i64:0L
     ~s:"                ";
+
+  let _ = Marshal.to_string (module Record : Hdf5_caml.Struct_intf.S) [Closures] in
 
   let v = Simple.Vector.create () in
   for _ = 0 to 15 do
