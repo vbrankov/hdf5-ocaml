@@ -172,8 +172,7 @@ let () =
 
   (* This test used to trigger a segfault when [Ext.t] leaked in [Struct.set_string] and
      [Struct.Vector.realloc]. *)
-  for n = 0 to 7 do
-    Printf.printf "%d\r%!" n;
+  for _ = 0 to 7 do
     let v = Record.Vector.create () in
     let s = "" in
     for i = 0 to 16 * 1024 * 1024 - 1 do
