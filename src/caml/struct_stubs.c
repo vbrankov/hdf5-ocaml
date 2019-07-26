@@ -1,11 +1,39 @@
+#include <assert.h>
 #include <memory.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/intext.h>
 #include <caml/memory.h>
+#include "hdf5_caml.h"
+
+value hdf5_caml_struct_bigstring_of_string(value s_v)
+{
+  CAMLparam1(s_v);
+  CAMLlocal1(b_v);
+  long dim;
+  void *data;
+
+  dim = caml_string_length(s_v);
+  b_v =
+    caml_ba_alloc_dims(
+      CAML_BA_CHAR | CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, NULL, Wosize_val(s_v) + 1);
+  data = Caml_ba_data_val(b_v);
+  memcpy(data, String_val(s_v), dim);
+  /* HDF5 requires strings to be null terminated */
+  ((char*) data)[dim] = '\0';
+
+  CAMLreturn(b_v);
+}
+
+value hdf5_caml_struct_bigstring_to_string(value b_v)
+{
+  CAMLparam1(b_v);
+  CAMLreturn(caml_copy_string(Caml_ba_data_val(b_v)));
+}
 
 /* [Mem.t] and [Ptr.t] support marshalling with sharing.  Each call to [Marshal.to_*] is
    assigned a new [serialize_count].  Serializing [Mem.t] and [Ptr.t] stores the
@@ -32,6 +60,15 @@ static struct custom_operations hdf5_mem_ops = {
 #endif
 };
 
+struct hdf5_caml_field {
+  /* The size of the field */
+  size_t size;
+  /* Indicates whether the field has a variable length */
+  bool variable;
+  /* The proxies for variable length field */
+  struct caml_ba_proxy **proxies;
+};
+
 struct hdf5_caml_mem {
   size_t refcount;
   void *data;
@@ -49,9 +86,13 @@ struct hdf5_caml_mem {
   unsigned long serialize_count;
   /* The ID of this struct in the latest serialization. */
   unsigned long serialize_id;
+  /* The number of table fields. */
+  value nfields;
+  /* The field data. */
+  struct hdf5_caml_field *fields;
 };
 
-#define Mem_val(v) *((struct hdf5_caml_mem**) Data_custom_val(v))
+#define Mem_val(v) (*((struct hdf5_caml_mem**) Data_custom_val(v)))
 
 #define CAML_HDF5_MAX_MEMORY (1024 * 1024 * 1024)
 
@@ -65,16 +106,20 @@ void caml_hdf5_raise_out_of_memory()
   caml_failwith(msg);
 }
 
-value hdf5_caml_struct_mem_create(value capacity_v, value size_v)
+value hdf5_caml_struct_mem_create(
+  value capacity_v, value size_v, value field_sizes_v, value variable_v)
 {
-  CAMLparam2(capacity_v, size_v);
+  CAMLparam4(capacity_v, size_v, field_sizes_v, variable_v);
   CAMLlocal1(v);
   void *data;
-  size_t capacity, size;
+  size_t capacity, size, nfields, field_size, i, j;
   struct hdf5_caml_mem *mem;
+  bool variable, has_variable;
+  struct hdf5_caml_field *fields;
 
   capacity = Long_val(capacity_v);
   size = Long_val(size_v);
+  nfields = Wosize_val(field_sizes_v);
 
   data = malloc(capacity * size);
   if (data == NULL)
@@ -86,8 +131,16 @@ value hdf5_caml_struct_mem_create(value capacity_v, value size_v)
     free(data);
     caml_hdf5_raise_out_of_memory();
   }
-  memory_allocated += capacity * size;
 
+  fields = malloc(nfields * sizeof(struct hdf5_caml_field));
+  if (nfields > 0 && fields == NULL)
+  {
+    free(data);
+    free(mem);
+    caml_hdf5_raise_out_of_memory();
+  }
+
+  memory_allocated += capacity * size;
   mem->data = data;
   mem->refcount = 1;
   mem->capacity = capacity_v;
@@ -95,6 +148,22 @@ value hdf5_caml_struct_mem_create(value capacity_v, value size_v)
   mem->size = size_v;
   mem->serialize_count = 0;
   mem->serialize_id = 0;
+  mem->nfields = Val_long(nfields);
+  mem->fields = fields;
+
+  has_variable = false;
+  for (i = 0; i < nfields; i++)
+  {
+    variable           = Bool_val(Field(variable_v, i));
+    fields[i].size     = Long_val(Field(field_sizes_v, i));
+    fields[i].variable = variable;
+    fields[i].proxies  = NULL;
+    has_variable |= variable;
+  }
+  /* Variable fields need to be initialized to NULL since they will be freed on finalize
+    */
+  if (has_variable)
+    memset(data, 0, capacity * size);
 
   v =
     caml_alloc_custom(
@@ -118,11 +187,45 @@ value hdf5_caml_struct_mem_of_mem(struct hdf5_caml_mem *mem)
 void hdf5_mem_finalize(value v)
 {
   struct hdf5_caml_mem *mem;
+  struct caml_ba_proxy **proxies, *proxy;
+  void *data;
+  size_t i, j, nfields, offset, size, capacity;
 
   mem = Mem_val(v);
   if (--mem->refcount == 0)
   {
-    memory_allocated -= Long_val(mem->capacity) * Long_val(mem->size);
+    size = Long_val(mem->size);
+    offset = 0;
+    nfields = Long_val(mem->nfields);
+    capacity = Long_val(mem->capacity);
+    for (i = 0; i < nfields; i++)
+    {
+      if (mem->fields[i].variable)
+      {
+        data = mem->data + offset;
+        proxies = mem->fields[i].proxies;
+        if (proxies == NULL)
+          for (j = 0; j < capacity; j++)
+          {
+            free(*((void**) data));
+            data += size;
+          }
+        else
+          for (j = 0; j < capacity; j++)
+          {
+            proxy = proxies[j];
+            if (proxy == NULL || --proxy->refcount == 0)
+            {
+              free(*((void**) data));
+              free(proxy);
+            }
+            data += size;
+          }
+      }
+      offset += mem->fields[i].size;
+    }
+    memory_allocated -= capacity * size;
+    free(mem->fields);
     free(mem->data);
     free(mem);
   }
@@ -133,7 +236,10 @@ static unsigned long serialize_id = 0;
 
 void serialize_mem(struct hdf5_caml_mem *mem)
 {
-  size_t nmemb, size;
+  size_t capacity, nmemb, size, nfields, field_size, offset, len, i, j;
+  bool variable;
+  void *data;
+  char *s;
 
   /* Check whether this [hdf5_caml_mem] was already serialized in this serialization
      session.  If so, only store its ID.  Otherwise assign it a new ID and store the whole
@@ -146,13 +252,43 @@ void serialize_mem(struct hdf5_caml_mem *mem)
   {
     mem->serialize_count = serialize_count;
     mem->serialize_id = serialize_id++;
-    nmemb = Long_val(mem->nmemb);
-    size  = Long_val(mem->size);
+    capacity = Long_val(mem->capacity);
+    nmemb    = Long_val(mem->nmemb);
+    size     = Long_val(mem->size);
+    nfields  = Long_val(mem->nfields);
     caml_serialize_int_8(mem->serialize_id);
-    caml_serialize_int_8(Long_val(mem->capacity));
+    caml_serialize_int_8(capacity);
     caml_serialize_int_8(nmemb);
     caml_serialize_int_8(size);
+    caml_serialize_int_8(nfields);
+    for (i = 0; i < nfields; i++)
+    {
+      caml_serialize_int_8(mem->fields[i].size);
+      caml_serialize_int_1(mem->fields[i].variable);
+    }
     caml_serialize_block_1(mem->data, nmemb * size);
+    offset = 0;
+    for (i = 0; i < nfields; i++)
+    {
+      if (mem->fields[i].variable)
+      {
+        data = mem->data + offset;
+        for (j = 0; j < capacity; j++)
+        {
+          s = *((char**) data);
+          if (s == NULL)
+            caml_serialize_int_8(0);
+          else
+          {
+            len = strnlen(s, MAX_BIGSTRING_LEN);
+            caml_serialize_int_8(len + 1);
+            caml_serialize_block_1(s, len);
+          }
+          data += size;
+        }
+      }
+      offset += mem->fields[i].size;
+    }
   }
 }
 
@@ -171,8 +307,10 @@ struct hdf5_caml_mem* deserialize_mem()
 {
   struct hdf5_caml_mem *mem;
   unsigned long id;
-  size_t capacity, nmemb, size;
+  size_t capacity, nmemb, size, nfields, offset, len, i, j;
   void *data;
+  struct hdf5_caml_field *fields;
+  char *s;
 
   id = caml_deserialize_uint_8();
   /* If we have already deserialized this [hdf5_caml_mem] just fetch it.  IDs come in
@@ -193,14 +331,28 @@ struct hdf5_caml_mem* deserialize_mem()
     capacity = caml_deserialize_uint_8();
     nmemb    = caml_deserialize_uint_8();
     size     = caml_deserialize_uint_8();
+    nfields  = caml_deserialize_uint_8();
     mem = malloc(sizeof(struct hdf5_caml_mem));
     if (mem == NULL)
       caml_hdf5_raise_out_of_memory();
+    fields = malloc(nfields * sizeof(struct hdf5_caml_field));
+    if (nfields > 0 && fields == NULL)
+    {
+      free(mem);
+      caml_hdf5_raise_out_of_memory();
+    }
     data = malloc(capacity * size);
     if (data == NULL)
     {
       free(mem);
+      free(fields);
       caml_hdf5_raise_out_of_memory();
+    }
+    for (i = 0; i < nfields; i++)
+    {
+      fields[i].size     = caml_deserialize_uint_8();
+      fields[i].variable = caml_deserialize_uint_1();
+      fields[i].proxies  = NULL;
     }
     memory_allocated += capacity * size;
     caml_deserialize_block_1(data, nmemb * size);
@@ -211,7 +363,35 @@ struct hdf5_caml_mem* deserialize_mem()
     mem->size = Val_long(size);
     mem->serialize_count = 0;
     mem->serialize_id = 0;
+    mem->nfields = Val_long(nfields);
+    mem->fields = fields;
     mems[id] = mem;
+    offset = 0;
+    for (i = 0; i < nfields; i++)
+    {
+      if (fields[i].variable)
+      {
+        data = mem->data + offset;
+        for (j = 0; j < capacity; j++)
+        {
+          len = caml_deserialize_uint_8();
+          if (len == 0)
+            *((void**) data) = NULL;
+          else
+          {
+            s = malloc(len);
+            if (s == NULL)
+              /* There's a memory leak here but it's highly unlikely it will matter */
+              caml_hdf5_raise_out_of_memory();
+            caml_deserialize_block_1(s, len - 1);
+            s[len - 1] = '\0';
+            *((char**) data) = s;
+          };
+          data += size;
+        }
+      }
+      offset += fields[i].size;
+    }
   }
 
   return mem;
@@ -265,16 +445,90 @@ void hdf5_caml_struct_mem_blit(
 {
   CAMLparam3(src_v, dst_v, len_v);
   struct hdf5_caml_mem *src, *dst;
-  size_t size;
+  size_t src_pos, dst_pos, len, nfields, size, offset, dim, i, j;
+  struct caml_ba_proxy **src_proxies, **dst_proxies, *proxy;
+  void *data;
 
-  src = Mem_val(src_v);
-  dst = Mem_val(dst_v);
-  size = Long_val(src->size);
+  src     = Mem_val(src_v);
+  dst     = Mem_val(dst_v);
+  src_pos = Long_val(src_pos_v);
+  dst_pos = Long_val(dst_pos_v);
+  len     = Long_val(len_v);
+  size    = Long_val(src->size);
+  nfields = Long_val(src->nfields);
+
   memcpy(
-    (char*) dst->data + Long_val(src_pos_v) * size,
-    (char*) src->data + Long_val(dst_pos_v) * size,
-    Long_val(len_v) * size);
+    (char*) dst->data + dst_pos * size,
+    (char*) src->data + src_pos * size,
+    len * size);
+
+  offset = 0;
+  for (i = 0; i < nfields; i++)
+  {
+    if (src->fields[i].variable)
+    {
+      src_proxies = src->fields[i].proxies;
+      if (src_proxies == NULL)
+      {
+        src_proxies = calloc(Long_val(src->capacity), sizeof(struct caml_ba_proxy*));
+        if (src_proxies == NULL)
+          caml_hdf5_raise_out_of_memory();
+        src->fields[i].proxies = src_proxies;
+      }
+      dst_proxies = dst->fields[i].proxies;
+      if (dst_proxies == NULL)
+      {
+        dst_proxies = calloc(Long_val(dst->capacity), sizeof(struct caml_ba_proxy*));
+        if (dst_proxies == NULL)
+          caml_hdf5_raise_out_of_memory();
+        dst->fields[i].proxies = dst_proxies;
+      }
+      data = src->data + offset;
+      for (j = 0; j < len; j++)
+      {
+        proxy = src_proxies[src_pos + j];
+        if (proxy == NULL)
+        {
+          proxy = malloc(sizeof(struct caml_ba_proxy));
+          if (proxy == NULL)
+            caml_hdf5_raise_out_of_memory();
+          proxy->refcount = 2;
+          proxy->data = *((char**) data);
+          dim = strnlen(proxy->data, MAX_BIGSTRING_LEN);
+          if (dim == MAX_BIGSTRING_LEN && ((char*) proxy->data)[dim] != '\0')
+            caml_failwith("The given C_string bigger than 1 Gb");
+          proxy->size = dim;
+          src_proxies[src_pos + j] = proxy;
+        }
+        else
+          ++proxy->refcount;
+        dst_proxies[dst_pos + j] = proxy;
+        data += size;
+      }
+    }
+    offset += src->fields[i].size;
+  }
+
   CAMLreturn0;
+}
+
+value hdf5_caml_struct_mem_field(value mem_v, value i_v)
+{
+  CAMLparam2(mem_v, i_v);
+  CAMLlocal1(res_v);
+  struct hdf5_caml_mem *mem;
+  size_t i;
+
+  mem = Mem_val(mem_v);
+  i = Long_val(i_v);
+
+  if (i >= mem->nfields)
+    caml_invalid_argument("index out of bounds");
+
+  res_v = caml_alloc_tuple(2);
+  Store_field(res_v, 0, Val_long(mem->fields[i].size));
+  Store_field(res_v, 1, Val_bool(mem->fields[i].variable));
+  CAMLreturn(res_v);
 }
 
 void hdf5_ptr_finalize(value v);
@@ -358,6 +612,109 @@ uintnat hdf5_ptr_deserialize(void *dst)
   ptr->pos = Val_long(pos);
 
   return sizeof(struct hdf5_caml_ptr);
+}
+
+value hdf5_caml_struct_ptr_get_bigstring(
+  void *ptr, struct hdf5_caml_mem *mem, long bo, value column_v, value row_v)
+{
+  CAMLparam2(column_v, row_v);
+  CAMLlocal1(res_v);
+  size_t column, row, dim;
+  struct caml_ba_proxy **proxies, *proxy;
+  char *data;
+
+  column = Long_val(column_v);
+  row    = Long_val(row_v);
+  data   = *((char**) ((char*) ptr + bo - 1));
+
+  proxies = mem->fields[column].proxies;
+  if (proxies == NULL)
+  {
+    proxies = calloc(Long_val(mem->capacity), sizeof(struct caml_ba_proxy*));
+    if (proxies == NULL)
+      caml_hdf5_raise_out_of_memory();
+    mem->fields[column].proxies = proxies;
+  }
+  proxy = proxies[row];
+  if (proxy == NULL)
+  {
+    proxy = malloc(sizeof(struct caml_ba_proxy));
+    if (proxy == NULL)
+      caml_hdf5_raise_out_of_memory();
+    proxies[row] = proxy;
+    proxy->refcount = 2;
+    proxy->data = data;
+    dim = strnlen(data, MAX_BIGSTRING_LEN);
+    if (dim == MAX_BIGSTRING_LEN && data[dim] != '\0')
+      caml_failwith("The given C_string bigger than 1 Gb");
+    proxy->size = dim;
+  }
+  else
+  {
+    ++proxy->refcount;
+    dim = proxy->size;
+  }
+  res_v =
+    caml_ba_alloc_dims(CAML_BA_CHAR | CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, data, dim);
+  Caml_ba_array_val(res_v)->proxy = proxy;
+  CAMLreturn(res_v);
+}
+
+void hdf5_caml_struct_ptr_set_bigstring(
+  void *ptr, struct hdf5_caml_mem *mem, long bo, value column_v, value row_v,
+  value bigstring_v)
+{
+  CAMLparam2(column_v, row_v);
+  size_t column, row;
+  struct caml_ba_array *bigstring;
+  struct caml_ba_proxy **proxies, *proxy;
+  void *data;
+
+  column    = Long_val(column_v);
+  row       = Long_val(row_v);
+  data      = ((char*) ptr + bo - 1);
+  bigstring = Caml_ba_array_val(bigstring_v);
+
+  proxies = mem->fields[column].proxies;
+  if (proxies == NULL)
+  {
+    proxies = calloc(Long_val(mem->capacity), sizeof(struct caml_ba_proxy*));
+    if (proxies == NULL)
+      caml_hdf5_raise_out_of_memory();
+    mem->fields[column].proxies = proxies;
+  }
+  proxy = proxies[row];
+  if (proxy == NULL || --proxy->refcount == 0)
+  {
+    free(*((void**) data));
+    free(proxy);
+  }
+  proxy = bigstring->proxy;
+  if (proxy == NULL)
+  {
+    proxy = malloc(sizeof(struct caml_ba_proxy));
+    if (proxy == NULL)
+      caml_hdf5_raise_out_of_memory();
+    proxy->refcount = 2;
+    proxy->data = bigstring->data;
+    proxy->size = bigstring->dim[0];
+    bigstring->proxy = proxy;
+  }
+  else
+    ++proxy->refcount;
+
+  proxies[row] = proxy;
+  *((void**) data) = proxy->data;
+
+  CAMLreturn0;
+}
+
+void hdf5_caml_struct_ptr_set_bigstring_bytecode(value *argv, int argn)
+{
+  assert(argn == 6);
+  return hdf5_caml_struct_ptr_set_bigstring(
+    (void*) argv[0], (struct hdf5_caml_mem*) argv[1], (long) argv[2], argv[3], argv[4],
+    argv[5]);
 }
 
 static bool initialized = false;

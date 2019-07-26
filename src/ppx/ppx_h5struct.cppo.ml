@@ -13,15 +13,17 @@ module Type = struct
   | Int
   | Int64
   | String of int
+  | Bigstring
 
   let to_string = function
-  | Float64  -> "Float64"
-  | Int      -> "Int"
-  | Int64    -> "Int64"
-  | String _ -> "String"
+  | Float64   -> "Float64"
+  | Int       -> "Int"
+  | Int64     -> "Int64"
+  | String _  -> "String"
+  | Bigstring -> "Bigstring"
 
   let wsize = function
-  | Float64 | Int | Int64 -> 1
+  | Float64 | Int | Int64 | Bigstring -> 1
   | String length -> (length + 7) / 8
 end
 
@@ -96,6 +98,8 @@ let rec extract_fields expression =
                     id)))
               in
               type_, Longident.Lident "string"
+            | "Bigstring" ->
+              Type.Bigstring, Longident.(Ldot (Ldot (Lident "Struct", "Bigstring"), "t"))
             | _ ->
               raise (Location.Error (Location.error ~loc (Printf.sprintf
                 "[%%h5struct] invalid field %s, unrecognized type %s" id type_)))
@@ -141,16 +145,17 @@ let rec construct_fields_list fields loc =
               { loc; txt = Longident.(
                   Ldot (Ldot (Lident "Hdf5_caml", "Type"),
                   match field.Field.type_ with
-                  | Type.Float64  -> "Float64"
-                  | Type.Int      -> "Int"
-                  | Type.Int64    -> "Int64"
-                  | Type.String _ -> "String")) }
+                  | Float64   -> "Float64"
+                  | Int       -> "Int"
+                  | Int64     -> "Int64"
+                  | String _  -> "String"
+                  | Bigstring -> "Bigstring" )) }
               ( match field.Field.type_ with
 #if OCAML_VERSION >= (4, 3, 0)
-                | Type.String length ->
+                | String length ->
                   Some (Exp.constant ~loc (Pconst_integer (string_of_int length, None)))
 #else
-                | Type.String length -> Some (Exp.constant ~loc (Const_int length))
+                | String length -> Some (Exp.constant ~loc (Const_int length))
 #endif
                 | _ -> None ) ];
         construct_fields_list fields loc ]))
@@ -186,7 +191,7 @@ let rec construct_function_call ~loc name args =
 and obj_magic ~loc exp =
   construct_function_call ~loc Longident.(Ldot (Lident "Obj", "magic")) [`Exp exp]
 
-let construct_field_get field pos loc =
+let construct_field_get field column pos loc =
   construct_function ~loc field.Field.id [ "t", Longident.Lident "t" ] (
     Exp.constraint_ ~loc
       (* Types [Discrete], [Time] and [Time_ns] are stored as [int] or [float] and to
@@ -195,38 +200,42 @@ let construct_field_get field pos loc =
         construct_function_call ~loc
           Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
             ( match field.Field.type_ with
-              | Type.Float64    -> "get_float64"
-              | Type.Int        -> "get_int"
-              | Type.Int64      -> "get_int64"
-              | Type.String _   -> "get_string" )))
+              | Float64    -> "get_float64"
+              | Int        -> "get_int"
+              | Int64      -> "get_int64"
+              | String _   -> "get_string"
+              | Bigstring  -> "get_bigstring" )))
           (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
              [Obj.magic] to access it. *)
           (   [ `Mgc "t" ]
             @ ( match field.Field.type_ with
-                | Type.Float64
-                | Type.Int
-                | Type.Int64 -> [ `Int pos ]
-                | Type.String length -> [ `Int pos; `Int length ] ) )))
+                | Float64
+                | Int
+                | Int64 -> [ `Int pos ]
+                | String length -> [ `Int pos; `Int length ]
+                | Bigstring -> [ `Int pos; `Int column ] ) )))
       (Typ.constr ~loc { txt = field.Field.ocaml_type; loc } []))
 
-let construct_field_set field pos loc =
+let construct_field_set field column pos loc =
   construct_function ~loc ("set_" ^ field.Field.id)
     [ "t", Longident.Lident "t"; "v", field.Field.ocaml_type ]
     (construct_function_call ~loc
       Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
         ( match field.Field.type_ with
-          | Type.Float64    -> "set_float64"
-          | Type.Int        -> "set_int"
-          | Type.Int64      -> "set_int64"
-          | Type.String _   -> "set_string" )))
+          | Float64    -> "set_float64"
+          | Int        -> "set_int"
+          | Int64      -> "set_int64"
+          | String _   -> "set_string"
+          | Bigstring  -> "set_bigstring" )))
       (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
          [Obj.magic] to access it. *)
       (   [ `Mgc "t" ]
         @ ( match field.Field.type_ with
-            | Type.Float64
-            | Type.Int
-            | Type.Int64 -> [ `Int pos ]
-            | Type.String length -> [ `Int pos; `Int length ] )
+            | Float64
+            | Int
+            | Int64 -> [ `Int pos ]
+            | String length -> [ `Int pos; `Int length ]
+            | Bigstring -> [ `Int pos; `Int column ] )
         (* Types [Discrete], [Time] and [Time_ns] are stored as [int] or [float] and to
            access them we need to use [Obj.magic]. *)
         @ [ `Mgc "v" ] ))
@@ -237,19 +246,21 @@ let construct_field_seek field ~bsize pos loc =
     (construct_function_call ~loc
       Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"),
         ( match field.Field.type_ with
-          | Type.Float64    -> "seek_float64"
-          | Type.Int        -> "seek_int"
-          | Type.Int64      -> "seek_int64"
-          | Type.String _   -> "seek_string" )))
+          | Float64    -> "seek_float64"
+          | Int        -> "seek_int"
+          | Int64      -> "seek_int64"
+          | String _   -> "seek_string"
+          | Bigstring  -> "seek_bigstring" )))
       (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
          [Obj.magic] to access it. *)
       ( [ `Mgc "t"; `Int (bsize / 2) ]
         @ (
           match field.Field.type_ with
-          | Type.Float64
-          | Type.Int
-          | Type.Int64 -> [ `Int pos ]
-          | Type.String len -> [ `Int pos; `Int len ] )
+          | Float64
+          | Int
+          | Int64 -> [ `Int pos ]
+          | String len -> [ `Int pos; `Int len ]
+          | Bigstring -> [ `Int pos ] )
         (* Types [Discrete], [Time] and [Time_ns] are stored as [int] or [float] and to
            access them we need to use [Obj.magic]. *)
         @ [ `Mgc "v" ] ))
@@ -347,17 +358,17 @@ let map_structure_item mapper structure_item =
       List.fold_left (fun sum field -> sum + Type.wsize field.Field.type_) 0 fields in
     let pos = ref 0 in
     let functions =
-      List.map (fun field ->
+      List.mapi (fun column field ->
         let functions =
-          [ construct_field_get field !pos loc;
-            construct_field_set field !pos loc ]
+          [ construct_field_get field column !pos loc;
+            construct_field_set field column !pos loc ]
           @ (
             if field.Field.seek then [ construct_field_seek field ~bsize !pos loc ]
             else [] ) in
         pos := !pos + (
           match field.Field.type_ with
-          | Type.Float64 | Type.Int | Type.Int64 -> 4
-          | Type.String length -> (length + 7) / 8 * 4);
+          | Float64 | Int | Int64 | Bigstring -> 4
+          | String length -> (length + 7) / 8 * 4);
         functions) fields
       |> List.concat
     in

@@ -90,10 +90,9 @@ value hdf5_h5d_c_string_to_bigstring(char *v)
 {
   CAMLparam0();
   size_t len;
-  const size_t maxlen = 1024 * 1024 * 1024;
 
-  len = strnlen(v, maxlen);
-  if (len == maxlen)
+  len = strnlen(v, MAX_BIGSTRING_LEN);
+  if (len == MAX_BIGSTRING_LEN && v[len] != '\0')
     caml_failwith("The given C_string bigger than 1 Gb");
   CAMLreturn(
     caml_ba_alloc_dims(CAML_BA_CHAR | CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, v, len));

@@ -206,3 +206,60 @@ let () =
   let e = Simple.Vector.append v in
   Simple.seek_f e 3.;
   assert (Simple.pos e = 0)
+
+module Big = struct
+  [%%h5struct
+    id  "ID"  Int;
+    big "Big" Bigstring;
+  ]
+end
+
+let stress_test_bigarray num_arrays num_elements =
+  let s = Array.init num_arrays (Printf.sprintf "%d") in
+  let create_array () =
+    let len = 1 + Random.int num_arrays in
+    let a = Big.Array.init len (fun i b ->
+      Big.set b ~id:i ~big:(Struct.Bigstring.of_string s.(i))) in
+    Big.Array.get a 0 in
+  let a = Array.init num_arrays (fun _ -> create_array ()) in
+  let create_element () =
+    let a = a.(Random.int num_arrays) in
+    let pos = Big.mem a |> Big.Array.length |> Random.int in
+    Big.move a pos;
+    let big = Big.big a in
+    assert (Struct.Bigstring.to_string big = s.(pos));
+    big in
+  let e = Array.init num_elements (fun _ -> create_element ()) in
+  Struct.reset_serialize ();
+  let marshalled = ref (Marshal.to_string a.(Random.int num_arrays) []) in
+  for _ = 0 to num_arrays - 1 do
+    for _ = 0 to num_elements - 1 do
+      match Random.int 13 with
+      | 0 -> a.(Random.int num_arrays) <- create_array ()
+      | 1 ->
+        Struct.reset_serialize ();
+        marshalled := Marshal.to_string a.(Random.int num_arrays) []
+      | 2 ->
+        Struct.reset_deserialize ();
+        a.(Random.int num_arrays) <- Marshal.from_string !marshalled 0
+      | _ -> e.(Random.int num_elements) <- create_element ()
+    done;
+    Gc.full_major ()
+  done
+
+let () =
+  stress_test_bigarray 512 512
+
+let () =
+  let v = Big.Vector.create () in
+  for i = 0 to 15 do
+    Big.Vector.append v
+    |> Big.set ~id:i ~big:(Printf.sprintf "%d" i |> Struct.Bigstring.of_string)
+  done;
+  let a = Big.Vector.to_array v in
+  for _ = 0 to 15 do
+    Big.Array.iteri a ~f:(fun i b ->
+      assert (Big.id b = i);
+      assert (Struct.Bigstring.to_string (Big.big b) = Printf.sprintf "%d" i));
+    Gc.full_major ()
+  done;

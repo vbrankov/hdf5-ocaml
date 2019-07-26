@@ -1,3 +1,4 @@
+open Bigarray
 open Hdf5_raw
 
 (* This is an interface to HDF5 tables, which have memory representation as C arrays of
@@ -81,6 +82,7 @@ module Mem = struct
       capacity      : int; (* The capacity of [data] *)
       mutable nmemb : int; (* The number of records in the table *)
       size          : int; (* The length of a record *)
+      nfields       : int; (* The number of fields *)
     }
   end
 
@@ -89,7 +91,8 @@ module Mem = struct
     t   : T.t;
   }
 
-  external create : int -> int -> t = "hdf5_caml_struct_mem_create"
+  external create : int -> int -> int array -> bool array -> t
+    = "hdf5_caml_struct_mem_create"
 
   external of_t : T.t -> t = "hdf5_caml_struct_mem_of_mem"
 
@@ -99,6 +102,31 @@ module Mem = struct
     = "hdf5_caml_struct_mem_blit"
 
   let data t : H5tb.Data.t = Obj.magic t.t.data
+
+  module Field = struct
+    type t = {
+      size     : int;
+      variable : bool;
+    }
+  end
+
+  (* This function is currently unused but leave it for future extension *)
+  external field : t -> int -> Field.t = "hdf5_caml_struct_mem_field"
+  let _ = field
+end
+
+module Bigstring = struct
+  type t = (char, int8_unsigned_elt, c_layout) Array1.t
+
+  external of_string : string -> t = "hdf5_caml_struct_bigstring_of_string"
+  external to_string : t -> string = "hdf5_caml_struct_bigstring_to_string"
+
+  let of_array1 a =
+    if a.{Array1.dim a - 1} <> '\000' then
+      invalid_arg "The array must by NULL terminated";
+    a
+
+  let to_array1 t = t
 end
 
 module Ptr = struct
@@ -173,6 +201,15 @@ module Ptr = struct
   let set_int     t bo v     = Ext.set_int     t.ptr bo v
   let get_string  t bo len   = Ext.get_string  t.ptr bo len
   let set_string  t bo len v = Ext.set_string  t.ptr bo len v
+
+  external get_bigstring : Ext.t -> Mem.T.t -> int -> int -> int
+    -> (char, int8_unsigned_elt, c_layout) Array1.t = "hdf5_caml_struct_ptr_get_bigstring"
+  let get_bigstring t bo column = get_bigstring t.ptr t.mem bo column t.pos
+
+  external set_bigstring : Ext.t -> Mem.T.t -> int -> int -> int
+    -> (char, int8_unsigned_elt, c_layout) Array1.t -> unit
+    = "hdf5_caml_struct_ptr_set_bigstring_bytecode" "hdf5_caml_struct_ptr_set_bigstring"
+  let set_bigstring t bo column v = set_bigstring t.ptr t.mem bo column t.pos v
 
   let seek_float64 t bsize bfield ~min ~max v =
     let mid = ref min in
@@ -353,6 +390,8 @@ module Ptr = struct
     unsafe_move t (
       if !max > !min then seek_string t bsize bfield slen ~min:!min ~max:!max v else !max)
       bsize
+
+  let seek_bigstring _ _ _ _ = failwith "Seeking Bigstring not supported"
 end
 
 module Make(S : S) = struct
@@ -366,12 +405,21 @@ module Make(S : S) = struct
 
   let field_names = Array.map (fun field -> field.Field.name) afields
 
+  let field_sizes =
+    Array.map (fun field -> (Type.size field.Field.type_ + 7) / 8 * 8) afields
+
+  let field_variable =
+    Array.map (fun field ->
+      match field.Field.type_ with
+      | Int | Int64 | Float64 | String _ -> false
+      | Bigstring -> true) afields
+
   let field_offset =
     let offset = ref 0 in
-    Array.map (fun field ->
+    Array.map (fun size ->
       let field_offset = !offset in
-      offset := !offset + (Type.size field.Field.type_ + 7) / 8 * 8;
-      field_offset) afields
+      offset := !offset + size;
+      field_offset) field_sizes
 
   let field_type (field : Field.t) =
     match field.Field.type_ with
@@ -380,6 +428,10 @@ module Make(S : S) = struct
     | String l ->
       let type_ = H5t.copy H5t.c_s1 in
       H5t.set_size type_ l;
+      type_
+    | Bigstring ->
+      let type_ = H5t.copy H5t.c_s1 in
+      H5t.set_size type_ H5t.variable;
       type_
 
   let field_sizes = Array.map (fun field -> Type.size field.Field.type_) afields
@@ -410,7 +462,7 @@ module Make(S : S) = struct
     type e = t
     type t = Mem.t
 
-    let make len = Mem.create len type_size
+    let make len = Mem.create len type_size field_sizes field_variable
 
     let length (t : t) = t.t.nmemb
 
