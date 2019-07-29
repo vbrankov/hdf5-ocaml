@@ -91,7 +91,7 @@ module Mem = struct
     t   : T.t;
   }
 
-  external create : int -> int -> int array -> bool array -> t
+  external create : int -> int -> int array -> Type.t array -> t
     = "hdf5_caml_struct_mem_create"
 
   external of_t : T.t -> t = "hdf5_caml_struct_mem_of_mem"
@@ -103,16 +103,22 @@ module Mem = struct
 
   let data t : H5tb.Data.t = Obj.magic t.t.data
 
+  module Type = struct
+    type t =
+    | Simple
+    | Bigstring
+  end
+
   module Field = struct
     type t = {
-      size     : int;
-      variable : bool;
+      size  : int;
+      type_ : Type.t;
     }
   end
 
   (* This function is currently unused but leave it for future extension *)
   external field : t -> int -> Field.t = "hdf5_caml_struct_mem_field"
-  let _ = field
+  let _ = field, Type.Simple, Type.Bigstring
 end
 
 module Bigstring = struct
@@ -408,12 +414,6 @@ module Make(S : S) = struct
   let field_sizes =
     Array.map (fun field -> (Type.size field.Field.type_ + 7) / 8 * 8) afields
 
-  let field_variable =
-    Array.map (fun field ->
-      match field.Field.type_ with
-      | Int | Int64 | Float64 | String _ -> false
-      | Bigstring -> true) afields
-
   let field_offset =
     let offset = ref 0 in
     Array.map (fun size ->
@@ -435,6 +435,8 @@ module Make(S : S) = struct
       type_
 
   let field_sizes = Array.map (fun field -> Type.size field.Field.type_) afields
+
+  let field_types = Array.map (fun field -> field.Field.type_) afields
 
   let compound_type () =
     let datatype = H5t.create H5t.Class.COMPOUND type_size in
@@ -462,7 +464,7 @@ module Make(S : S) = struct
     type e = t
     type t = Mem.t
 
-    let make len = Mem.create len type_size field_sizes field_variable
+    let make len = Mem.create len type_size field_sizes field_types
 
     let length (t : t) = t.t.nmemb
 
