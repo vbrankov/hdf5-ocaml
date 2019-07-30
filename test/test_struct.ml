@@ -211,15 +211,22 @@ module Big = struct
   [%%h5struct
     id  "ID"  Int;
     big "Big" Bigstring;
+    f64 "F64" Array_float64;
   ]
 end
+
+open Bigarray
 
 let stress_test_bigarray num_arrays num_elements =
   let s = Array.init num_arrays (Printf.sprintf "%d") in
   let create_array () =
     let len = 1 + Random.int num_arrays in
     let a = Big.Array.init len (fun i b ->
-      Big.set b ~id:i ~big:(Struct.Bigstring.of_string s.(i))) in
+      let f64 = Array1.create float64 c_layout i in
+      for j = 0 to i - 1 do
+        f64.{j} <- float j
+      done;
+      Big.set b ~id:i ~big:(Struct.Bigstring.of_string s.(i)) ~f64) in
     Big.Array.get a 0 in
   let a = Array.init num_arrays (fun _ -> create_array ()) in
   let create_element () =
@@ -253,8 +260,12 @@ let () =
 let () =
   let v = Big.Vector.create () in
   for i = 0 to 15 do
+    let f64 = Array1.create float64 c_layout i in
+    for j = 0 to i - 1 do
+      f64.{j} <- float j
+    done;
     Big.Vector.append v
-    |> Big.set ~id:i ~big:(Printf.sprintf "%d" i |> Struct.Bigstring.of_string)
+    |> Big.set ~id:i ~big:(Printf.sprintf "%d" i |> Struct.Bigstring.of_string) ~f64
   done;
   let a = Big.Vector.to_array v in
   for _ = 0 to 15 do
@@ -262,4 +273,4 @@ let () =
       assert (Big.id b = i);
       assert (Struct.Bigstring.to_string (Big.big b) = Printf.sprintf "%d" i));
     Gc.full_major ()
-  done;
+  done

@@ -4,5 +4,6 @@ type t =
 | Float64
 | String of int
 | Bigstring
+| Array_float64
 
 val size : t -> int

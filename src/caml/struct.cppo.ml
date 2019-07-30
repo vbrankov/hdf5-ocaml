@@ -67,6 +67,8 @@ module Ext = struct
     let mlen = if len < vlen then len else vlen in
     Bytes.unsafe_blit (Bytes.unsafe_of_string v) 0 (Obj.magic t) 0 mlen;
     Bytes.unsafe_fill (Obj.magic t) mlen (len - mlen) '\000'
+
+  let to_string (t : t) = Printf.sprintf "%d" (Obj.magic t * 2 + 1)
 end
 
 (* See the explanation at the top. *)
@@ -84,6 +86,10 @@ module Mem = struct
       size          : int; (* The length of a record *)
       nfields       : int; (* The number of fields *)
     }
+
+    let to_string t =
+      Printf.sprintf "%d %s %d %d %d %d"
+        t.refcount (Ext.to_string t.data) t.capacity t.nmemb t.size t.nfields
   end
 
   type t = {
@@ -119,6 +125,8 @@ module Mem = struct
   (* This function is currently unused but leave it for future extension *)
   external field : t -> int -> Field.t = "hdf5_caml_struct_mem_field"
   let _ = field, Type.Simple, Type.Bigstring
+
+  let to_string t = T.to_string t.t
 end
 
 module Bigstring = struct
@@ -133,6 +141,10 @@ module Bigstring = struct
     a
 
   let to_array1 t = t
+end
+
+module Array_float64 = struct
+  type t = (float, float64_elt, c_layout) Array1.t
 end
 
 module Ptr = struct
@@ -216,6 +228,16 @@ module Ptr = struct
     -> (char, int8_unsigned_elt, c_layout) Array1.t -> unit
     = "hdf5_caml_struct_ptr_set_bigstring_bytecode" "hdf5_caml_struct_ptr_set_bigstring"
   let set_bigstring t bo column v = set_bigstring t.ptr t.mem bo column t.pos v
+
+  external get_array_float64 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_float64.t = "hdf5_caml_struct_ptr_get_array_float64"
+  let get_array_float64 t bo column = get_array_float64 t.ptr t.mem bo column t.pos
+
+  external set_array_float64 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_float64.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_float64_bytecode"
+    "hdf5_caml_struct_ptr_set_array_float64"
+  let set_array_float64 t bo column v = set_array_float64 t.ptr t.mem bo column t.pos v
 
   let seek_float64 t bsize bfield ~min ~max v =
     let mid = ref min in
@@ -398,6 +420,11 @@ module Ptr = struct
       bsize
 
   let seek_bigstring _ _ _ _ = failwith "Seeking Bigstring not supported"
+
+  let seek_array_float64 _ _ _ _ = failwith "Seeking Array_float64 not supported"
+
+  let to_string t =
+    Printf.sprintf "%s %s %d" (Ext.to_string t.ptr) (Mem.T.to_string t.mem) t.pos
 end
 
 module Make(S : S) = struct
@@ -433,6 +460,10 @@ module Make(S : S) = struct
       let type_ = H5t.copy H5t.c_s1 in
       H5t.set_size type_ H5t.variable;
       type_
+    | Array_float64 ->
+      let type_ = H5t.copy H5t.native_double in
+      H5t.set_size type_ H5t.variable;
+      type_
 
   let field_sizes = Array.map (fun field -> Type.size field.Field.type_) afields
 
@@ -445,8 +476,8 @@ module Make(S : S) = struct
       let field_type = field_type field in
       H5t.insert datatype field.name field_offset.(i) field_type;
       match field.type_ with
-      | String _ -> H5t.close field_type
-      | _ -> ()
+      | Int | Int64 | Float64 -> ()
+      | String _ | Bigstring | Array_float64 -> H5t.close field_type
     done;
     datatype
 
@@ -596,6 +627,8 @@ module Make(S : S) = struct
       done
 
     let data t = Mem.data t
+
+    let to_string t = Mem.to_string t
   end
 
   let create () = Array.unsafe_get (Array.make 1) 0

@@ -20,6 +20,10 @@ module Bigstring : sig
   val to_array1 : t -> (char, int8_unsigned_elt, c_layout) Array1.t
 end
 
+module Array_float64 : sig
+  type t = (float, float64_elt, c_layout) Array1.t
+end
+
 module Ptr : sig
   type t
 
@@ -45,11 +49,18 @@ module Ptr : sig
   (** A more efficient version of [set_string] which avoids [memcpy]. *)
   val set_bigstring : t -> int -> int -> Bigstring.t -> unit
 
-  val seek_int       : t -> int -> int -> int -> unit
-  val seek_int64     : t -> int -> int -> int64 -> unit
-  val seek_float64   : t -> int -> int -> float -> unit
-  val seek_string    : t -> int -> int -> int -> string -> unit
-  val seek_bigstring : t -> int -> int -> Bigstring.t -> unit
+  (** A more efficient version of [get_string] which avoids [memcpy]. *)
+  val get_array_float64 : t -> int -> int -> Array_float64.t
+
+  (** A more efficient version of [set_string] which avoids [memcpy]. *)
+  val set_array_float64 : t -> int -> int -> Array_float64.t -> unit
+
+  val seek_int           : t -> int -> int -> int -> unit
+  val seek_int64         : t -> int -> int -> int64 -> unit
+  val seek_float64       : t -> int -> int -> float -> unit
+  val seek_string        : t -> int -> int -> int -> string -> unit
+  val seek_bigstring     : t -> int -> int -> Bigstring.t -> unit
+  val seek_array_float64 : t -> int -> int -> Array_float64.t -> unit
 end
 
 module type S = sig

@@ -15,6 +15,8 @@ module type S_no_ppx = sig
   val has_next : t -> bool
   val has_prev : t -> bool
 
+  val to_string : t -> string
+
   module Array : sig
     type e = t
     type t
@@ -51,6 +53,9 @@ module type S_no_ppx = sig
 
     (** Retrieves the pointer to the data. *)
     val data : t -> Hdf5_raw.H5tb.Data.t
+
+    (** A string representation. *)
+    val to_string : t -> string
   end
 
   val mem : t -> Array.t
