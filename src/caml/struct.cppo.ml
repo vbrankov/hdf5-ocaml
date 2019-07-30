@@ -113,18 +113,24 @@ module Mem = struct
     type t =
     | Simple
     | Bigstring
+    | Array
+
+    let _ = Simple
+    let _ = Bigstring
+    let _ = Array
   end
 
   module Field = struct
     type t = {
-      size  : int;
-      type_ : Type.t;
+      size         : int;
+      type_        : Type.t;
+      element_size : int;
     }
   end
 
   (* This function is currently unused but leave it for future extension *)
   external field : t -> int -> Field.t = "hdf5_caml_struct_mem_field"
-  let _ = field, Type.Simple, Type.Bigstring
+  let _ = field
 
   let to_string t = T.to_string t.t
 end
@@ -149,6 +155,42 @@ end
 
 module Array_float64 = struct
   type t = (float, float64_elt, c_layout) Array1.t
+end
+
+module Array_sint8 = struct
+  type t = (int, int8_signed_elt, c_layout) Array1.t
+end
+
+module Array_uint8 = struct
+  type t = (int, int8_unsigned_elt, c_layout) Array1.t
+end
+
+module Array_sint16 = struct
+  type t = (int, int16_signed_elt, c_layout) Array1.t
+end
+
+module Array_uint16 = struct
+  type t = (int, int16_unsigned_elt, c_layout) Array1.t
+end
+
+module Array_int32 = struct
+  type t = (int32, int32_elt, c_layout) Array1.t
+end
+
+module Array_int64 = struct
+  type t = (int64, int64_elt, c_layout) Array1.t
+end
+
+module Array_int = struct
+  type t = (int, int_elt, c_layout) Array1.t
+end
+
+module Array_nativeint = struct
+  type t = (nativeint, nativeint_elt, c_layout) Array1.t
+end
+
+module Array_char = struct
+  type t = (char, int8_unsigned_elt, c_layout) Array1.t
 end
 
 module Ptr = struct
@@ -250,6 +292,88 @@ module Ptr = struct
     -> Array_float64.t -> unit
     = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
   let set_array_float64 t bo column v = set_array_float64 t.ptr t.mem bo column t.pos v
+
+  external get_array_sint8 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_sint8.t = "hdf5_caml_struct_ptr_get_array"
+  let get_array_sint8 t bo column = get_array_sint8 t.ptr t.mem bo column t.pos
+
+  external set_array_sint8 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_sint8.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
+  let set_array_sint8 t bo column v = set_array_sint8 t.ptr t.mem bo column t.pos v
+
+  external get_array_uint8 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_uint8.t = "hdf5_caml_struct_ptr_get_array"
+  let get_array_uint8 t bo column = get_array_uint8 t.ptr t.mem bo column t.pos
+
+  external set_array_uint8 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_uint8.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
+  let set_array_uint8 t bo column v = set_array_uint8 t.ptr t.mem bo column t.pos v
+
+  external get_array_sint16 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_sint16.t = "hdf5_caml_struct_ptr_get_array"
+  let get_array_sint16 t bo column = get_array_sint16 t.ptr t.mem bo column t.pos
+
+  external set_array_sint16 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_sint16.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
+  let set_array_sint16 t bo column v = set_array_sint16 t.ptr t.mem bo column t.pos v
+
+  external get_array_uint16 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_uint16.t = "hdf5_caml_struct_ptr_get_array"
+  let get_array_uint16 t bo column = get_array_uint16 t.ptr t.mem bo column t.pos
+
+  external set_array_uint16 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_uint16.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
+  let set_array_uint16 t bo column v = set_array_uint16 t.ptr t.mem bo column t.pos v
+
+  external get_array_int32 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_int32.t = "hdf5_caml_struct_ptr_get_array"
+  let get_array_int32 t bo column = get_array_int32 t.ptr t.mem bo column t.pos
+
+  external set_array_int32 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_int32.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
+  let set_array_int32 t bo column v = set_array_int32 t.ptr t.mem bo column t.pos v
+
+  external get_array_int64 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_int64.t = "hdf5_caml_struct_ptr_get_array"
+  let get_array_int64 t bo column = get_array_int64 t.ptr t.mem bo column t.pos
+
+  external set_array_int64 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_int64.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
+  let set_array_int64 t bo column v = set_array_int64 t.ptr t.mem bo column t.pos v
+
+  external get_array_int : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_int.t = "hdf5_caml_struct_ptr_get_array"
+  let get_array_int t bo column = get_array_int t.ptr t.mem bo column t.pos
+
+  external set_array_int : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_int.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
+  let set_array_int t bo column v = set_array_int t.ptr t.mem bo column t.pos v
+
+  external get_array_nativeint : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_nativeint.t = "hdf5_caml_struct_ptr_get_array"
+  let get_array_nativeint t bo column = get_array_nativeint t.ptr t.mem bo column t.pos
+
+  external set_array_nativeint : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_nativeint.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
+  let set_array_nativeint t bo column v =
+    set_array_nativeint t.ptr t.mem bo column t.pos v
+
+  external get_array_char : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_char.t = "hdf5_caml_struct_ptr_get_array"
+  let get_array_char t bo column = get_array_char t.ptr t.mem bo column t.pos
+
+  external set_array_char : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_char.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
+  let set_array_char t bo column v = set_array_char t.ptr t.mem bo column t.pos v
 
   let seek_float64 t bsize bfield ~min ~max v =
     let mid = ref min in
@@ -431,9 +555,18 @@ module Ptr = struct
       if !max > !min then seek_string t bsize bfield slen ~min:!min ~max:!max v else !max)
       bsize
 
-  let seek_bigstring _ _ _ _ = failwith "Seeking Bigstring not supported"
-  let seek_array_float32 _ _ _ _ = failwith "Seeking Array_float32 not supported"
-  let seek_array_float64 _ _ _ _ = failwith "Seeking Array_float64 not supported"
+  let seek_bigstring       _ _ _ _ = failwith "Seeking Bigstring not supported"
+  let seek_array_float32   _ _ _ _ = failwith "Seeking Array_float32 not supported"
+  let seek_array_float64   _ _ _ _ = failwith "Seeking Array_float64 not supported"
+  let seek_array_sint8     _ _ _ _ = failwith "Seeking Array_sint8 not supported"
+  let seek_array_uint8     _ _ _ _ = failwith "Seeking Array_uint8 not supported"
+  let seek_array_sint16    _ _ _ _ = failwith "Seeking Array_sint16 not supported"
+  let seek_array_uint16    _ _ _ _ = failwith "Seeking Array_uint16 not supported"
+  let seek_array_int32     _ _ _ _ = failwith "Seeking Array_int32 not supported"
+  let seek_array_int64     _ _ _ _ = failwith "Seeking Array_int64 not supported"
+  let seek_array_int       _ _ _ _ = failwith "Seeking Array_int not supported"
+  let seek_array_nativeint _ _ _ _ = failwith "Seeking Array_nativeint not supported"
+  let seek_array_char      _ _ _ _ = failwith "Seeking Array_char not supported"
 
   let to_string t =
     Printf.sprintf "%s %s %d" (Ext.to_string t.ptr) (Mem.T.to_string t.mem) t.pos
@@ -480,6 +613,42 @@ module Make(S : S) = struct
       let type_ = H5t.copy H5t.native_double in
       H5t.set_size type_ H5t.variable;
       type_
+    | Array_sint8 ->
+      let type_ = H5t.copy H5t.native_int8 in
+      H5t.set_size type_ H5t.variable;
+      type_
+    | Array_uint8 ->
+      let type_ = H5t.copy H5t.native_uint8 in
+      H5t.set_size type_ H5t.variable;
+      type_
+    | Array_sint16 ->
+      let type_ = H5t.copy H5t.native_int16 in
+      H5t.set_size type_ H5t.variable;
+      type_
+    | Array_uint16 ->
+      let type_ = H5t.copy H5t.native_uint16 in
+      H5t.set_size type_ H5t.variable;
+      type_
+    | Array_int32 ->
+      let type_ = H5t.copy H5t.native_int32 in
+      H5t.set_size type_ H5t.variable;
+      type_
+    | Array_int64 ->
+      let type_ = H5t.copy H5t.native_int64 in
+      H5t.set_size type_ H5t.variable;
+      type_
+    | Array_int ->
+      let type_ = H5t.copy H5t.native_int in
+      H5t.set_size type_ H5t.variable;
+      type_
+    | Array_nativeint ->
+      let type_ = H5t.copy H5t.native_int in
+      H5t.set_size type_ H5t.variable;
+      type_
+    | Array_char ->
+      let type_ = H5t.copy H5t.native_char in
+      H5t.set_size type_ H5t.variable;
+      type_
 
   let field_sizes = Array.map (fun field -> Type.size field.Field.type_) afields
 
@@ -493,7 +662,19 @@ module Make(S : S) = struct
       H5t.insert datatype field.name field_offset.(i) field_type;
       match field.type_ with
       | Int | Int64 | Float64 -> ()
-      | String _ | Bigstring | Array_float32 | Array_float64 -> H5t.close field_type
+      | String _
+      | Bigstring
+      | Array_float32
+      | Array_float64
+      | Array_sint8
+      | Array_uint8
+      | Array_sint16
+      | Array_uint16
+      | Array_int32
+      | Array_int64
+      | Array_int
+      | Array_nativeint
+      | Array_char -> H5t.close field_type
     done;
     datatype
 

@@ -28,6 +28,42 @@ module Array_float64 : sig
   type t = (float, float64_elt, c_layout) Array1.t
 end
 
+module Array_sint8 : sig
+  type t = (int, int8_signed_elt, c_layout) Array1.t
+end
+
+module Array_uint8 : sig
+  type t = (int, int8_unsigned_elt, c_layout) Array1.t
+end
+
+module Array_sint16 : sig
+  type t = (int, int16_signed_elt, c_layout) Array1.t
+end
+
+module Array_uint16 : sig
+  type t = (int, int16_unsigned_elt, c_layout) Array1.t
+end
+
+module Array_int32 : sig
+  type t = (int32, int32_elt, c_layout) Array1.t
+end
+
+module Array_int64 : sig
+  type t = (int64, int64_elt, c_layout) Array1.t
+end
+
+module Array_int : sig
+  type t = (int, int_elt, c_layout) Array1.t
+end
+
+module Array_nativeint : sig
+  type t = (nativeint, nativeint_elt, c_layout) Array1.t
+end
+
+module Array_char : sig
+  type t = (char, int8_unsigned_elt, c_layout) Array1.t
+end
+
 module Ptr : sig
   type t
 
@@ -53,18 +89,45 @@ module Ptr : sig
   (** A more efficient version of [set_string] which avoids [memcpy]. *)
   val set_bigstring : t -> int -> int -> Bigstring.t -> unit
 
-  val get_array_float32 : t -> int -> int -> Array_float32.t
-  val set_array_float32 : t -> int -> int -> Array_float32.t -> unit
-  val get_array_float64 : t -> int -> int -> Array_float64.t
-  val set_array_float64 : t -> int -> int -> Array_float64.t -> unit
+  val get_array_float32   : t -> int -> int -> Array_float32.t
+  val set_array_float32   : t -> int -> int -> Array_float32.t   -> unit
+  val get_array_float64   : t -> int -> int -> Array_float64.t
+  val set_array_float64   : t -> int -> int -> Array_float64.t   -> unit
+  val get_array_sint8     : t -> int -> int -> Array_sint8.t
+  val set_array_sint8     : t -> int -> int -> Array_sint8.t     -> unit
+  val get_array_uint8     : t -> int -> int -> Array_uint8.t
+  val set_array_uint8     : t -> int -> int -> Array_uint8.t     -> unit
+  val get_array_sint16    : t -> int -> int -> Array_sint16.t
+  val set_array_sint16    : t -> int -> int -> Array_sint16.t    -> unit
+  val get_array_uint16    : t -> int -> int -> Array_uint16.t
+  val set_array_uint16    : t -> int -> int -> Array_uint16.t    -> unit
+  val get_array_int32     : t -> int -> int -> Array_int32.t
+  val set_array_int32     : t -> int -> int -> Array_int32.t     -> unit
+  val get_array_int64     : t -> int -> int -> Array_int64.t
+  val set_array_int64     : t -> int -> int -> Array_int64.t     -> unit
+  val get_array_int       : t -> int -> int -> Array_int.t
+  val set_array_int       : t -> int -> int -> Array_int.t       -> unit
+  val get_array_nativeint : t -> int -> int -> Array_nativeint.t
+  val set_array_nativeint : t -> int -> int -> Array_nativeint.t -> unit
+  val get_array_char      : t -> int -> int -> Array_char.t
+  val set_array_char      : t -> int -> int -> Array_char.t      -> unit
 
-  val seek_int           : t -> int -> int -> int -> unit
-  val seek_int64         : t -> int -> int -> int64 -> unit
-  val seek_float64       : t -> int -> int -> float -> unit
-  val seek_string        : t -> int -> int -> int -> string -> unit
-  val seek_bigstring     : t -> int -> int -> Bigstring.t -> unit
-  val seek_array_float32 : t -> int -> int -> Array_float32.t -> unit
-  val seek_array_float64 : t -> int -> int -> Array_float64.t -> unit
+  val seek_int             : t -> int -> int -> int               -> unit
+  val seek_int64           : t -> int -> int -> int64             -> unit
+  val seek_float64         : t -> int -> int -> float             -> unit
+  val seek_string          : t -> int -> int -> int -> string     -> unit
+  val seek_bigstring       : t -> int -> int -> Bigstring.t       -> unit
+  val seek_array_float32   : t -> int -> int -> Array_float32.t   -> unit
+  val seek_array_float64   : t -> int -> int -> Array_float64.t   -> unit
+  val seek_array_sint8     : t -> int -> int -> Array_sint8.t     -> unit
+  val seek_array_uint8     : t -> int -> int -> Array_uint8.t     -> unit
+  val seek_array_sint16    : t -> int -> int -> Array_sint16.t    -> unit
+  val seek_array_uint16    : t -> int -> int -> Array_uint16.t    -> unit
+  val seek_array_int32     : t -> int -> int -> Array_int32.t     -> unit
+  val seek_array_int64     : t -> int -> int -> Array_int64.t     -> unit
+  val seek_array_int       : t -> int -> int -> Array_int.t       -> unit
+  val seek_array_nativeint : t -> int -> int -> Array_nativeint.t -> unit
+  val seek_array_char      : t -> int -> int -> Array_char.t      -> unit
 end
 
 module type S = sig

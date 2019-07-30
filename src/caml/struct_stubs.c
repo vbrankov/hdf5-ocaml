@@ -186,6 +186,30 @@ value hdf5_caml_struct_mem_create(
           type = array;
           element_size = 8;
           break;
+        case 6:
+        case 7:
+          type = array;
+          element_size = 1;
+          break;
+        case 8:
+        case 9:
+          type = array;
+          element_size = 2;
+          break;
+        case 10:
+          type = array;
+          element_size = 4;
+          break;
+        case 11:
+        case 12:
+        case 13:
+          type = array;
+          element_size = 8;
+          break;
+        case 14:
+          type = array;
+          element_size = 1;
+          break;
         default: caml_failwith("Unexpected field type");
       }
     else
@@ -674,9 +698,10 @@ value hdf5_caml_struct_mem_field(value mem_v, value i_v)
   if (i >= mem->nfields)
     caml_invalid_argument("index out of bounds");
 
-  res_v = caml_alloc_tuple(2);
+  res_v = caml_alloc_tuple(3);
   Store_field(res_v, 0, Val_long(mem->fields[i].size));
   Store_field(res_v, 1, Val_int((unsigned int) mem->fields[i].type));
+  Store_field(res_v, 2, Val_int((unsigned int) mem->fields[i].element_size));
   CAMLreturn(res_v);
 }
 

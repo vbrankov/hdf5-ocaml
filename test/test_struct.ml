@@ -209,37 +209,93 @@ let a () =
 
 module Big = struct
   [%%h5struct
-    id  "ID"  Int;
-    big "Big" Bigstring;
-    f32 "F32" Array_float32;
-    f64 "F64" Array_float64;
+    id   "ID"   Int;
+    big  "Big"  Bigstring;
+    f32  "F32"  Array_float32;
+    f64  "F64"  Array_float64;
+    si8  "SI8"  Array_sint8;
+    ui8  "UI8"  Array_uint8;
+    si16 "SI16" Array_sint16;
+    ui16 "UI16" Array_uint16;
+    i32  "I32"  Array_int32;
+    i64  "I64"  Array_int64;
+    i    "I"    Array_int;
+    ni   "NI"   Array_nativeint;
+    c    "C"    Array_char;
   ]
 end
 
 open Bigarray
 
+let create_array len =
+  Big.Array.init len (fun i b ->
+    let f32 = Array1.create float32 c_layout i in
+    for j = 0 to i - 1 do
+      f32.{j} <- float j
+    done;
+    let f64 = Array1.create float64 c_layout i in
+    for j = 0 to i - 1 do
+      f64.{j} <- float j
+    done;
+    let si8 = Array1.create int8_signed c_layout i in
+    for j = 0 to i - 1 do
+      si8.{j} <- j
+    done;
+    let ui8 = Array1.create int8_unsigned c_layout i in
+    for j = 0 to i - 1 do
+      ui8.{j} <- j
+    done;
+    let si16 = Array1.create int16_signed c_layout i in
+    for j = 0 to i - 1 do
+      si16.{j} <- j
+    done;
+    let ui16 = Array1.create int16_unsigned c_layout i in
+    for j = 0 to i - 1 do
+      ui16.{j} <- j
+    done;
+    let i32 = Array1.create int32 c_layout i in
+    for j = 0 to i - 1 do
+      i32.{j} <- Int32.of_int j
+    done;
+    let i64 = Array1.create int64 c_layout i in
+    for j = 0 to i - 1 do
+      i64.{j} <- Int64.of_int j
+    done;
+    let ai = Array1.create int c_layout i in
+    for j = 0 to i - 1 do
+      ai.{j} <- j
+    done;
+    let ni = Array1.create nativeint c_layout i in
+    for j = 0 to i - 1 do
+      ni.{j} <- Nativeint.of_int j
+    done;
+    let c = Array1.create char c_layout i in
+    for j = 0 to i - 1 do
+      c.{j} <- Char.chr (j land 0xff)
+    done;
+    Big.set b ~id:i ~big:(string_of_int i |> Struct.Bigstring.of_string) ~f32 ~f64 ~si8
+      ~ui8 ~si16 ~ui16 ~i32 ~i64 ~i:ai ~ni ~c)
+
 let stress_test_bigarray num_arrays num_elements =
-  let s = Array.init num_arrays (Printf.sprintf "%d") in
   let create_array () =
-    let len = 1 + Random.int num_arrays in
-    let a = Big.Array.init len (fun i b ->
-      let f32 = Array1.create float32 c_layout i in
-      for j = 0 to i - 1 do
-        f32.{j} <- float j
-      done;
-      let f64 = Array1.create float64 c_layout i in
-      for j = 0 to i - 1 do
-        f64.{j} <- float j
-      done;
-      Big.set b ~id:i ~big:(Struct.Bigstring.of_string s.(i)) ~f32 ~f64) in
-    Big.Array.get a 0 in
+    Big.Array.get (create_array (1 + Random.int num_arrays)) 0 in
   let a = Array.init num_arrays (fun _ -> create_array ()) in
   let create_element () =
     let a = a.(Random.int num_arrays) in
     let pos = Big.mem a |> Big.Array.length |> Random.int in
     Big.move a pos;
     let big = Big.big a in
-    assert (Struct.Bigstring.to_string big = s.(pos));
+    assert (Struct.Bigstring.to_string big = string_of_int pos);
+    let f32 = Big.f32 a in
+    assert (Array1.dim f32 = pos);
+    for i = 0 to pos - 1 do
+      assert (f32.{i} = float_of_int i)
+    done;
+    let si16 = Big.si16 a in
+    assert (Array1.dim si16 = pos);
+    for i = 0 to pos - 1 do
+      assert (si16.{i} = i)
+    done;
     big in
   let e = Array.init num_elements (fun _ -> create_element ()) in
   Struct.reset_serialize ();
@@ -260,23 +316,10 @@ let stress_test_bigarray num_arrays num_elements =
   done
 
 let () =
-  stress_test_bigarray 512 512
+  stress_test_bigarray 128 128
 
 let () =
-  let v = Big.Vector.create () in
-  for i = 0 to 15 do
-    let f32 = Array1.create float32 c_layout i in
-    for j = 0 to i - 1 do
-      f32.{j} <- float j
-    done;
-    let f64 = Array1.create float64 c_layout i in
-    for j = 0 to i - 1 do
-      f64.{j} <- float j
-    done;
-    Big.Vector.append v
-    |> Big.set ~id:i ~big:(Printf.sprintf "%d" i |> Struct.Bigstring.of_string) ~f32 ~f64
-  done;
-  let a = Big.Vector.to_array v in
+  let a = create_array 16 in
   for _ = 0 to 15 do
     Big.Array.iteri a ~f:(fun i b ->
       assert (Big.id b = i);
