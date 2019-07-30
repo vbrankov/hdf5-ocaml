@@ -64,7 +64,7 @@ enum type {
   /* Includes Int, Int64, Float64 and String from [type.mli] */
   simple,
   bigstring,
-  array_float64
+  array
 };
 
 struct hdf5_caml_field {
@@ -72,6 +72,8 @@ struct hdf5_caml_field {
   size_t size;
   /* Indicates whether the field has a variable length */
   enum type type;
+  /* The size of an element of the array if [type] is variable */
+  size_t element_size;
   /* The proxies for variable length field */
   struct caml_ba_proxy **proxies;
 };
@@ -119,7 +121,7 @@ value hdf5_caml_struct_mem_create(
   CAMLparam4(capacity_v, size_v, field_sizes_v, types_v);
   CAMLlocal2(type_v, v);
   void *data;
-  size_t capacity, size, nfields, field_size, i, j;
+  size_t capacity, size, nfields, field_size, i, j, element_size;
   struct hdf5_caml_mem *mem;
   bool has_variable;
   struct hdf5_caml_field *fields;
@@ -168,20 +170,37 @@ value hdf5_caml_struct_mem_create(
       {
         case 0:
         case 1:
-        case 2: type = simple; break;
-        case 3: type = bigstring; break;
-        case 4: type = array_float64; break;
+        case 2:
+          type = simple;
+          element_size = 1;
+          break;
+        case 3:
+          type = bigstring;
+          element_size = 1;
+          break;
+        case 4:
+          type = array;
+          element_size = 4;
+          break;
+        case 5:
+          type = array;
+          element_size = 8;
+          break;
         default: caml_failwith("Unexpected field type");
       }
     else
       switch (Tag_val(type_v))
       {
-        case 0: type = simple; break;
+        case 0:
+          type = simple;
+          element_size = 1;
+          break;
         default: caml_failwith("Unexpected field type");
       };
-    fields[i].size    = Long_val(Field(field_sizes_v, i));
-    fields[i].type    = type;
-    fields[i].proxies = NULL;
+    fields[i].size         = Long_val(Field(field_sizes_v, i));
+    fields[i].type         = type;
+    fields[i].element_size = element_size;
+    fields[i].proxies      = NULL;
     has_variable |= (type != simple);
   }
   /* Variable fields need to be initialized to NULL since they will be freed on finalize
@@ -249,7 +268,7 @@ void hdf5_mem_finalize(value v)
               data += size;
             }
           break;
-        case array_float64:
+        case array:
           data = mem->data + offset;
           proxies = mem->fields[i].proxies;
           if (proxies == NULL)
@@ -316,6 +335,7 @@ void serialize_mem(struct hdf5_caml_mem *mem)
     {
       caml_serialize_int_8(mem->fields[i].size);
       caml_serialize_int_1(mem->fields[i].type);
+      caml_serialize_int_2(mem->fields[i].element_size);
     }
     caml_serialize_block_1(mem->data, nmemb * size);
     offset = 0;
@@ -340,7 +360,7 @@ void serialize_mem(struct hdf5_caml_mem *mem)
             data += size;
           };
           break;
-        case array_float64:
+        case array:
           data = mem->data + offset;
           for (j = 0; j < capacity; j++)
           {
@@ -350,7 +370,7 @@ void serialize_mem(struct hdf5_caml_mem *mem)
             else
             {
               caml_serialize_int_8(hvl->len + 1);
-              caml_serialize_block_1(hvl->p, hvl->len * 8);
+              caml_serialize_block_1(hvl->p, hvl->len * mem->fields[i].element_size);
             }
             data += size;
           };
@@ -420,9 +440,10 @@ struct hdf5_caml_mem* deserialize_mem()
     }
     for (i = 0; i < nfields; i++)
     {
-      fields[i].size    = caml_deserialize_uint_8();
-      fields[i].type    = caml_deserialize_uint_1();
-      fields[i].proxies = NULL;
+      fields[i].size         = caml_deserialize_uint_8();
+      fields[i].type         = caml_deserialize_uint_1();
+      fields[i].element_size = caml_deserialize_uint_2();
+      fields[i].proxies      = NULL;
     }
     memory_allocated += capacity * size;
     caml_deserialize_block_1(data, nmemb * size);
@@ -462,7 +483,7 @@ struct hdf5_caml_mem* deserialize_mem()
             data += size;
           };
           break;
-        case array_float64:
+        case array:
           data = mem->data + offset;
           for (j = 0; j < capacity; j++)
           {
@@ -477,11 +498,11 @@ struct hdf5_caml_mem* deserialize_mem()
             {
               len--;
               hvl->len = len;
-              hvl->p = malloc(len * 8);
+              hvl->p = malloc(len * fields[i].element_size);
               if (hvl->p == NULL)
                 /* There's a memory leak here but it's highly unlikely it will matter */
                 caml_hdf5_raise_out_of_memory();
-              caml_deserialize_block_1(hvl->p, len * 8);
+              caml_deserialize_block_1(hvl->p, len * fields[i].element_size);
             };
             data += size;
           };
@@ -610,7 +631,7 @@ void hdf5_caml_struct_mem_blit(
             data += size;
           };
           break;
-        case array_float64:
+        case array:
           data = src->data + offset;
           for (j = 0; j < len; j++)
           {
@@ -623,7 +644,7 @@ void hdf5_caml_struct_mem_blit(
                 caml_hdf5_raise_out_of_memory();
               proxy->refcount = 2;
               proxy->data = hvl->p;
-              proxy->size = hvl->len * 8;
+              proxy->size = hvl->len * src->fields[i].element_size;
               src_proxies[src_pos + j] = proxy;
             }
             else
@@ -845,7 +866,7 @@ void hdf5_caml_struct_ptr_set_bigstring_bytecode(value *argv, int argn)
     argv[5]);
 }
 
-value hdf5_caml_struct_ptr_get_array_float64(
+value hdf5_caml_struct_ptr_get_array(
   void *ptr, struct hdf5_caml_mem *mem, long bo, value column_v, value row_v)
 {
   CAMLparam2(column_v, row_v);
@@ -875,7 +896,7 @@ value hdf5_caml_struct_ptr_get_array_float64(
     proxies[row] = proxy;
     proxy->refcount = 2;
     proxy->data = hvl->p;
-    proxy->size = hvl->len * 8;
+    proxy->size = hvl->len * mem->fields[column].element_size;
   }
   else
     ++proxy->refcount;
@@ -886,7 +907,7 @@ value hdf5_caml_struct_ptr_get_array_float64(
   CAMLreturn(res_v);
 }
 
-void hdf5_caml_struct_ptr_set_array_float64(
+void hdf5_caml_struct_ptr_set_array(
   void *ptr, struct hdf5_caml_mem *mem, long bo, value column_v, value row_v,
   value bigarray_v)
 {
@@ -926,7 +947,7 @@ void hdf5_caml_struct_ptr_set_array_float64(
       caml_hdf5_raise_out_of_memory();
     proxy->refcount = 2;
     proxy->data = data;
-    proxy->size = len * 8;
+    proxy->size = len * mem->fields[column].element_size;
     bigarray->proxy = proxy;
   }
   else
@@ -939,10 +960,10 @@ void hdf5_caml_struct_ptr_set_array_float64(
   CAMLreturn0;
 }
 
-void hdf5_caml_struct_ptr_set_array_float64_bytecode(value *argv, int argn)
+void hdf5_caml_struct_ptr_set_array_bytecode(value *argv, int argn)
 {
   assert(argn == 6);
-  return hdf5_caml_struct_ptr_set_array_float64(
+  return hdf5_caml_struct_ptr_set_array(
     (void*) argv[0], (struct hdf5_caml_mem*) argv[1], (long) argv[2], argv[3], argv[4],
     argv[5]);
 }

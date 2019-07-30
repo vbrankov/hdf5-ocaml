@@ -16,7 +16,7 @@ module Simple = struct
   [%%h5struct f "F" Float64 Seek]
 end
 
-let () =
+let a () =
   let len = 1000 in
   let a = Record.Array.init len (fun i e ->
     let si = i * 2 in
@@ -211,6 +211,7 @@ module Big = struct
   [%%h5struct
     id  "ID"  Int;
     big "Big" Bigstring;
+    f32 "F32" Array_float32;
     f64 "F64" Array_float64;
   ]
 end
@@ -222,11 +223,15 @@ let stress_test_bigarray num_arrays num_elements =
   let create_array () =
     let len = 1 + Random.int num_arrays in
     let a = Big.Array.init len (fun i b ->
+      let f32 = Array1.create float32 c_layout i in
+      for j = 0 to i - 1 do
+        f32.{j} <- float j
+      done;
       let f64 = Array1.create float64 c_layout i in
       for j = 0 to i - 1 do
         f64.{j} <- float j
       done;
-      Big.set b ~id:i ~big:(Struct.Bigstring.of_string s.(i)) ~f64) in
+      Big.set b ~id:i ~big:(Struct.Bigstring.of_string s.(i)) ~f32 ~f64) in
     Big.Array.get a 0 in
   let a = Array.init num_arrays (fun _ -> create_array ()) in
   let create_element () =
@@ -260,12 +265,16 @@ let () =
 let () =
   let v = Big.Vector.create () in
   for i = 0 to 15 do
+    let f32 = Array1.create float32 c_layout i in
+    for j = 0 to i - 1 do
+      f32.{j} <- float j
+    done;
     let f64 = Array1.create float64 c_layout i in
     for j = 0 to i - 1 do
       f64.{j} <- float j
     done;
     Big.Vector.append v
-    |> Big.set ~id:i ~big:(Printf.sprintf "%d" i |> Struct.Bigstring.of_string) ~f64
+    |> Big.set ~id:i ~big:(Printf.sprintf "%d" i |> Struct.Bigstring.of_string) ~f32 ~f64
   done;
   let a = Big.Vector.to_array v in
   for _ = 0 to 15 do

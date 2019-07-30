@@ -143,6 +143,10 @@ module Bigstring = struct
   let to_array1 t = t
 end
 
+module Array_float32 = struct
+  type t = (float, float32_elt, c_layout) Array1.t
+end
+
 module Array_float64 = struct
   type t = (float, float64_elt, c_layout) Array1.t
 end
@@ -229,14 +233,22 @@ module Ptr = struct
     = "hdf5_caml_struct_ptr_set_bigstring_bytecode" "hdf5_caml_struct_ptr_set_bigstring"
   let set_bigstring t bo column v = set_bigstring t.ptr t.mem bo column t.pos v
 
+  external get_array_float32 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_float32.t = "hdf5_caml_struct_ptr_get_array"
+  let get_array_float32 t bo column = get_array_float32 t.ptr t.mem bo column t.pos
+
+  external set_array_float32 : Ext.t -> Mem.T.t -> int -> int -> int
+    -> Array_float32.t -> unit
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
+  let set_array_float32 t bo column v = set_array_float32 t.ptr t.mem bo column t.pos v
+
   external get_array_float64 : Ext.t -> Mem.T.t -> int -> int -> int
-    -> Array_float64.t = "hdf5_caml_struct_ptr_get_array_float64"
+    -> Array_float64.t = "hdf5_caml_struct_ptr_get_array"
   let get_array_float64 t bo column = get_array_float64 t.ptr t.mem bo column t.pos
 
   external set_array_float64 : Ext.t -> Mem.T.t -> int -> int -> int
     -> Array_float64.t -> unit
-    = "hdf5_caml_struct_ptr_set_array_float64_bytecode"
-    "hdf5_caml_struct_ptr_set_array_float64"
+    = "hdf5_caml_struct_ptr_set_array_bytecode" "hdf5_caml_struct_ptr_set_array"
   let set_array_float64 t bo column v = set_array_float64 t.ptr t.mem bo column t.pos v
 
   let seek_float64 t bsize bfield ~min ~max v =
@@ -420,7 +432,7 @@ module Ptr = struct
       bsize
 
   let seek_bigstring _ _ _ _ = failwith "Seeking Bigstring not supported"
-
+  let seek_array_float32 _ _ _ _ = failwith "Seeking Array_float32 not supported"
   let seek_array_float64 _ _ _ _ = failwith "Seeking Array_float64 not supported"
 
   let to_string t =
@@ -460,6 +472,10 @@ module Make(S : S) = struct
       let type_ = H5t.copy H5t.c_s1 in
       H5t.set_size type_ H5t.variable;
       type_
+    | Array_float32 ->
+      let type_ = H5t.copy H5t.native_float in
+      H5t.set_size type_ H5t.variable;
+      type_
     | Array_float64 ->
       let type_ = H5t.copy H5t.native_double in
       H5t.set_size type_ H5t.variable;
@@ -477,7 +493,7 @@ module Make(S : S) = struct
       H5t.insert datatype field.name field_offset.(i) field_type;
       match field.type_ with
       | Int | Int64 | Float64 -> ()
-      | String _ | Bigstring | Array_float64 -> H5t.close field_type
+      | String _ | Bigstring | Array_float32 | Array_float64 -> H5t.close field_type
     done;
     datatype
 

@@ -14,6 +14,7 @@ module Type = struct
   | Int64
   | String of int
   | Bigstring
+  | Array_float32
   | Array_float64
 
   let to_string = function
@@ -22,12 +23,13 @@ module Type = struct
   | Int64         -> "Int64"
   | String _      -> "String"
   | Bigstring     -> "Bigstring"
+  | Array_float32 -> "Array_float32"
   | Array_float64 -> "Array_float64"
 
   let wsize = function
   | Float64 | Int | Int64 | Bigstring -> 1
   | String length -> (length + 7) / 8
-  | Array_float64 -> 2
+  | Array_float32 | Array_float64 -> 2
 end
 
 module Field = struct
@@ -103,6 +105,9 @@ let rec extract_fields expression =
               type_, Longident.Lident "string"
             | "Bigstring" ->
               Type.Bigstring, Longident.(Ldot (Ldot (Lident "Struct", "Bigstring"), "t"))
+            | "Array_float32" ->
+              Type.Array_float32,
+              Longident.(Ldot (Ldot (Lident "Struct", "Array_float32"), "t"))
             | "Array_float64" ->
               Type.Array_float64,
               Longident.(Ldot (Ldot (Lident "Struct", "Array_float64"), "t"))
@@ -156,6 +161,7 @@ let rec construct_fields_list fields loc =
                   | Int64         -> "Int64"
                   | String _      -> "String"
                   | Bigstring     -> "Bigstring"
+                  | Array_float32 -> "Array_float32"
                   | Array_float64 -> "Array_float64" )) }
               ( match field.Field.type_ with
 #if OCAML_VERSION >= (4, 3, 0)
@@ -212,6 +218,7 @@ let construct_field_get field column pos loc =
               | Int64         -> "get_int64"
               | String _      -> "get_string"
               | Bigstring     -> "get_bigstring"
+              | Array_float32 -> "get_array_float32"
               | Array_float64 -> "get_array_float64" )))
           (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
              [Obj.magic] to access it. *)
@@ -221,7 +228,8 @@ let construct_field_get field column pos loc =
                 | Int
                 | Int64 -> [ `Int pos ]
                 | String length -> [ `Int pos; `Int length ]
-                | Bigstring | Array_float64 -> [ `Int pos; `Int column ] ) )))
+                | Bigstring | Array_float32 | Array_float64 ->
+                  [ `Int pos; `Int column ] ) )))
       (Typ.constr ~loc { txt = field.Field.ocaml_type; loc } []))
 
 let construct_field_set field column pos loc =
@@ -235,6 +243,7 @@ let construct_field_set field column pos loc =
           | Int64         -> "set_int64"
           | String _      -> "set_string"
           | Bigstring     -> "set_bigstring"
+          | Array_float32 -> "set_array_float32"
           | Array_float64 -> "set_array_float64" )))
       (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
          [Obj.magic] to access it. *)
@@ -244,7 +253,7 @@ let construct_field_set field column pos loc =
             | Int
             | Int64 -> [ `Int pos ]
             | String length -> [ `Int pos; `Int length ]
-            | Bigstring | Array_float64 -> [ `Int pos; `Int column ] )
+            | Bigstring | Array_float32 | Array_float64 -> [ `Int pos; `Int column ] )
         (* Types [Discrete], [Time] and [Time_ns] are stored as [int] or [float] and to
            access them we need to use [Obj.magic]. *)
         @ [ `Mgc "v" ] ))
@@ -260,6 +269,7 @@ let construct_field_seek field ~bsize pos loc =
           | Int64         -> "seek_int64"
           | String _      -> "seek_string"
           | Bigstring     -> "seek_bigstring"
+          | Array_float32 -> "seek_array_float32"
           | Array_float64 -> "seek_array_float64" )))
       (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
          [Obj.magic] to access it. *)
@@ -270,7 +280,7 @@ let construct_field_seek field ~bsize pos loc =
           | Int
           | Int64 -> [ `Int pos ]
           | String len -> [ `Int pos; `Int len ]
-          | Bigstring | Array_float64 -> [ `Int pos ] )
+          | Bigstring | Array_float32 | Array_float64 -> [ `Int pos ] )
         (* Types [Discrete], [Time] and [Time_ns] are stored as [int] or [float] and to
            access them we need to use [Obj.magic]. *)
         @ [ `Mgc "v" ] ))
@@ -379,7 +389,7 @@ let map_structure_item mapper structure_item =
           match field.Field.type_ with
           | Float64 | Int | Int64 | Bigstring -> 4
           | String length -> (length + 7) / 8 * 4
-          | Array_float64 -> 8);
+          | Array_float32 | Array_float64 -> 8);
         functions) fields
       |> List.concat
     in
