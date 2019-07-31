@@ -608,50 +608,17 @@ module Make(S : S) = struct
       let type_ = H5t.copy H5t.c_s1 in
       H5t.set_size type_ H5t.variable;
       type_
-    | Array_float32 ->
-      let type_ = H5t.copy H5t.native_float in
-      H5t.set_size type_ H5t.variable;
-      type_
-    | Array_float64 ->
-      let type_ = H5t.copy H5t.native_double in
-      H5t.set_size type_ H5t.variable;
-      type_
-    | Array_sint8 ->
-      let type_ = H5t.copy H5t.native_int8 in
-      H5t.set_size type_ H5t.variable;
-      type_
-    | Array_uint8 ->
-      let type_ = H5t.copy H5t.native_uint8 in
-      H5t.set_size type_ H5t.variable;
-      type_
-    | Array_sint16 ->
-      let type_ = H5t.copy H5t.native_int16 in
-      H5t.set_size type_ H5t.variable;
-      type_
-    | Array_uint16 ->
-      let type_ = H5t.copy H5t.native_uint16 in
-      H5t.set_size type_ H5t.variable;
-      type_
-    | Array_int32 ->
-      let type_ = H5t.copy H5t.native_int32 in
-      H5t.set_size type_ H5t.variable;
-      type_
-    | Array_int64 ->
-      let type_ = H5t.copy H5t.native_int64 in
-      H5t.set_size type_ H5t.variable;
-      type_
-    | Array_int ->
-      let type_ = H5t.copy H5t.native_int in
-      H5t.set_size type_ H5t.variable;
-      type_
-    | Array_nativeint ->
-      let type_ = H5t.copy H5t.native_int in
-      H5t.set_size type_ H5t.variable;
-      type_
-    | Array_char ->
-      let type_ = H5t.copy H5t.native_char in
-      H5t.set_size type_ H5t.variable;
-      type_
+    | Array_float32   -> H5t.vlen_create H5t.native_float
+    | Array_float64   -> H5t.vlen_create H5t.native_double
+    | Array_sint8     -> H5t.vlen_create H5t.native_int8
+    | Array_uint8     -> H5t.vlen_create H5t.native_uint8
+    | Array_sint16    -> H5t.vlen_create H5t.native_int16
+    | Array_uint16    -> H5t.vlen_create H5t.native_uint16
+    | Array_int32     -> H5t.vlen_create H5t.native_int32
+    | Array_int64     -> H5t.vlen_create H5t.native_int64
+    | Array_int       -> H5t.vlen_create H5t.native_int
+    | Array_nativeint -> H5t.vlen_create H5t.native_int
+    | Array_char      -> H5t.vlen_create H5t.native_char
 
   let field_sizes = Array.map (fun field -> Type.size field.Field.type_) afields
 

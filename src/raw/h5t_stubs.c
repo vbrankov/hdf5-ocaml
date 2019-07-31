@@ -649,3 +649,9 @@ void hdf5_h5t_insert(value dtype_id_v, value name_v, value offset_v, value field
     Hid_val(field_id_v)));
   CAMLreturn0;
 }
+
+value hdf5_h5t_vlen_create(value base_type_id_v)
+{
+  CAMLparam1(base_type_id_v);
+  CAMLreturn(alloc_h5t(H5Tvlen_create(Hid_val(base_type_id_v))));
+}

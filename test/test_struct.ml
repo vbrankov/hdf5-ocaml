@@ -300,9 +300,19 @@ let stress_test_bigarray num_arrays num_elements =
   let e = Array.init num_elements (fun _ -> create_element ()) in
   Struct.reset_serialize ();
   let marshalled = ref (Marshal.to_string a.(Random.int num_arrays) []) in
+  let create_simple () =
+    let h5 = H5.create_trunc "simple.h5" in
+    Big.Array.write (Big.mem a.(Random.int num_arrays)) h5 "a";
+    H5.close h5 in
+  create_simple ();
+  let create_table () =
+    let h5 = H5.create_trunc "table.h5" in
+    Big.Array.make_table (Big.mem a.(Random.int num_arrays)) h5 "a";
+    H5.close h5 in
+  create_table ();
   for _ = 0 to num_arrays - 1 do
     for _ = 0 to num_elements - 1 do
-      match Random.int 13 with
+      match Random.int 32 with
       | 0 -> a.(Random.int num_arrays) <- create_array ()
       | 1 ->
         Struct.reset_serialize ();
@@ -310,6 +320,16 @@ let stress_test_bigarray num_arrays num_elements =
       | 2 ->
         Struct.reset_deserialize ();
         a.(Random.int num_arrays) <- Marshal.from_string !marshalled 0
+      | 3 -> create_simple ()
+      | 4 ->
+        let h5 = H5.open_rdonly "simple.h5" in
+        a.(Random.int num_arrays) <- Big.Array.(get (read h5 "a") 0);
+        H5.close h5
+      | 5 -> create_table ()
+      | 6 ->
+        let h5 = H5.open_rdonly "table.h5" in
+        a.(Random.int num_arrays) <- Big.Array.(get (read_table h5 "a") 0);
+        H5.close h5
       | _ -> e.(Random.int num_elements) <- create_element ()
     done;
     Gc.full_major ()
