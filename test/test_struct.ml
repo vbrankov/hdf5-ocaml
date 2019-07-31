@@ -16,7 +16,7 @@ module Simple = struct
   [%%h5struct f "F" Float64 Seek]
 end
 
-let a () =
+let () =
   let len = 1000 in
   let a = Record.Array.init len (fun i e ->
     let si = i * 2 in
@@ -319,10 +319,28 @@ let () =
   stress_test_bigarray 128 128
 
 let () =
-  let a = create_array 16 in
-  for _ = 0 to 15 do
-    Big.Array.iteri a ~f:(fun i b ->
-      assert (Big.id b = i);
-      assert (Struct.Bigstring.to_string (Big.big b) = Printf.sprintf "%d" i));
-    Gc.full_major ()
-  done
+  let s =
+    Array.init 128 (fun i ->
+      String.init i (fun i -> Char.chr (i + 1))) in
+  let b = Array.map Struct.Bigstring.of_string s in
+  Gc.full_major ();
+  Array.iteri (fun i b ->
+    assert (Struct.Bigstring.to_string b = s.(i))) b
+
+module Bigchar = struct
+  [%%h5struct
+    id "ID" Int;
+    bc "BC" Array_char;
+  ]
+end
+
+let () =
+  let s =
+    Array.init 1024 (fun i ->
+      String.init i (fun i -> Char.chr (i land 0xff))) in
+  let a =
+    Bigchar.Array.init 1024 (fun i a ->
+      Bigchar.set a ~id:i ~bc:(Struct.Array_char.of_string s.(i))) in
+  Gc.full_major ();
+  Bigchar.Array.iteri a ~f:(fun i a ->
+    assert (Bigchar.bc a |> Struct.Array_char.to_string = s.(i)))

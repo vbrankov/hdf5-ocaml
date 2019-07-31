@@ -62,6 +62,9 @@ end
 
 module Array_char : sig
   type t = (char, int8_unsigned_elt, c_layout) Array1.t
+
+  external of_string : string -> t = "hdf5_caml_struct_array_char_of_string"
+  external to_string : t -> string = "hdf5_caml_struct_array_char_to_string"
 end
 
 module Ptr : sig

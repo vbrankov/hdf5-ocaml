@@ -20,7 +20,7 @@ value hdf5_caml_struct_bigstring_of_string(value s_v)
   dim = caml_string_length(s_v);
   b_v =
     caml_ba_alloc_dims(
-      CAML_BA_CHAR | CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, NULL, Wosize_val(s_v) + 1);
+      CAML_BA_CHAR | CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, NULL, Bosize_val(s_v) + 1);
   data = Caml_ba_data_val(b_v);
   memcpy(data, String_val(s_v), dim);
   /* HDF5 requires strings to be null terminated */
@@ -33,6 +33,36 @@ value hdf5_caml_struct_bigstring_to_string(value b_v)
 {
   CAMLparam1(b_v);
   CAMLreturn(caml_copy_string(Caml_ba_data_val(b_v)));
+}
+
+value hdf5_caml_struct_array_char_of_string(value s_v)
+{
+  CAMLparam1(s_v);
+  CAMLlocal1(b_v);
+  long dim;
+  void *data;
+
+  dim = caml_string_length(s_v);
+  b_v =
+    caml_ba_alloc_dims(CAML_BA_CHAR | CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, NULL, dim);
+  data = Caml_ba_data_val(b_v);
+  memcpy(data, String_val(s_v), dim);
+
+  CAMLreturn(b_v);
+}
+
+value hdf5_caml_struct_array_char_to_string(value b_v)
+{
+  CAMLparam1(b_v);
+  CAMLlocal1(s_v);
+  struct caml_ba_array *b;
+  size_t len;
+
+  b = Caml_ba_array_val(b_v);
+  len = b->dim[0];
+  s_v = caml_alloc_string(len);
+  memcpy(String_val(s_v), b->data, len);
+  CAMLreturn(s_v);
 }
 
 /* [Mem.t] and [Ptr.t] support marshalling with sharing.  Each call to [Marshal.to_*] is
