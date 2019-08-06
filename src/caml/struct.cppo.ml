@@ -700,8 +700,20 @@ module Make(S : S) = struct
         (Mem.data t);
       for i = 0 to nfields - 1 do
         match afields.(i).type_ with
-        | String _ -> H5t.close field_types.(i)
-        | _ -> ()
+        | Int | Int64 | Float64 -> ()
+        | String _
+        | Bigstring
+        | Array_float32
+        | Array_float64
+        | Array_sint8
+        | Array_uint8
+        | Array_sint16
+        | Array_uint16
+        | Array_int32
+        | Array_int64
+        | Array_int
+        | Array_nativeint
+        | Array_char -> H5t.close field_types.(i)
       done
 
     let append_records t h5 dset_name =
