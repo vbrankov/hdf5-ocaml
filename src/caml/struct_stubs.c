@@ -151,7 +151,7 @@ value hdf5_caml_struct_mem_create(
   CAMLparam4(capacity_v, size_v, field_sizes_v, types_v);
   CAMLlocal2(type_v, v);
   void *data;
-  size_t capacity, size, nfields, field_size, i, j, element_size;
+  size_t capacity, size, nfields, i, element_size;
   struct hdf5_caml_mem *mem;
   bool has_variable;
   struct hdf5_caml_field *fields;
@@ -285,7 +285,7 @@ void hdf5_mem_finalize(value v)
 {
   struct hdf5_caml_mem *mem;
   struct caml_ba_proxy **proxies, *proxy;
-  void *data;
+  char *data;
   size_t i, j, nfields, offset, size, capacity;
   hvl_t *hvl;
 
@@ -302,7 +302,7 @@ void hdf5_mem_finalize(value v)
       {
         case simple: break;
         case bigstring:
-          data = mem->data + offset;
+          data = (char*) mem->data + offset;
           proxies = mem->fields[i].proxies;
           if (proxies == NULL)
             for (j = 0; j < capacity; j++)
@@ -323,7 +323,7 @@ void hdf5_mem_finalize(value v)
             }
           break;
         case array:
-          data = mem->data + offset;
+          data = (char*) mem->data + offset;
           proxies = mem->fields[i].proxies;
           if (proxies == NULL)
             for (j = 0; j < capacity; j++)
@@ -360,9 +360,8 @@ static unsigned long serialize_id = 0;
 
 void serialize_mem(struct hdf5_caml_mem *mem)
 {
-  size_t capacity, nmemb, size, nfields, field_size, offset, len, i, j;
-  void *data;
-  char *s;
+  size_t capacity, nmemb, size, nfields, offset, len, i, j;
+  char *s, *data;
   hvl_t *hvl;
 
   /* Check whether this [hdf5_caml_mem] was already serialized in this serialization
@@ -399,7 +398,7 @@ void serialize_mem(struct hdf5_caml_mem *mem)
       {
         case simple: break;
         case bigstring:
-          data = mem->data + offset;
+          data = (char*) mem->data + offset;
           for (j = 0; j < capacity; j++)
           {
             s = *((char**) data);
@@ -415,7 +414,7 @@ void serialize_mem(struct hdf5_caml_mem *mem)
           };
           break;
         case array:
-          data = mem->data + offset;
+          data = (char*) mem->data + offset;
           for (j = 0; j < capacity; j++)
           {
             hvl = (hvl_t*) data;
@@ -451,9 +450,8 @@ struct hdf5_caml_mem* deserialize_mem()
   struct hdf5_caml_mem *mem;
   unsigned long id;
   size_t capacity, nmemb, size, nfields, offset, len, i, j;
-  void *data;
   struct hdf5_caml_field *fields;
-  char *s;
+  char *s, *data;
   hvl_t *hvl;
 
   id = caml_deserialize_uint_8();
@@ -518,7 +516,7 @@ struct hdf5_caml_mem* deserialize_mem()
       {
         case simple: break;
         case bigstring:
-          data = mem->data + offset;
+          data = (char*) mem->data + offset;
           for (j = 0; j < capacity; j++)
           {
             len = caml_deserialize_uint_8();
@@ -538,7 +536,7 @@ struct hdf5_caml_mem* deserialize_mem()
           };
           break;
         case array:
-          data = mem->data + offset;
+          data = (char*) mem->data + offset;
           for (j = 0; j < capacity; j++)
           {
             hvl = (hvl_t*) data;
@@ -619,7 +617,7 @@ void hdf5_caml_struct_mem_blit(
   struct hdf5_caml_mem *src, *dst;
   size_t src_pos, dst_pos, len, nfields, size, offset, dim, i, j;
   struct caml_ba_proxy **src_proxies, **dst_proxies, *proxy;
-  void *data;
+  char *data;
   enum type type;
   hvl_t *hvl;
 
@@ -662,7 +660,7 @@ void hdf5_caml_struct_mem_blit(
       {
         case simple: break;
         case bigstring:
-          data = src->data + offset;
+          data = (char*) src->data + offset;
           for (j = 0; j < len; j++)
           {
             proxy = src_proxies[src_pos + j];
@@ -686,7 +684,7 @@ void hdf5_caml_struct_mem_blit(
           };
           break;
         case array:
-          data = src->data + offset;
+          data = (char*) src->data + offset;
           for (j = 0; j < len; j++)
           {
             proxy = src_proxies[src_pos + j];
@@ -720,12 +718,12 @@ value hdf5_caml_struct_mem_field(value mem_v, value i_v)
   CAMLparam2(mem_v, i_v);
   CAMLlocal1(res_v);
   struct hdf5_caml_mem *mem;
-  size_t i;
+  long i;
 
   mem = Mem_val(mem_v);
   i = Long_val(i_v);
 
-  if (i >= mem->nfields)
+  if (i < 0 || i >= Long_val(mem->nfields))
     caml_invalid_argument("index out of bounds");
 
   res_v = caml_alloc_tuple(3);
@@ -916,7 +914,7 @@ void hdf5_caml_struct_ptr_set_bigstring(
 void hdf5_caml_struct_ptr_set_bigstring_bytecode(value *argv, int argn)
 {
   assert(argn == 6);
-  return hdf5_caml_struct_ptr_set_bigstring(
+  hdf5_caml_struct_ptr_set_bigstring(
     (void*) argv[0], (struct hdf5_caml_mem*) argv[1], (long) argv[2], argv[3], argv[4],
     argv[5]);
 }
@@ -926,13 +924,13 @@ value hdf5_caml_struct_ptr_get_array(
 {
   CAMLparam2(column_v, row_v);
   CAMLlocal1(res_v);
-  size_t column, row, dim;
+  size_t column, row;
   struct caml_ba_proxy **proxies, *proxy;
   hvl_t *hvl;
 
   column = Long_val(column_v);
   row    = Long_val(row_v);
-  hvl    = (hvl_t*) (ptr + bo - 1);
+  hvl    = (hvl_t*) ((char*) ptr + bo - 1);
 
   proxies = mem->fields[column].proxies;
   if (proxies == NULL)
@@ -975,7 +973,7 @@ void hdf5_caml_struct_ptr_set_array(
 
   column   = Long_val(column_v);
   row      = Long_val(row_v);
-  hvl      = (hvl_t*) (ptr + bo - 1);
+  hvl      = (hvl_t*) ((char*) ptr + bo - 1);
   bigarray = Caml_ba_array_val(bigarray_v);
   data     = bigarray->data;
   len      = bigarray->dim[0];
@@ -1018,7 +1016,7 @@ void hdf5_caml_struct_ptr_set_array(
 void hdf5_caml_struct_ptr_set_array_bytecode(value *argv, int argn)
 {
   assert(argn == 6);
-  return hdf5_caml_struct_ptr_set_array(
+  hdf5_caml_struct_ptr_set_array(
     (void*) argv[0], (struct hdf5_caml_mem*) argv[1], (long) argv[2], argv[3], argv[4],
     argv[5]);
 }
