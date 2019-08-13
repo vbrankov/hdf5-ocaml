@@ -1,4 +1,5 @@
 #include <string.h>
+#include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
@@ -17,6 +18,12 @@ value hdf5_c_string_of_string(value s_v)
   memcpy(s, String_val(s_v), len);
   s[len] = '\0';
   CAMLreturn((value) s);
+}
+
+value hdf5_c_string_to_string(char *s)
+{
+  CAMLparam0();
+  CAMLreturn(caml_copy_string(s));
 }
 
 value hdf5_c_string_to_bigstring(char *v)

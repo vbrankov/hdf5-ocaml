@@ -19,7 +19,7 @@ let () =
   C_string.free s;
   H5.close h5
 
-let _a () =
+let () =
   let int32array = Array2.create int32 c_layout _NX _NY in
   for j = 0 to _NX - 1 do
     for i = 0 to _NY - 1 do
