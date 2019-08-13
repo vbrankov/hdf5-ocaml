@@ -151,6 +151,14 @@ val write_attribute_string_array : t -> string -> string array -> unit
     string array. *)
 val read_attribute_string_array : t -> string -> string array
 
+(** [write_attribute_c_string t name v] writes the given [C_string.t] as an attribute
+    with the given name. *)
+val write_attribute_c_string : t -> string -> C_string.t -> unit
+
+(** [read_attribute_c_string t name] reads the attribute with the given name as a
+    [C_string.t]. *)
+val read_attribute_c_string : t -> string -> C_string.t
+
 (** Returns whether the given attribute exists. *)
 val attribute_exists : t -> string -> bool
 

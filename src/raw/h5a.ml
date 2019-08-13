@@ -31,6 +31,7 @@ external rename_by_name : Hid.t -> string -> ?lapl:Hid.t -> string -> string -> 
   = "hdf5_h5a_rename_by_name"
 external write_bigarray : Hid.t -> Hid.t -> _ Bigarray.Genarray.t -> unit
   = "hdf5_h5a_write_bigarray"
+external write_c_string : Hid.t -> Hid.t -> C_string.t -> unit = "hdf5_h5a_write_value"
 external write_float : Hid.t -> Hid.t -> float-> unit = "hdf5_h5a_write"
 external write_int32 : Hid.t -> Hid.t -> int64 -> unit = "hdf5_h5a_write_custom"
 external write_int64 : Hid.t -> Hid.t -> int64 -> unit = "hdf5_h5a_write_custom"
@@ -40,6 +41,7 @@ external write_float_array : Hid.t -> Hid.t -> float array -> unit = "hdf5_h5a_w
 external write_string_array : Hid.t -> Hid.t -> string array -> unit = "hdf5_h5a_write"
 external read_bigarray : Hid.t -> Hid.t -> _ Bigarray.Genarray.t -> unit
   = "hdf5_h5a_read_bigarray"
+external read_c_string : Hid.t -> Hid.t -> C_string.t = "hdf5_h5a_read_value"
 external read_float : Hid.t -> Hid.t -> float = "hdf5_h5a_read_float"
 external read_int32 : Hid.t -> Hid.t -> int64 = "hdf5_h5a_read_int32"
 external read_int64 : Hid.t -> Hid.t -> int64 = "hdf5_h5a_read_int64"

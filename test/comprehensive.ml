@@ -7,6 +7,19 @@ let _NX   = 5
 let _NY   = 6
 
 let () =
+  let h5 = H5.create_trunc _FILE in
+  let s = C_string.of_string "abcdefghijkl" in
+  H5.write_attribute_c_string h5 "a" s;
+  C_string.free s;
+  H5.close h5;
+
+  let h5 = H5.open_rdonly _FILE in
+  let s = H5.read_attribute_c_string h5 "a" in
+  assert (C_string.to_string s = "abcdefghijkl");
+  C_string.free s;
+  H5.close h5
+
+let _a () =
   let int32array = Array2.create int32 c_layout _NX _NY in
   for j = 0 to _NX - 1 do
     for i = 0 to _NY - 1 do

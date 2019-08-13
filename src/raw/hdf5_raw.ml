@@ -1,3 +1,7 @@
+module C_string = struct
+  include C_string
+end
+
 module H5a = struct
   include H5a
 end
@@ -69,4 +73,3 @@ end
 module Layout = struct
   include Layout
 end
-

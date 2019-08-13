@@ -1,5 +1,6 @@
 #define H5_USE_18_API 1
 #include "hdf5.h"
+#include "c_string_stubs.h"
 #include "h5_stubs.h"
 #include "h5d_stubs.h"
 #include "h5i_stubs.h"

@@ -176,6 +176,13 @@ void hdf5_h5a_write(value attr_v, value mem_type_v, value buf_v)
   CAMLreturn0;
 }
 
+void hdf5_h5a_write_value(value attr_v, value mem_type_v, value buf_v)
+{
+  CAMLparam3(attr_v, mem_type_v, buf_v);
+  raise_if_fail(H5Awrite(Hid_val(attr_v), Hid_val(mem_type_v), &buf_v));
+  CAMLreturn0;
+}
+
 void hdf5_h5a_write_bigarray(value attr_v, value mem_type_v, value buf_v)
 {
   CAMLparam3(attr_v, mem_type_v, buf_v);
@@ -249,6 +256,14 @@ void hdf5_h5a_read_string_array(value attr_v, value mem_type_v, value buf_v)
     free(s);
   }
   CAMLreturn0;
+}
+
+value hdf5_h5a_read_value(value attr_v, value mem_type_v)
+{
+  CAMLparam2(attr_v, mem_type_v);
+  CAMLlocal1(v);
+  raise_if_fail(H5Aread(Hid_val(attr_v), Hid_val(mem_type_v), &v));
+  CAMLreturn(v);
 }
 
 void hdf5_h5a_close(value attr_v)

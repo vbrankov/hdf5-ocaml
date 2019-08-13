@@ -425,12 +425,12 @@ let read_string_array t name =
   let data = read_data H5d.read_c_string_array datatype
     (fun dims ->
       if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
-      Array.make dims.(0) H5d.C_string.null)
+      Array.make dims.(0) C_string.null)
     (fun _ _ -> assert false) t None name in
   H5t.close datatype;
   Array.map (fun cs ->
-    let s = H5d.C_string.to_string cs in
-    H5d.C_string.free cs;
+    let s = C_string.to_string cs in
+    C_string.free cs;
     s) data
 
 let read_bigstring_array t name =
@@ -440,13 +440,13 @@ let read_bigstring_array t name =
   let data = read_data H5d.read_c_string_array datatype
     (fun dims ->
       if Array.length dims <> 1 then invalid_arg "Dataset not one dimensional";
-      Array.make dims.(0) H5d.C_string.null)
+      Array.make dims.(0) C_string.null)
     (fun _ _ -> assert false) t None name in
   H5t.close datatype;
   (* We will reuse [data] *)
   for i = 0 to Array.length data - 1 do
     Array.unsafe_get data i
-    |> H5d.C_string.to_bigstring
+    |> C_string.to_bigstring
     |> Array.unsafe_set (Obj.magic data) i
   done;
   Obj.magic data
@@ -506,6 +506,26 @@ let read_attribute_string_array t name =
   let dims, _ = H5s.get_simple_extent_dims dataspace in
   let a = Array.make dims.(0) "" in
   H5a.read_string_array att datatype a;
+  H5t.close datatype;
+  H5s.close dataspace;
+  H5a.close att;
+  a
+
+let write_attribute_c_string t name v =
+  let datatype = H5t.copy H5t.c_s1 in
+  H5t.set_size datatype H5t.variable;
+  let dataspace = H5s.create H5s.Class.SCALAR in
+  let att = H5a.create (hid t) name datatype dataspace in
+  H5a.write_c_string att datatype v;
+  H5a.close att;
+  H5s.close dataspace;
+  H5t.close datatype
+
+let read_attribute_c_string t name =
+  let att = H5a.open_ (hid t) name in
+  let dataspace = H5a.get_space att in
+  let datatype = H5a.get_type att in
+  let a = H5a.read_c_string att datatype in
   H5t.close datatype;
   H5s.close dataspace;
   H5a.close att;
