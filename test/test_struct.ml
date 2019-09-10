@@ -358,9 +358,12 @@ let () =
   let s =
     Array.init 1024 (fun i ->
       String.init i (fun i -> Char.chr (i land 0xff))) in
-  let a =
-    Bigchar.Array.init 1024 (fun i a ->
-      Bigchar.set a ~id:i ~bc:(Struct.Array_char.of_string s.(i))) in
+  let v = Bigchar.Vector.create () in
+  for i = 0 to 1023 do
+    Bigchar.Vector.append v
+    |> Bigchar.set ~id:i ~bc:(Struct.Array_char.of_string s.(i))
+  done;
+  let a = Bigchar.Vector.to_array v in
   Gc.full_major ();
   Bigchar.Array.iteri a ~f:(fun i a ->
     assert (Bigchar.bc a |> Struct.Array_char.to_string = s.(i)))

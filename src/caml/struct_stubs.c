@@ -61,7 +61,7 @@ value hdf5_caml_struct_array_char_to_string(value b_v)
   b = Caml_ba_array_val(b_v);
   len = b->dim[0];
   s_v = caml_alloc_string(len);
-  memcpy(String_val(s_v), b->data, len);
+  memcpy((void*) String_val(s_v), b->data, len);
   CAMLreturn(s_v);
 }
 
@@ -314,9 +314,9 @@ void hdf5_mem_finalize(value v)
             for (j = 0; j < capacity; j++)
             {
               proxy = proxies[j];
-              if (proxy == NULL || --proxy->refcount == 0)
+              if (proxy != NULL && --proxy->refcount == 0)
               {
-                free(*((void**) data));
+                free(proxy->data);
                 free(proxy);
               }
               data += size;
@@ -337,9 +337,9 @@ void hdf5_mem_finalize(value v)
             {
               hvl = (hvl_t*) data;
               proxy = proxies[j];
-              if (proxy == NULL || --proxy->refcount == 0)
+              if (proxy != NULL && --proxy->refcount == 0)
               {
-                free(hvl->p);
+                free(proxy->data);
                 free(proxy);
               }
               data += size;
@@ -600,12 +600,32 @@ void hdf5_caml_struct_mem_realloc(value t_v, value capacity_v)
   CAMLparam2(t_v, capacity_v);
   struct hdf5_caml_mem *mem;
   void *data;
+  size_t i, old_capacity, capacity, size, nfields;
+  struct caml_ba_proxy **proxies;
 
   mem = Mem_val(t_v);
-  data = realloc(mem->data, Long_val(capacity_v) * Long_val(mem->size));
+  old_capacity = Long_val(mem->capacity);
+  capacity = Long_val(capacity_v);
+  size = Long_val(mem->size);
+  nfields = Long_val(mem->nfields);
+  data = realloc(mem->data, capacity * size);
   if (data == NULL)
     caml_hdf5_raise_out_of_memory();
   mem->data = data;
+  for (i = 0; i < nfields; i++)
+  {
+    proxies = mem->fields[i].proxies;
+    if (proxies != NULL)
+    {
+      proxies = realloc(proxies, capacity * sizeof(struct caml_ba_proxy*));
+      if (proxies == NULL)
+        caml_hdf5_raise_out_of_memory();
+      bzero(
+        proxies + old_capacity,
+        (capacity - old_capacity) * sizeof(struct caml_ba_proxy*));
+      mem->fields[i].proxies = proxies;
+    }
+  }
   mem->capacity = capacity_v;
   CAMLreturn0;
 }
@@ -886,7 +906,7 @@ void hdf5_caml_struct_ptr_set_bigstring(
     mem->fields[column].proxies = proxies;
   }
   proxy = proxies[row];
-  if (proxy == NULL || --proxy->refcount == 0)
+  if (proxy != NULL && --proxy->refcount == 0)
   {
     free(*((void**) data));
     free(proxy);
@@ -987,9 +1007,9 @@ void hdf5_caml_struct_ptr_set_array(
     mem->fields[column].proxies = proxies;
   }
   proxy = proxies[row];
-  if (proxy == NULL || --proxy->refcount == 0)
+  if (proxy != NULL && --proxy->refcount == 0)
   {
-    free(hvl->p);
+    free(proxy->data);
     free(proxy);
   }
   proxy = bigarray->proxy;
