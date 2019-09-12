@@ -350,20 +350,48 @@ let () =
 module Bigchar = struct
   [%%h5struct
     id "ID" Int;
-    bc "BC" Array_char;
+    s  "S"  (String 1);
+    a  "A"  Bigstring;
+    b  "B"  Array_char;
   ]
 end
 
 let () =
-  let s =
-    Array.init 1024 (fun i ->
+  let len = 1024 in
+  let aa =
+    Array.init len (fun i ->
+      String.init i (fun i ->
+        let i = i land 0xff in
+        Char.chr (if i = 0 then 1 else i))) in
+  let ab =
+    Array.init len (fun i ->
       String.init i (fun i -> Char.chr (i land 0xff))) in
   let v = Bigchar.Vector.create () in
-  for i = 0 to 1023 do
+  for i = 0 to len - 1 do
     Bigchar.Vector.append v
-    |> Bigchar.set ~id:i ~bc:(Struct.Array_char.of_string s.(i))
+    |> Bigchar.set ~id:i ~s:"A"
+      ~a:(Struct.Bigstring.of_string aa.(i))
+      ~b:(Struct.Array_char.of_string ab.(i))
   done;
   let a = Bigchar.Vector.to_array v in
   Gc.full_major ();
-  Bigchar.Array.iteri a ~f:(fun i a ->
-    assert (Bigchar.bc a |> Struct.Array_char.to_string = s.(i)))
+  Bigchar.Array.iteri a ~f:(fun i t ->
+    let a = Bigchar.a t |> Struct.Bigstring.to_string in
+    let b = Bigchar.b t |> Struct.Array_char.to_string in
+    assert (a = aa.(i));
+    assert (b = ab.(i)));
+
+  let h5 = H5.create_trunc "test.h5" in
+  Bigchar.Array.make_table a h5 "a";
+  H5.close h5;
+
+  let h5 = H5.open_rdonly "test.h5" in
+  for _ = 0 to 255 do
+    let _ : Bigchar.Array.t = Bigchar.Array.read_table h5 "a" in
+    Gc.full_major ()
+  done;
+  for _ = 0 to 4 * 1024 do
+    let a = Bigchar.Array.read_table h5 "a" in
+    let _ : Struct.Bigstring.t = Bigchar.a (Bigchar.Array.get a 0) in
+    Gc.full_major ()
+  done
