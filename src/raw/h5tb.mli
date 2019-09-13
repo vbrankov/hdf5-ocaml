@@ -29,6 +29,9 @@ external append_records : Hid.t -> string -> nrecords:int -> type_size:int
 external write_records : Hid.t -> string -> start:int -> nrecords:int -> type_size:int
   -> field_offset:int array -> field_sizes:int array -> Data.t -> unit
   = "hdf5_h5tb_write_records_bytecode" "hdf5_h5tb_write_records"
+external read_fields_name : Hid.t -> string -> string -> start:int -> nrecords:int
+  -> type_size:int -> field_offset:int array -> dst_sizes:int array -> Data.t -> unit
+  = "hdf5_h5tb_read_fields_name_bytecode" "hdf5_h5tb_read_fields_name"
 external read_table : Hid.t -> string -> dst_size:int -> dst_offset:int array
   -> dst_sizes:int array -> Data.t -> unit
   = "hdf5_h5tb_read_table_bytecode" "hdf5_h5tb_read_table"

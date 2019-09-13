@@ -45,6 +45,9 @@ module type S_no_ppx = sig
     (** Reads records. *)
     val read_records : H5.t -> start:int -> nrecords:int -> string -> t
 
+    (** Reads only the fields that the struct contains. *)
+    val read_fields_name : H5.t -> ?start:int -> ?nrecords:int -> string -> t
+
     (** Writes records. *)
     val write : t -> ?deflate:int -> H5.t -> string -> unit
 

@@ -185,6 +185,45 @@ void hdf5_h5tb_write_records_bytecode(value *argv, int argn)
     argv[7]);
 }
 
+void hdf5_h5tb_read_fields_name(value loc_v, value table_name_v, value field_names_v,
+  value start_v, value nrecords_v, value type_size_v, value field_offset_v,
+  value dst_sizes_v, value data_v)
+{
+  CAMLparam5(loc_v, table_name_v, field_names_v, start_v, nrecords_v);
+  CAMLxparam4(type_size_v, field_offset_v, dst_sizes_v, data_v);
+  hid_t loc_id;
+  const char *table_name, *field_names;
+  size_t *field_offset, *dst_sizes;
+  herr_t err;
+
+  loc_id = Hid_val(loc_v);
+  table_name = String_val(table_name_v);
+  field_names = String_val(field_names_v);
+  size_t_array_val(field_offset_v, &field_offset);
+  if (field_offset == NULL)
+    caml_raise_out_of_memory();
+  size_t_array_val(dst_sizes_v, &dst_sizes);
+  if (dst_sizes == NULL)
+  {
+    free(field_offset);
+    caml_raise_out_of_memory();
+  }
+
+  err = H5TBread_fields_name(loc_id, table_name, field_names, Int_val(start_v),
+    Int_val(nrecords_v), Int_val(type_size_v), field_offset, dst_sizes, (void*) data_v);
+  free(field_offset);
+  free(dst_sizes);
+  raise_if_fail(err);
+  CAMLreturn0;
+}
+
+void hdf5_h5tb_read_fields_name_bytecode(value *argv, int argn)
+{
+  assert(argn == 9);
+  hdf5_h5tb_read_fields_name(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5],
+    argv[6], argv[7], argv[8]);
+}
+
 void hdf5_h5tb_read_table(value loc_v, value table_name_v, value dst_size_v,
   value dst_offset_v, value dst_sizes_v, value dst_buf_v)
 {
