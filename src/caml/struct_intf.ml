@@ -17,6 +17,20 @@ module type S_no_ppx = sig
 
   val to_string : t -> string
 
+  module Accessors : sig
+    module Unpacked : sig
+      type nonrec 'a t = {
+        type_ : 'a Type.Unpacked.t;
+        get   : t -> 'a;
+        set   : t -> 'a -> unit;
+      }
+    end
+
+    type t = T : _ Unpacked.t -> t
+
+    val all : t array
+  end
+
   module Array : sig
     type e = t
     type t

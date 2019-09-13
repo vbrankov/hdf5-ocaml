@@ -3,4 +3,4 @@ type t = private {
   type_ : Type.t;
 }
 
-val create : string -> Type.t -> t
+val create : string -> _ Type.Unpacked.t -> t

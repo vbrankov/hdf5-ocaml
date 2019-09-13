@@ -103,7 +103,7 @@ let rec extract_fields expression =
           | Lident type_ ->
             let a (type_ : Type.t) =
               type_,
-              Longident.(Ldot (Ldot (Lident "Struct", Type.to_string type_), "t")) in
+              Longident.(Ldot (Ldot (Lident "Type", Type.to_string type_), "t")) in
             begin match type_ with
             | "Discrete" ->
               let ocaml_type =
@@ -189,7 +189,7 @@ let rec construct_fields_list fields loc =
             Nolabel,
             Exp.construct ~loc
               { loc; txt = Longident.(
-                  Ldot (Ldot (Lident "Hdf5_caml", "Type"),
+                  Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Type"), "Unpacked"),
                   Type.to_string field.Field.type_)) }
               ( match field.Field.type_ with
 #if OCAML_VERSION >= (4, 3, 0)

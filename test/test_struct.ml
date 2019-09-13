@@ -1,4 +1,5 @@
 open Hdf5_caml
+open Type
 
 module Record = struct
   [%%h5struct
@@ -33,7 +34,15 @@ let () =
     assert(Record.i    e = i);
     assert(Record.i64  e = Int64.of_int i);
     assert(Record.s    e = Printf.sprintf "%14d" i);
-    assert(Record.pos  e = i)
+    assert(Record.pos  e = i);
+    Array.iteri (fun j (Record.Accessors.T acc) ->
+      let i = if j < 4 then i * 2 else i in
+      match acc.type_ with
+      | Int      -> assert (acc.get e = i)
+      | Int64    -> assert (acc.get e = Int64.of_int i)
+      | Float64  -> assert (acc.get e = float_of_int i)
+      | String _ -> assert (acc.get e = Printf.sprintf "%14d" i)
+      | _        -> ()) Record.Accessors.all
   in
   for i = 0 to len - 1 do
     let e = Record.Array.get a i in
@@ -50,6 +59,21 @@ let () =
     Record.prev e
   done;
   assert_val e 0;
+  for i = 0 to len - 1 do
+    Record.move e i;
+    assert_val e i
+  done;
+  let a =
+    Record.Array.init len (fun i e ->
+      Array.iteri (fun j (Record.Accessors.T acc) ->
+        let i = if j < 4 then i * 2 else i in
+        match acc.type_ with
+        | Int -> acc.set e i
+        | Int64 -> acc.set e (Int64.of_int i)
+        | Float64 -> acc.set e (float_of_int i)
+        | String _ -> acc.set e (Printf.sprintf "%14d" i)
+        | _ -> assert false) Record.Accessors.all) in
+  let e = Record.Array.get a 0 in
   for i = 0 to len - 1 do
     Record.move e i;
     assert_val e i
@@ -273,8 +297,109 @@ let create_array len =
     for j = 0 to i - 1 do
       c.{j} <- Char.chr (j land 0xff)
     done;
-    Big.set b ~id:i ~big:(string_of_int i |> Struct.Bigstring.of_string) ~f32 ~f64 ~si8
+    Big.set b ~id:i ~big:(string_of_int i |> Bigstring.of_string) ~f32 ~f64 ~si8
       ~ui8 ~si16 ~ui16 ~i32 ~i64 ~i:ai ~ni ~c)
+
+let () =
+  let check a =
+    Big.Array.iteri a ~f:(fun i a ->
+      Array.iter (fun (Big.Accessors.T acc) ->
+        match acc.type_ with
+        | Int -> assert (acc.get a = i)
+        | Int64 -> assert false
+        | Float64 -> assert false
+        | String _ -> assert false
+        | Bigstring -> assert (acc.get a |> Bigstring.to_string = string_of_int i)
+        | Array_float32 ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = float j)
+          done
+        | Array_float64 ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = float j)
+          done
+        | Array_sint8 ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = (j lsl 55) asr 55)
+          done
+        | Array_uint8 ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = j land 0xff)
+          done
+        | Array_sint16 ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = j)
+          done
+        | Array_uint16 ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = j)
+          done
+        | Array_int32 ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = Int32.of_int j)
+          done
+        | Array_int64 ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = Int64.of_int j)
+          done
+        | Array_int ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = j)
+          done
+        | Array_nativeint ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = Nativeint.of_int j)
+          done
+        | Array_char ->
+          let a = acc.get a in
+          assert (Array1.dim a = i);
+          for j = 0 to i - 1 do
+            assert (a.{j} = Char.chr (j land 0xff))
+          done) Big.Accessors.all) in
+  let a = create_array 1024 in
+  check a;
+  let p = Big.Array.get a 0 in
+  Big.Array.init 1024 (fun i b ->
+    Big.move p i;
+    Array.iter (fun (Big.Accessors.T acc) ->
+      match acc.type_ with
+      | Int -> acc.set b i
+      | Int64 -> assert false
+      | Float64 -> assert false
+      | String _ -> assert false
+      | Bigstring -> acc.set b (acc.get p)
+      | Array_float32 -> acc.set b (acc.get p)
+      | Array_float64 -> acc.set b (acc.get p)
+      | Array_sint8 -> acc.set b (acc.get p)
+      | Array_uint8 -> acc.set b (acc.get p)
+      | Array_sint16 -> acc.set b (acc.get p)
+      | Array_uint16 -> acc.set b (acc.get p)
+      | Array_int32 -> acc.set b (acc.get p)
+      | Array_int64 -> acc.set b (acc.get p)
+      | Array_int -> acc.set b (acc.get p)
+      | Array_nativeint -> acc.set b (acc.get p)
+      | Array_char -> acc.set b (acc.get p)) Big.Accessors.all)
+  |> check
 
 let stress_test_bigarray num_arrays num_elements =
   let create_array () =
@@ -285,7 +410,7 @@ let stress_test_bigarray num_arrays num_elements =
     let pos = Big.mem a |> Big.Array.length |> Random.int in
     Big.move a pos;
     let big = Big.big a in
-    assert (Struct.Bigstring.to_string big = string_of_int pos);
+    assert (Bigstring.to_string big = string_of_int pos);
     let f32 = Big.f32 a in
     assert (Array1.dim f32 = pos);
     for i = 0 to pos - 1 do
@@ -342,10 +467,10 @@ let () =
   let s =
     Array.init 128 (fun i ->
       String.init i (fun i -> Char.chr (i + 1))) in
-  let b = Array.map Struct.Bigstring.of_string s in
+  let b = Array.map Bigstring.of_string s in
   Gc.full_major ();
   Array.iteri (fun i b ->
-    assert (Struct.Bigstring.to_string b = s.(i))) b
+    assert (Bigstring.to_string b = s.(i))) b
 
 module Bigchar = struct
   [%%h5struct
@@ -370,14 +495,14 @@ let () =
   for i = 0 to len - 1 do
     Bigchar.Vector.append v
     |> Bigchar.set ~id:i ~s:"A"
-      ~a:(Struct.Bigstring.of_string aa.(i))
-      ~b:(Struct.Array_char.of_string ab.(i))
+      ~a:(Bigstring.of_string aa.(i))
+      ~b:(Array_char.of_string ab.(i))
   done;
   let a = Bigchar.Vector.to_array v in
   Gc.full_major ();
   Bigchar.Array.iteri a ~f:(fun i t ->
-    let a = Bigchar.a t |> Struct.Bigstring.to_string in
-    let b = Bigchar.b t |> Struct.Array_char.to_string in
+    let a = Bigchar.a t |> Bigstring.to_string in
+    let b = Bigchar.b t |> Array_char.to_string in
     assert (a = aa.(i));
     assert (b = ab.(i)));
 
@@ -392,6 +517,6 @@ let () =
   done;
   for _ = 0 to 4 * 1024 do
     let a = Bigchar.Array.read_table h5 "a" in
-    let _ : Struct.Bigstring.t = Bigchar.a (Bigchar.Array.get a 0) in
+    let _ : Bigstring.t = Bigchar.a (Bigchar.Array.get a 0) in
     Gc.full_major ()
   done

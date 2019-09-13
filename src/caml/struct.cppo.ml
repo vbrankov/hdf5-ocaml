@@ -1,5 +1,5 @@
-open Bigarray
 open Hdf5_raw
+open Type
 
 (* This is an interface to HDF5 tables, which have memory representation as C arrays of
    structs.  [Mem.t] represents an array of structs and [Ptr.t] represents a pointer to an
@@ -135,67 +135,6 @@ module Mem = struct
   let to_string t = T.to_string t.t
 end
 
-module Bigstring = struct
-  type t = (char, int8_unsigned_elt, c_layout) Array1.t
-
-  external of_string : string -> t = "hdf5_caml_struct_bigstring_of_string"
-  external to_string : t -> string = "hdf5_caml_struct_bigstring_to_string"
-
-  let of_array1 a =
-    if a.{Array1.dim a - 1} <> '\000' then
-      invalid_arg "The array must by NULL terminated";
-    a
-
-  let to_array1 t = t
-end
-
-module Array_float32 = struct
-  type t = (float, float32_elt, c_layout) Array1.t
-end
-
-module Array_float64 = struct
-  type t = (float, float64_elt, c_layout) Array1.t
-end
-
-module Array_sint8 = struct
-  type t = (int, int8_signed_elt, c_layout) Array1.t
-end
-
-module Array_uint8 = struct
-  type t = (int, int8_unsigned_elt, c_layout) Array1.t
-end
-
-module Array_sint16 = struct
-  type t = (int, int16_signed_elt, c_layout) Array1.t
-end
-
-module Array_uint16 = struct
-  type t = (int, int16_unsigned_elt, c_layout) Array1.t
-end
-
-module Array_int32 = struct
-  type t = (int32, int32_elt, c_layout) Array1.t
-end
-
-module Array_int64 = struct
-  type t = (int64, int64_elt, c_layout) Array1.t
-end
-
-module Array_int = struct
-  type t = (int, int_elt, c_layout) Array1.t
-end
-
-module Array_nativeint = struct
-  type t = (nativeint, nativeint_elt, c_layout) Array1.t
-end
-
-module Array_char = struct
-  type t = (char, int8_unsigned_elt, c_layout) Array1.t
-
-  external of_string : string -> t = "hdf5_caml_struct_array_char_of_string"
-  external to_string : t -> string = "hdf5_caml_struct_array_char_to_string"
-end
-
 module Ptr = struct
   (* A pointer into an array of C structs wrapped in [Mem.t]. *)
   type t = {
@@ -269,12 +208,11 @@ module Ptr = struct
   let get_string  t bo len   = Ext.get_string  t.ptr bo len
   let set_string  t bo len v = Ext.set_string  t.ptr bo len v
 
-  external get_bigstring : Ext.t -> Mem.T.t -> int -> int -> int
-    -> (char, int8_unsigned_elt, c_layout) Array1.t = "hdf5_caml_struct_ptr_get_bigstring"
+  external get_bigstring : Ext.t -> Mem.T.t -> int -> int -> int -> Bigstring.t
+    = "hdf5_caml_struct_ptr_get_bigstring"
   let get_bigstring t bo column = get_bigstring t.ptr t.mem bo column t.pos
 
-  external set_bigstring : Ext.t -> Mem.T.t -> int -> int -> int
-    -> (char, int8_unsigned_elt, c_layout) Array1.t -> unit
+  external set_bigstring : Ext.t -> Mem.T.t -> int -> int -> int -> Bigstring.t -> unit
     = "hdf5_caml_struct_ptr_set_bigstring_bytecode" "hdf5_caml_struct_ptr_set_bigstring"
   let set_bigstring t bo column v = set_bigstring t.ptr t.mem bo column t.pos v
 
@@ -597,8 +535,10 @@ module Make(S : S) = struct
       field_offset) field_sizes
 
   let field_type (field : Field.t) =
-    match field.Field.type_ with
-    | Int | Int64 -> H5t.native_long
+    let T type_ = field.type_ in
+    match type_ with
+    | Int -> H5t.native_long
+    | Int64 -> H5t.native_long
     | Float64 -> H5t.native_double
     | String l ->
       let type_ = H5t.copy H5t.c_s1 in
@@ -630,21 +570,24 @@ module Make(S : S) = struct
       let field = afields.(i) in
       let field_type = field_type field in
       H5t.insert datatype field.name field_offset.(i) field_type;
-      match field.type_ with
-      | Int | Int64 | Float64 -> ()
-      | String _
-      | Bigstring
-      | Array_float32
-      | Array_float64
-      | Array_sint8
-      | Array_uint8
-      | Array_sint16
-      | Array_uint16
-      | Array_int32
-      | Array_int64
-      | Array_int
-      | Array_nativeint
-      | Array_char -> H5t.close field_type
+      let T type_ = field.type_ in
+      match type_ with
+      | Int             -> ()
+      | Int64           -> ()
+      | Float64         -> ()
+      | String _        -> H5t.close field_type
+      | Bigstring       -> H5t.close field_type
+      | Array_float32   -> H5t.close field_type
+      | Array_float64   -> H5t.close field_type
+      | Array_sint8     -> H5t.close field_type
+      | Array_uint8     -> H5t.close field_type
+      | Array_sint16    -> H5t.close field_type
+      | Array_uint16    -> H5t.close field_type
+      | Array_int32     -> H5t.close field_type
+      | Array_int64     -> H5t.close field_type
+      | Array_int       -> H5t.close field_type
+      | Array_nativeint -> H5t.close field_type
+      | Array_char      -> H5t.close field_type
     done;
     datatype
 
@@ -657,6 +600,93 @@ module Make(S : S) = struct
   let next t = Ptr.next t type_bsize
   let move t i = Ptr.move t i type_bsize
   let unsafe_move t i = Ptr.unsafe_move t i type_bsize
+
+  module Accessors = struct
+    module Unpacked = struct
+      type nonrec 'a t = {
+        type_ : 'a Type.Unpacked.t;
+        get   : t -> 'a;
+        set   : t -> 'a -> unit;
+      }
+    end
+
+    type t = T : _ Unpacked.t -> t
+
+    let all =
+      let sbo     = ref 0 in
+      let scolumn = ref 0 in
+      Array.map (fun { Field.type_; _ } ->
+        let bo = !sbo in
+        let column = !scolumn in
+        sbo := !sbo + (Type.size type_ + 7) / 8 * 4;
+        incr scolumn;
+        let T type_ = type_ in
+        match type_ with
+        | Int ->
+          T { type_;
+            get = (fun t   -> get_int t bo);
+            set = (fun t v -> set_int t bo v) }
+        | Int64 ->
+          T { type_;
+            get = (fun t   -> get_int64 t bo);
+            set = (fun t v -> set_int64 t bo v) }
+        | Float64 ->
+          T { type_;
+            get = (fun t   -> get_float64 t bo);
+            set = (fun t v -> set_float64 t bo v) }
+        | String len ->
+          T { type_;
+            get = (fun t   -> get_string t bo len);
+            set = (fun t v -> set_string t bo len v) }
+        | Bigstring ->
+          T { type_;
+            get = (fun t   -> get_bigstring t bo column);
+            set = (fun t v -> set_bigstring t bo column v) }
+        | Array_float32 ->
+          T { type_;
+            get = (fun t   -> get_array_float32 t bo column);
+            set = (fun t v -> set_array_float32 t bo column v) }
+        | Array_float64 ->
+          T { type_;
+            get = (fun t   -> get_array_float64 t bo column);
+            set = (fun t v -> set_array_float64 t bo column v) }
+        | Array_sint8 ->
+          T { type_;
+            get = (fun t   -> get_array_sint8 t bo column);
+            set = (fun t v -> set_array_sint8 t bo column v) }
+        | Array_uint8 ->
+          T { type_;
+            get = (fun t   -> get_array_uint8 t bo column);
+            set = (fun t v -> set_array_uint8 t bo column v) }
+        | Array_sint16 ->
+          T { type_;
+            get = (fun t   -> get_array_sint16 t bo column);
+            set = (fun t v -> set_array_sint16 t bo column v) }
+        | Array_uint16 ->
+          T { type_;
+            get = (fun t   -> get_array_uint16 t bo column);
+            set = (fun t v -> set_array_uint16 t bo column v) }
+        | Array_int32 ->
+          T { type_;
+            get = (fun t   -> get_array_int32 t bo column);
+            set = (fun t v -> set_array_int32 t bo column v) }
+        | Array_int64 ->
+          T { type_;
+            get = (fun t   -> get_array_int64 t bo column);
+            set = (fun t v -> set_array_int64 t bo column v) }
+        | Array_int ->
+          T { type_;
+            get = (fun t   -> get_array_int t bo column);
+            set = (fun t v -> set_array_int t bo column v) }
+        | Array_nativeint ->
+          T { type_;
+            get = (fun t   -> get_array_nativeint t bo column);
+            set = (fun t v -> set_array_nativeint t bo column v) }
+        | Array_char ->
+          T { type_;
+            get = (fun t   -> get_array_char t bo column);
+            set = (fun t v -> set_array_char t bo column v) }) afields
+  end
 
   module Array = struct
     type e = t
@@ -699,21 +729,24 @@ module Make(S : S) = struct
         ~type_size ~field_names ~field_offset ~field_types ~chunk_size ~compress
         (Mem.data t);
       for i = 0 to nfields - 1 do
-        match afields.(i).type_ with
-        | Int | Int64 | Float64 -> ()
-        | String _
-        | Bigstring
-        | Array_float32
-        | Array_float64
-        | Array_sint8
-        | Array_uint8
-        | Array_sint16
-        | Array_uint16
-        | Array_int32
-        | Array_int64
-        | Array_int
-        | Array_nativeint
-        | Array_char -> H5t.close field_types.(i)
+        let T type_ = afields.(i).type_ in
+        match type_ with
+        | Int             -> ()
+        | Int64           -> ()
+        | Float64         -> ()
+        | String _        -> H5t.close field_types.(i)
+        | Bigstring       -> H5t.close field_types.(i)
+        | Array_float32   -> H5t.close field_types.(i)
+        | Array_float64   -> H5t.close field_types.(i)
+        | Array_sint8     -> H5t.close field_types.(i)
+        | Array_uint8     -> H5t.close field_types.(i)
+        | Array_sint16    -> H5t.close field_types.(i)
+        | Array_uint16    -> H5t.close field_types.(i)
+        | Array_int32     -> H5t.close field_types.(i)
+        | Array_int64     -> H5t.close field_types.(i)
+        | Array_int       -> H5t.close field_types.(i)
+        | Array_nativeint -> H5t.close field_types.(i)
+        | Array_char      -> H5t.close field_types.(i)
       done
 
     let append_records t h5 dset_name =
