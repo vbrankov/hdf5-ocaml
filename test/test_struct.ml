@@ -13,6 +13,12 @@ module Record = struct
     s    "s"    (String 16)]
 end
 
+module Subset = struct
+  [%%h5struct
+    f64 "f64" Float64;
+  ]
+end
+
 module Simple = struct
   [%%h5struct f "F" Float64 Seek]
 end
@@ -167,8 +173,11 @@ let () =
   |> Record.Array.iteri ~f:(fun i e ->
     assert_val e i);
   Record.Array.read h5 "b\\a/r"
-  |> Record.Array.iteri ~f:(fun i e ->
-    assert_val e i);
+  |> Record.Array.iteri ~f:(fun i e -> assert_val e i);
+  Record.Array.read_records h5 ~start:0 ~nrecords:(len / 2) "f\\o/o"
+  |> Record.Array.iteri ~f:(fun i e -> assert_val e i);
+  Subset.Array.read_fields_name h5 "f\\o/o"
+  |> Subset.Array.iteri ~f:(fun i e -> assert (Subset.f64 e = float_of_int i));
   H5.close h5;
 
   let slen = 1024 * 1024 in

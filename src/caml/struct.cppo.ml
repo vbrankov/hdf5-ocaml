@@ -757,7 +757,8 @@ module Make(S : S) = struct
       H5tb.write_records (H5.hid h5) (H5.escape dset_name) ~start ~nrecords:(length t)
         ~type_size ~field_offset ~field_sizes (Mem.data t)
 
-    let read_fields_name h5 ?(start = 0) ?nrecords table_name =
+    let read_fields_name h5 ?field_names ?(start = 0) ?nrecords table_name =
+      let table_name = H5.escape table_name in
       let loc = H5.hid h5 in
       let nrecords =
         match nrecords with
@@ -765,18 +766,21 @@ module Make(S : S) = struct
         | None -> H5tb.get_table_info loc table_name in
       let t = make nrecords in
       let field_names =
-        let len = ref nfields in
-        for i = 0 to nfields - 1 do
-          len := !len + String.length afields.(i).name
-        done;
-        let buf = Buffer.create !len in
-        for i = 0 to nfields - 1 do
-          if i > 0 then Buffer.add_char buf ',';
-          Buffer.add_string buf afields.(i).name
-        done;
-        Buffer.contents buf in
-      H5tb.read_fields_name loc (H5.escape table_name) field_names ~start ~nrecords
-        ~type_size ~field_offset ~dst_sizes:field_sizes (Mem.data t);
+        match field_names with
+        | Some n -> n
+        | None ->
+          let len = ref nfields in
+          for i = 0 to nfields - 1 do
+            len := !len + String.length afields.(i).name
+          done;
+          let buf = Buffer.create !len in
+          for i = 0 to nfields - 1 do
+            if i > 0 then Buffer.add_char buf ',';
+            Buffer.add_string buf afields.(i).name
+          done;
+          Buffer.contents buf in
+      H5tb.read_fields_name loc table_name field_names ~start ~nrecords ~type_size
+          ~field_offset ~dst_sizes:field_sizes (Mem.data t);
       t
 
     let read_table h5 table_name =
