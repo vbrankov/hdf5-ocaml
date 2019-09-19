@@ -518,14 +518,15 @@ module Make(S : S) = struct
 
   let afields = Array.of_list S.fields
   let nfields = Array.length afields
-  let type_bsize = List.fold_left (fun s field ->
-    s + (Type.size field.Field.type_ + 7) / 8 * 8 / 2) 0 S.fields
+  let type_bsize = List.fold_left (fun s (Field.T field) ->
+    s + (Type.Unpacked.size field.type_ + 7) / 8 * 8 / 2) 0 S.fields
   let type_size = 2 * type_bsize
 
-  let field_names = Array.map (fun field -> field.Field.name) afields
+  let field_names = Array.map (fun (Field.T field) -> field.name) afields
 
   let field_sizes =
-    Array.map (fun field -> (Type.size field.Field.type_ + 7) / 8 * 8) afields
+    Array.map (fun (Field.T field) ->
+      (Type.Unpacked.size field.type_ + 7) / 8 * 8) afields
 
   let field_offset =
     let offset = ref 0 in
@@ -534,9 +535,8 @@ module Make(S : S) = struct
       offset := !offset + size;
       field_offset) field_sizes
 
-  let field_type (field : Field.t) =
-    let T type_ = field.type_ in
-    match type_ with
+  let field_type (Field.T field) =
+    match field.type_ with
     | Int -> H5t.native_long
     | Int64 -> H5t.native_long
     | Float64 -> H5t.native_double
@@ -560,18 +560,19 @@ module Make(S : S) = struct
     | Array_nativeint -> H5t.vlen_create H5t.native_int
     | Array_char      -> H5t.vlen_create H5t.native_char
 
-  let field_sizes = Array.map (fun field -> Type.size field.Field.type_) afields
+  let field_sizes =
+    Array.map (fun (Field.T field) -> Type.Unpacked.size field.type_) afields
 
-  let field_types = Array.map (fun field -> field.Field.type_) afields
+  let field_types = Array.map (fun (Field.T field) -> Type.T field.type_) afields
 
   let compound_type () =
     let datatype = H5t.create H5t.Class.COMPOUND type_size in
     for i = 0 to nfields - 1 do
       let field = afields.(i) in
       let field_type = field_type field in
+      let T field = field in
       H5t.insert datatype field.name field_offset.(i) field_type;
-      let T type_ = field.type_ in
-      match type_ with
+      match field.type_ with
       | Int             -> ()
       | Int64           -> ()
       | Float64         -> ()
@@ -604,7 +605,7 @@ module Make(S : S) = struct
   module Accessors = struct
     module Unpacked = struct
       type nonrec 'a t = {
-        type_ : 'a Type.Unpacked.t;
+        field : 'a Field.Unpacked.t;
         get   : t -> 'a;
         set   : t -> 'a -> unit;
       }
@@ -615,75 +616,75 @@ module Make(S : S) = struct
     let all =
       let sbo     = ref 0 in
       let scolumn = ref 0 in
-      Array.map (fun { Field.type_; _ } ->
+      Array.map (fun (Field.T field) ->
         let bo = !sbo in
         let column = !scolumn in
-        sbo := !sbo + (Type.size type_ + 7) / 8 * 4;
+        sbo := !sbo + (Type.Unpacked.size field.type_ + 7) / 8 * 4;
         incr scolumn;
-        let T type_ = type_ in
+        let type_ = field.type_ in
         match type_ with
         | Int ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_int t bo);
             set = (fun t v -> set_int t bo v) }
         | Int64 ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_int64 t bo);
             set = (fun t v -> set_int64 t bo v) }
         | Float64 ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_float64 t bo);
             set = (fun t v -> set_float64 t bo v) }
         | String len ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_string t bo len);
             set = (fun t v -> set_string t bo len v) }
         | Bigstring ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_bigstring t bo column);
             set = (fun t v -> set_bigstring t bo column v) }
         | Array_float32 ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_float32 t bo column);
             set = (fun t v -> set_array_float32 t bo column v) }
         | Array_float64 ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_float64 t bo column);
             set = (fun t v -> set_array_float64 t bo column v) }
         | Array_sint8 ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_sint8 t bo column);
             set = (fun t v -> set_array_sint8 t bo column v) }
         | Array_uint8 ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_uint8 t bo column);
             set = (fun t v -> set_array_uint8 t bo column v) }
         | Array_sint16 ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_sint16 t bo column);
             set = (fun t v -> set_array_sint16 t bo column v) }
         | Array_uint16 ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_uint16 t bo column);
             set = (fun t v -> set_array_uint16 t bo column v) }
         | Array_int32 ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_int32 t bo column);
             set = (fun t v -> set_array_int32 t bo column v) }
         | Array_int64 ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_int64 t bo column);
             set = (fun t v -> set_array_int64 t bo column v) }
         | Array_int ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_int t bo column);
             set = (fun t v -> set_array_int t bo column v) }
         | Array_nativeint ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_nativeint t bo column);
             set = (fun t v -> set_array_nativeint t bo column v) }
         | Array_char ->
-          T { type_;
+          T { field;
             get = (fun t   -> get_array_char t bo column);
             set = (fun t v -> set_array_char t bo column v) }) afields
   end
@@ -729,8 +730,8 @@ module Make(S : S) = struct
         ~type_size ~field_names ~field_offset ~field_types ~chunk_size ~compress
         (Mem.data t);
       for i = 0 to nfields - 1 do
-        let T type_ = afields.(i).type_ in
-        match type_ with
+        let T field = afields.(i) in
+        match field.type_ with
         | Int             -> ()
         | Int64           -> ()
         | Float64         -> ()
@@ -771,12 +772,14 @@ module Make(S : S) = struct
         | None ->
           let len = ref nfields in
           for i = 0 to nfields - 1 do
-            len := !len + String.length afields.(i).name
+            let T field = afields.(i) in
+            len := !len + String.length field.name
           done;
           let buf = Buffer.create !len in
           for i = 0 to nfields - 1 do
             if i > 0 then Buffer.add_char buf ',';
-            Buffer.add_string buf afields.(i).name
+            let T field = afields.(i) in
+            Buffer.add_string buf field.name
           done;
           Buffer.contents buf in
       H5tb.read_fields_name loc table_name field_names ~start ~nrecords ~type_size
@@ -788,8 +791,33 @@ module Make(S : S) = struct
       let loc = H5.hid h5 in
       let nrecords = H5tb.get_table_info loc table_name in
       let t = make nrecords in
-      H5tb.read_table loc table_name ~dst_size:type_size ~dst_offset:field_offset
-        ~dst_sizes:field_sizes (Mem.data t);
+      let datatype = compound_type () in
+      let dataset = H5d.open_ (H5.hid h5) table_name in
+      H5d.read_string dataset datatype H5s.all H5s.all (Mem.data t |> Obj.magic);
+      H5t.close datatype;
+
+      let datatype = H5d.get_type dataset in
+      let nmembers = H5t.get_nmembers datatype in
+      let names = Hashtbl.create 31 in
+      for i = 0 to nmembers - 1 do
+        Hashtbl.add names (H5t.get_member_name datatype i) ()
+      done;
+      H5t.close datatype;
+      H5d.close dataset;
+      if nrecords > 0 then
+        for i = 0 to nfields - 1 do
+          let T acc = Accessors.all.(i) in
+          if not (Hashtbl.mem names acc.field.name) then
+            match acc.field.default with
+            | None ->
+              failwith (Printf.sprintf "No default for the field %s" acc.field.name)
+            | Some default ->
+              let t = get t 0 in
+              for _ = 0 to nrecords - 1 do
+                acc.set t default;
+                unsafe_next t
+              done
+        done;
       t
 
     let read_records h5 ~start ~nrecords table_name =
@@ -1050,8 +1078,8 @@ let%test_module "" = (module struct
   module Foo = struct
     include Make(struct
       let fields = [
-        Field.create "id" Int;
-        Field.create "name" (String 10);
+        Field.create "id" Int None;
+        Field.create "name" (String 10) None;
       ]
     end)
 

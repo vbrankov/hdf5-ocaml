@@ -67,6 +67,7 @@ module Field = struct
     type_      : Type.t;
     ocaml_type : Longident.t;
     seek       : bool;
+    default    : expression option;
   }
 end
 
@@ -105,16 +106,6 @@ let rec extract_fields expression =
               type_,
               Longident.(Ldot (Ldot (Lident "Type", Type.to_string type_), "t")) in
             begin match type_ with
-            | "Discrete" ->
-              let ocaml_type =
-                match expression_opt with
-                | Some { pexp_desc = Pexp_ident { txt; _ }; _ } -> txt
-                | _ ->
-                  raise (Location.Error (Location.error ~loc (Printf.sprintf
-                    "[%%h5struct] invalid field %s, field type Discrete requires type"
-                    id)))
-              in
-              Type.Int, ocaml_type
             | "Float64"  -> Type.Float64, Longident.Lident "float"
             | "Int"      -> Type.Int    , Longident.Lident "int"
             | "Int64"    -> Type.Int64  , Longident.Lident "int64"
@@ -159,13 +150,27 @@ let rec extract_fields expression =
             "[%%h5struct] invalid field %s, field type must be a construct" id)))
       in
       let seek = ref false in
+      let default = ref None in
+      let ocaml_type = ref ocaml_type in
       List.iter (fun (_, expression) ->
         match expression.pexp_desc with
         | Pexp_construct ({ txt = Lident "Seek"; _ }, None) -> seek := true
+        | Pexp_construct ({ txt = Lident "Default"; _ }, Some expression) ->
+          default := Some expression
+        | Pexp_construct ({ txt = Lident "Type"; _ }, Some expression) ->
+          ocaml_type := (
+            match expression.pexp_desc with
+            | Pexp_constant (Pconst_string (s, _)) -> Longident.Lident s
+            | Pexp_ident c -> c.txt
+            | _ ->
+              raise (Location.Error (Location.error ~loc:expression.pexp_loc
+                (Format.asprintf
+                  "[%%h5struct] invalid field %s, unexpected type" id))))
         | _ ->
-          raise (Location.Error (Location.error ~loc:expression.pexp_loc (Printf.sprintf
+          raise (Location.Error (Location.error ~loc:expression.pexp_loc (Format.asprintf
             "[%%h5struct] invalid field %s, unexpected modifiers" id)))) expressions;
-      [ { Field.id; name; type_; ocaml_type; seek = !seek } ]
+      [ { Field.id; name; type_; ocaml_type = !ocaml_type; seek = !seek;
+          default = !default } ]
     | _ ->
       raise (Location.Error (Location.error ~loc:pexp_loc (Printf.sprintf
         "[%%h5struct] invalid field %s, exactly two arguments expected: name and type"
@@ -198,7 +203,14 @@ let rec construct_fields_list fields loc =
 #else
                 | String length -> Some (Exp.constant ~loc (Const_int length))
 #endif
-                | _ -> None ) ];
+                | _ -> None );
+            Nolabel,
+            match field.default with
+            | None ->
+              Exp.construct ~loc { loc; txt = Longident.(Lident "None") } None
+            | Some default ->
+              Exp.construct ~loc { loc; txt = Longident.(Lident "Some") } (Some default)
+            ];
         construct_fields_list fields loc ]))
 
 let construct_function ~loc name args body =

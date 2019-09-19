@@ -43,7 +43,7 @@ let () =
     assert(Record.pos  e = i);
     Array.iteri (fun j (Record.Accessors.T acc) ->
       let i = if j < 4 then i * 2 else i in
-      match acc.type_ with
+      match acc.field.type_ with
       | Int      -> assert (acc.get e = i)
       | Int64    -> assert (acc.get e = Int64.of_int i)
       | Float64  -> assert (acc.get e = float_of_int i)
@@ -73,7 +73,7 @@ let () =
     Record.Array.init len (fun i e ->
       Array.iteri (fun j (Record.Accessors.T acc) ->
         let i = if j < 4 then i * 2 else i in
-        match acc.type_ with
+        match acc.field.type_ with
         | Int -> acc.set e i
         | Int64 -> acc.set e (Int64.of_int i)
         | Float64 -> acc.set e (float_of_int i)
@@ -313,7 +313,7 @@ let () =
   let check a =
     Big.Array.iteri a ~f:(fun i a ->
       Array.iter (fun (Big.Accessors.T acc) ->
-        match acc.type_ with
+        match acc.field.type_ with
         | Int -> assert (acc.get a = i)
         | Int64 -> assert false
         | Float64 -> assert false
@@ -391,7 +391,7 @@ let () =
   Big.Array.init 1024 (fun i b ->
     Big.move p i;
     Array.iter (fun (Big.Accessors.T acc) ->
-      match acc.type_ with
+      match acc.field.type_ with
       | Int -> acc.set b i
       | Int64 -> assert false
       | Float64 -> assert false
@@ -528,4 +528,61 @@ let () =
     let a = Bigchar.Array.read_table h5 "a" in
     let _ : Bigstring.t = Bigchar.a (Bigchar.Array.get a 0) in
     Gc.full_major ()
-  done
+  done;
+  H5.close h5
+
+module Foo = struct
+  [%%h5struct
+    a "A" Int (Default 0);
+    b "B" Float64;
+  ]
+end
+
+module Bar = struct
+  [%%h5struct
+    b "B" Float64;
+    d "D" (String 16) (Default "NONE");
+    a "A" Int;
+    c "C" Int (Default 1);
+  ]
+end
+
+module Ext = struct
+  type t = private int
+end
+
+module Mem = struct
+  module T = struct
+    type t = {
+      refcount      : int;
+      data          : Ext.t;
+      capacity      : int; (* The capacity of [data] *)
+      mutable nmemb : int; (* The number of records in the table *)
+      size          : int; (* The length of a record *)
+      nfields       : int; (* The number of fields *)
+    }
+  end
+
+  type t = {
+    ops : Ext.t; (* Custom operations field *)
+    t   : T.t;
+  }
+
+  let data t : Hdf5_raw.H5tb.Data.t = Obj.magic t.t.data
+end
+
+let () =
+  let len = 16 in
+  let h5 = H5.create_trunc "test.h5" in
+  let a = Foo.Array.init len (fun i -> Foo.set ~a:i ~b:(float i *. 0.25)) in
+  Foo.Array.make_table a h5 "a";
+  H5.close h5;
+
+  let h5 = H5.open_rdonly "test.h5" in
+  Bar.Array.read_table h5 "a"
+  |> Bar.Array.iteri ~f:(fun i t ->
+    assert (Bar.a t = i);
+    assert (Bar.b t = (float i *. 0.25));
+    assert (Bar.c t = 1);
+    assert (Bar.d t = "NONE"));
+  H5.close h5

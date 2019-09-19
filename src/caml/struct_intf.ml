@@ -20,7 +20,7 @@ module type S_no_ppx = sig
   module Accessors : sig
     module Unpacked : sig
       type nonrec 'a t = {
-        type_ : 'a Type.Unpacked.t;
+        field : 'a Field.Unpacked.t;
         get   : t -> 'a;
         set   : t -> 'a -> unit;
       }

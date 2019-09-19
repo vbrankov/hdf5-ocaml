@@ -238,21 +238,10 @@ void hdf5_h5tb_read_table(value loc_v, value table_name_v, value dst_size_v,
   loc_id = Hid_val(loc_v);
   table_name = String_val(table_name_v);
   raise_if_fail(H5TBget_table_info(loc_id, table_name, &nfields, &nrecords));
-  if (nfields != size_t_array_val(dst_offset_v, &dst_offset))
-  {
-    free(dst_offset);
-    caml_invalid_argument(
-      "H5tb.read_table: the length of dst_offset not equal to the number of fields");
-  }
+  size_t_array_val(dst_offset_v, &dst_offset);
   if (dst_offset == NULL)
     caml_raise_out_of_memory();
-  if (nfields != size_t_array_val(dst_sizes_v, &dst_sizes))
-  {
-    free(dst_offset);
-    free(dst_sizes);
-    caml_invalid_argument(
-      "H5tb.read_table: the length of dst_sizes not equal to the number of fields");
-  }
+  size_t_array_val(dst_sizes_v, &dst_sizes);
   if (dst_sizes == NULL)
   {
     free(dst_offset);

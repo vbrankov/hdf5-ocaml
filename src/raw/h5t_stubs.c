@@ -641,6 +641,17 @@ value hdf5_h5t_get_nmembers(value dtype_id_v)
   CAMLreturn(Val_int(v));
 }
 
+value hdf5_h5t_get_member_name(value dtype_id_v, value field_idx_v)
+{
+  CAMLparam2(dtype_id_v, field_idx_v);
+  CAMLlocal1(name_v);
+  char *name = H5Tget_member_name(Hid_val(dtype_id_v), Int_val(field_idx_v));
+  if (name == NULL) fail();
+  name_v = caml_copy_string(name);
+  free(name);
+  CAMLreturn(name_v);
+}
+
 void hdf5_h5t_insert(value dtype_id_v, value name_v, value offset_v, value field_id_v)
 {
   CAMLparam4(dtype_id_v, name_v, offset_v, field_id_v);

@@ -77,8 +77,8 @@ module Unpacked : sig
   | Array_int       : Array_int.t t
   | Array_nativeint : Array_nativeint.t t
   | Array_char      : Array_char.t t
+
+  val size : _ t -> int
 end
 
 type t = T : _ Unpacked.t -> t
-
-val size : t -> int

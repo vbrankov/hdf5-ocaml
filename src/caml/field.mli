@@ -1,6 +1,11 @@
-type t = private {
-  name  : string;
-  type_ : Type.t;
-}
+module Unpacked : sig
+  type 'a t = private {
+    name    : string;
+    type_   : 'a Type.Unpacked.t;
+    default : 'a option;
+  }
+end
 
-val create : string -> _ Type.Unpacked.t -> t
+type t = T : _ Unpacked.t -> t
+
+val create : string -> 'a Type.Unpacked.t -> 'a option -> t

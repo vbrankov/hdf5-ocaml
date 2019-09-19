@@ -79,25 +79,24 @@ module Unpacked = struct
   | Array_int       : Array_int.t t
   | Array_nativeint : Array_nativeint.t t
   | Array_char      : Array_char.t t
+
+  let size : type a . a t -> int = function
+    | Int             -> 8
+    | Int64           -> 8
+    | Float64         -> 8
+    | Bigstring       -> 8
+    | String l        -> l
+    | Array_float32   -> 16
+    | Array_float64   -> 16
+    | Array_sint8     -> 16
+    | Array_uint8     -> 16
+    | Array_sint16    -> 16
+    | Array_uint16    -> 16
+    | Array_int32     -> 16
+    | Array_int64     -> 16
+    | Array_int       -> 16
+    | Array_nativeint -> 16
+    | Array_char      -> 16
 end
 
 type t = T : _ Unpacked.t -> t
-
-let size (T t) =
-  match t with
-  | Int             -> 8
-  | Int64           -> 8
-  | Float64         -> 8
-  | Bigstring       -> 8
-  | String l        -> l
-  | Array_float32   -> 16
-  | Array_float64   -> 16
-  | Array_sint8     -> 16
-  | Array_uint8     -> 16
-  | Array_sint16    -> 16
-  | Array_uint16    -> 16
-  | Array_int32     -> 16
-  | Array_int64     -> 16
-  | Array_int       -> 16
-  | Array_nativeint -> 16
-  | Array_char      -> 16
