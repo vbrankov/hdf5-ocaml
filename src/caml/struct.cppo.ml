@@ -791,23 +791,37 @@ module Make(S : S) = struct
       let loc = H5.hid h5 in
       let nrecords = H5tb.get_table_info loc table_name in
       let t = make nrecords in
-      let datatype = compound_type () in
       let dataset = H5d.open_ (H5.hid h5) table_name in
+
+      let dataset_type = H5d.get_type dataset in
+      let nmembers = H5t.get_nmembers dataset_type in
+      let member_types = Hashtbl.create 31 in
+      for i = 0 to nmembers - 1 do
+        Hashtbl.add member_types (H5t.get_member_name dataset_type i)
+          (H5t.get_member_type dataset_type i)
+      done;
+
+      let datatype = compound_type () in
       H5d.read_string dataset datatype H5s.all H5s.all (Mem.data t |> Obj.magic);
       H5t.close datatype;
-
-      let datatype = H5d.get_type dataset in
-      let nmembers = H5t.get_nmembers datatype in
-      let names = Hashtbl.create 31 in
-      for i = 0 to nmembers - 1 do
-        Hashtbl.add names (H5t.get_member_name datatype i) ()
-      done;
-      H5t.close datatype;
       H5d.close dataset;
+
       if nrecords > 0 then
         for i = 0 to nfields - 1 do
           let T acc = Accessors.all.(i) in
-          if not (Hashtbl.mem names acc.field.name) then
+          match Hashtbl.find_opt member_types acc.field.name with
+          | Some member_type ->
+            begin
+              let size = H5t.get_size member_type in
+              match acc.field.type_, H5t.get_class member_type with
+              | String length, STRING ->
+                if length < size then
+                  failwith (
+                    Printf.sprintf "Field %s length is %d but at least %d needed"
+                      acc.field.name length size)
+              | _, _ -> ()
+            end
+          | None ->
             match acc.field.default with
             | None ->
               failwith (Printf.sprintf "No default for the field %s" acc.field.name)
@@ -818,6 +832,8 @@ module Make(S : S) = struct
                 unsafe_next t
               done
         done;
+
+      H5t.close dataset_type;
       t
 
     let read_records h5 ~start ~nrecords table_name =
@@ -1071,8 +1087,11 @@ module Make(S : S) = struct
   end
 end
 
+external initialize : unit -> unit = "hdf5_caml_struct_initialize"
 external reset_serialize : unit -> unit = "hdf5_caml_struct_reset_serialize"
 external reset_deserialize : unit -> unit = "hdf5_caml_struct_reset_deserialize"
+
+let () = initialize ()
 
 let%test_module "" = (module struct
   module Foo = struct

@@ -641,6 +641,14 @@ value hdf5_h5t_get_nmembers(value dtype_id_v)
   CAMLreturn(Val_int(v));
 }
 
+value hdf5_h5t_get_member_class(value cdtype_id_v, value member_no_v)
+{
+  CAMLparam2(cdtype_id_v, member_no_v);
+  H5T_class_t class = H5Tget_member_class(Hid_val(cdtype_id_v), Int_val(member_no_v));
+  if (class < 0) fail();
+  CAMLreturn(Val_h5t_class(class));
+}
+
 value hdf5_h5t_get_member_name(value dtype_id_v, value field_idx_v)
 {
   CAMLparam2(dtype_id_v, field_idx_v);
@@ -650,6 +658,12 @@ value hdf5_h5t_get_member_name(value dtype_id_v, value field_idx_v)
   name_v = caml_copy_string(name);
   free(name);
   CAMLreturn(name_v);
+}
+
+value hdf5_h5t_get_member_type(value type_id_v, value field_idx_v)
+{
+  CAMLparam2(type_id_v, field_idx_v);
+  CAMLreturn(alloc_h5t(H5Tget_member_type(Hid_val(type_id_v), Int_val(field_idx_v))));
 }
 
 void hdf5_h5t_insert(value dtype_id_v, value name_v, value offset_v, value field_id_v)

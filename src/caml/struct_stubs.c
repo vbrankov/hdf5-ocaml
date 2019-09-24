@@ -1049,19 +1049,85 @@ void hdf5_caml_struct_ptr_set_array_bytecode(value *argv, int argn)
     argv[5]);
 }
 
+herr_t c_s1_to_c_s1_variable(hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
+  size_t nelmts, size_t buf_stride, size_t bkg_stride, void *buf, void *bkg,
+  hid_t dset_xfer_plist)
+{
+  void *src_buf, *dst_buf;
+  size_t maxlen, len, i;
+  char *s;
+
+  (void) bkg_stride;
+  (void) bkg;
+  (void) dset_xfer_plist;
+  switch (cdata->command)
+  {
+    case H5T_CONV_INIT:
+      return H5Tis_variable_str(dst_id) ? 0 : -1;
+    case H5T_CONV_CONV:
+      maxlen = H5Tget_size(src_id);
+      if (buf_stride <= sizeof(char*))
+      {
+        src_buf = (char*) buf + nelmts * buf_stride;
+        dst_buf = (char*) buf + nelmts * sizeof(char*);
+        for (i = 0; i < nelmts; i++)
+        {
+          src_buf = (char*) src_buf - buf_stride;
+          dst_buf = (char*) dst_buf - buf_stride;
+          len = strnlen(src_buf, maxlen);
+          s = malloc(len + 1);
+          memcpy(s, src_buf, len);
+          s[len] = '\0';
+          *((char**) dst_buf) = s;
+        }
+      }
+      else
+      {
+        src_buf = buf;
+        dst_buf = buf;
+        for (i = 0; i < nelmts; i++)
+        {
+          len = strnlen(src_buf, maxlen);
+          s = malloc(len + 1);
+          memcpy(s, src_buf, len);
+          s[len] = '\0';
+          *((char**) dst_buf) = s;
+          src_buf = (char*) src_buf + buf_stride;
+          dst_buf = (char*) dst_buf + buf_stride;
+        }
+      }
+      return 0;
+    case H5T_CONV_FREE: return 0;
+    default: return -1;
+  }
+}
+
+void register_conversion_functions()
+{
+  hid_t datatype;
+  datatype = H5Tcopy(H5T_C_S1);
+  H5Tset_size(datatype, H5T_VARIABLE);
+  H5Tregister(H5T_PERS_SOFT, "c_s1_to_c_s1_variable", H5T_C_S1, datatype,
+    c_s1_to_c_s1_variable);
+  H5Tclose(datatype);
+}
+
 static bool initialized = false;
 
-void hdf5_initialize()
+void hdf5_caml_struct_initialize()
 {
-  initialized = true;
-  caml_register_custom_operations(&hdf5_mem_ops);
-  caml_register_custom_operations(&hdf5_ptr_ops);
+  if (!initialized)
+  {
+    initialized = true;
+    caml_register_custom_operations(&hdf5_mem_ops);
+    caml_register_custom_operations(&hdf5_ptr_ops);
+    register_conversion_functions();
+  }
 }
 
 void hdf5_caml_struct_reset_serialize()
 {
-  if (!initialized)
-    hdf5_initialize();
+  hdf5_caml_struct_initialize();
   serialize_count++;
   serialize_id = 0;
 }
@@ -1069,8 +1135,7 @@ void hdf5_caml_struct_reset_serialize()
 void hdf5_caml_struct_reset_deserialize()
 {
   CAMLparam0();
-  if (!initialized)
-    hdf5_initialize();
+  hdf5_caml_struct_initialize();
   if (mems_capacity == 0)
   {
     mems_capacity = 256;

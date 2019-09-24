@@ -586,3 +586,40 @@ let () =
     assert (Bar.c t = 1);
     assert (Bar.d t = "NONE"));
   H5.close h5
+
+module Short = struct
+  [%%h5struct
+    a "A" (String 16);
+  ]
+end
+
+module Shorter = struct
+  [%%h5struct
+    a "A" (String 8);
+  ]
+end
+
+module Long = struct
+  [%%h5struct
+    a "A" Bigstring;
+  ]
+end
+
+let () =
+  let file = "test.h5" in
+  let h5 = H5.create_trunc file in
+  let a = Short.Array.init 8 (fun i -> Short.set ~a:(Printf.sprintf "%16d" i)) in
+  Short.Array.make_table a h5 "a";
+  H5.close h5;
+
+  let h5 = H5.open_rdonly file in
+  begin
+    try
+      let _ = Shorter.Array.read_table h5 "a" in
+      assert false
+    with _ -> ()
+  end;
+  Long.Array.read_table h5 "a"
+  |> Long.Array.iteri ~f:(fun i b ->
+    assert(Long.a b |> Type.Bigstring.to_string = Printf.sprintf "%16d" i));
+  H5.close h5
