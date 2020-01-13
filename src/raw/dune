@@ -29,6 +29,11 @@
  (action  (run %{bin:cppo} -V OCAML:%{ocaml_version} %{first-dep} -o %{targets})))
 
 (rule
+ (targets h5r.ml)
+ (deps    (:first-dep h5r.cppo.ml))
+ (action  (run %{bin:cppo} -V OCAML:%{ocaml_version} %{first-dep} -o %{targets})))
+
+(rule
  (targets c_flags.sexp c_library_flags.sexp)
  (deps
   (:discover config/discover.exe))
