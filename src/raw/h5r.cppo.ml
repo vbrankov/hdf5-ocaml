@@ -1,9 +1,17 @@
 open Bigarray
 
-external string_get32u    : bytes      -> int -> int32         = "%caml_string_get32u"
-external string_set32u    : bytes      -> int -> int32 -> unit = "%caml_string_set32u"
-external string_get64u    : bytes      -> int -> int64         = "%caml_string_get64u"
-external string_set64u    : bytes      -> int -> int64 -> unit = "%caml_string_set64u"
+#if OCAML_VERSION < (4, 07, 0)
+external bytes_get32u    : bytes      -> int -> int32         = "%caml_string_get32u"
+external bytes_set32u    : bytes      -> int -> int32 -> unit = "%caml_string_set32u"
+external bytes_get64u    : bytes      -> int -> int64         = "%caml_string_get64u"
+external bytes_set64u    : bytes      -> int -> int64 -> unit = "%caml_string_set64u"
+#else
+external bytes_get32u    : bytes      -> int -> int32         = "%caml_bytes_get32u"
+external bytes_set32u    : bytes      -> int -> int32 -> unit = "%caml_bytes_set32u"
+external bytes_get64u    : bytes      -> int -> int64         = "%caml_bytes_get64u"
+external bytes_set64u    : bytes      -> int -> int64 -> unit = "%caml_bytes_set64u"
+#endif
+
 external bigstring_get32u : _ Array1.t -> int -> int32         = "%caml_bigstring_get32u"
 external bigstring_set32u : _ Array1.t -> int -> int32 -> unit = "%caml_bigstring_set32u"
 external bigstring_get64u : _ Array1.t -> int -> int64         = "%caml_bigstring_get64u"
@@ -32,11 +40,11 @@ module Hobj_ref = struct
     let unsafe_get (t : t) i =
       let i = i * 8 in
       let x = Bytes.create 8 in
-      string_set64u x 0 (bigstring_get64u t (i + 0));
+      bytes_set64u x 0 (bigstring_get64u t (i + 0));
       x
     let unsafe_set (t : t) i (x : hobj_ref) =
       let i = i * 8 in
-      bigstring_set64u t (i + 0) (string_get64u x 0)
+      bigstring_set64u t (i + 0) (bytes_get64u x 0)
     let to_genarray t = genarray_of_array1 t
   end
 end
@@ -54,13 +62,13 @@ module Hdset_reg_ref = struct
     let unsafe_get (t : t) i =
       let i = i * 12 in
       let x = Bytes.create 12 in
-      string_set64u x 0 (bigstring_get64u t (i + 0));
-      string_set32u x 8 (bigstring_get32u t (i + 8));
+      bytes_set64u x 0 (bigstring_get64u t (i + 0));
+      bytes_set32u x 8 (bigstring_get32u t (i + 8));
       x
     let unsafe_set (t : t) i (x : hdset_reg_ref) =
       let i = i * 12 in
-      bigstring_set64u t (i + 0) (string_get64u x 0);
-      bigstring_set32u t (i + 8) (string_get32u x 8)
+      bigstring_set64u t (i + 0) (bytes_get64u x 0);
+      bigstring_set32u t (i + 8) (bytes_get32u x 8)
     let to_genarray t = genarray_of_array1 t
   end
 end
