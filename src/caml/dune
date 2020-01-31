@@ -2,7 +2,7 @@
  (name hdf5_caml)
  (public_name hdf5.caml)
  (c_names struct_stubs)
- (c_flags (:standard -Wall -pedantic -Wextra -Wunused -Werror -Wno-long-long))
+ (c_flags (:standard -Wall -pedantic -Wextra -Wunused -Werror -Wno-long-long (:include c_flags.sexp)))
  (libraries bigarray hdf5_raw)
  (inline_tests)
  (preprocess (pps ppx_inline_test)))
@@ -16,3 +16,10 @@
  (targets struct.ml)
  (deps    (:first-dep struct.cppo.ml))
  (action  (run %{bin:cppo} -V OCAML:%{ocaml_version} %{first-dep} -o %{targets})))
+
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (deps
+  (:discover ../raw/config/discover.exe))
+ (action
+  (run %{discover})))
