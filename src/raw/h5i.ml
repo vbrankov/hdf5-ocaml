@@ -8,7 +8,6 @@ module Type = struct
   | DATASPACE
   | DATASET
   | ATTR
-  | REFERENCE
   | VFL
   | GENPROP_CLS
   | GENPROP_LST

@@ -24,14 +24,13 @@ H5I_type_t H5I_type_val(value v)
     case  3: return H5I_DATASPACE;
     case  4: return H5I_DATASET;
     case  5: return H5I_ATTR;
-    case  6: return H5I_REFERENCE;
-    case  7: return H5I_VFL;
-    case  8: return H5I_GENPROP_CLS;
-    case  9: return H5I_GENPROP_LST;
-    case 10: return H5I_ERROR_CLASS;
-    case 11: return H5I_ERROR_MSG;
-    case 12: return H5I_ERROR_STACK;
-    case 13: return H5I_NTYPES;
+    case  6: return H5I_VFL;
+    case  7: return H5I_GENPROP_CLS;
+    case  8: return H5I_GENPROP_LST;
+    case 9: return H5I_ERROR_CLASS;
+    case 10: return H5I_ERROR_MSG;
+    case 11: return H5I_ERROR_STACK;
+    case 12: return H5I_NTYPES;
     default: caml_failwith("unrecognized H5I_type_t");
   }
 }
@@ -48,14 +47,13 @@ value Val_h5i_type(H5I_type_t v)
     case H5I_DATASPACE   : return Val_int( 3);
     case H5I_DATASET     : return Val_int( 4);
     case H5I_ATTR        : return Val_int( 5);
-    case H5I_REFERENCE   : return Val_int( 6);
-    case H5I_VFL         : return Val_int( 7);
-    case H5I_GENPROP_CLS : return Val_int( 8);
-    case H5I_GENPROP_LST : return Val_int( 9);
-    case H5I_ERROR_CLASS : return Val_int(10);
-    case H5I_ERROR_MSG   : return Val_int(11);
-    case H5I_ERROR_STACK : return Val_int(12);
-    case H5I_NTYPES      : return Val_int(13);
+    case H5I_VFL         : return Val_int( 6);
+    case H5I_GENPROP_CLS : return Val_int( 7);
+    case H5I_GENPROP_LST : return Val_int( 8);
+    case H5I_ERROR_CLASS : return Val_int( 9);
+    case H5I_ERROR_MSG   : return Val_int(10);
+    case H5I_ERROR_STACK : return Val_int(11);
+    case H5I_NTYPES      : return Val_int(12);
     default: caml_failwith("unrecognized H5I_type_t");
   }
 }
