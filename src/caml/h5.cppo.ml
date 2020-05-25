@@ -188,7 +188,6 @@ let rec merge ~src ~dst ~on_duplicate path =
         | H5i.Type.DATATYPE, _
         | H5i.Type.DATASPACE, _
         | H5i.Type.ATTR, _
-        | H5i.Type.REFERENCE, _
         | H5i.Type.VFL, _
         | H5i.Type.GENPROP_CLS, _
         | H5i.Type.GENPROP_LST, _
