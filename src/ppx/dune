@@ -7,4 +7,4 @@
  (name ppx_h5struct)
  (public_name hdf5.ppx)
  (kind ppx_rewriter) 
- (libraries ppx_tools_versioned))
+ (libraries ppxlib))

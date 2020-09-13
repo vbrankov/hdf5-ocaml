@@ -1,11 +1,5 @@
-open Migrate_parsetree
-open Ast_406
-
-open Ast_mapper
+open Ppxlib
 open Ast_helper
-open Asttypes
-open Parsetree
-open Longident
 
 module Type = struct
   type t =
@@ -75,6 +69,7 @@ end
 #define Nolabel ""
 #define Pconst_string Const_string
 #endif
+
 let rec extract_fields expression =
   match expression.pexp_desc with
   | Pexp_sequence (expression1, expression2) ->
@@ -84,9 +79,9 @@ let rec extract_fields expression =
       match id with
       | Lident id -> id
       | _ ->
-        raise (Location.Error (Location.error ~loc:pexp_loc (Printf.sprintf
+        Location.raise_errorf ~loc:pexp_loc
           "[%%h5struct] invalid field %s, field identifiers must be simple"
-            (Longident.last id))))
+          (Longident.last_exn id)
     in
     begin match expressions with
     | (_, name) :: (_, type_) :: expressions ->
@@ -94,8 +89,8 @@ let rec extract_fields expression =
         match name.pexp_desc with
         | Pexp_constant (Pconst_string (name, _)) -> name
         | _ ->
-          raise (Location.Error (Location.error ~loc:name.pexp_loc (Printf.sprintf
-            "[%%h5struct] invalid field %s, field name must be a string constant" id)))
+          Location.raise_errorf ~loc:name.pexp_loc
+            "[%%h5struct] invalid field %s, field name must be a string constant" id
       in
       let type_, ocaml_type =
         match type_ with
@@ -120,9 +115,9 @@ let rec extract_fields expression =
                   Type.String length
 #endif
                 | _ ->
-                  raise (Location.Error (Location.error ~loc (Printf.sprintf
+                  Location.raise_errorf ~loc
                     "[%%h5struct] invalid field %s, field type String requires length"
-                    id)))
+                    id
               in
               type_, Longident.Lident "string"
             | "Bigstring"       -> a Bigstring
@@ -138,16 +133,14 @@ let rec extract_fields expression =
             | "Array_nativeint" -> a Array_nativeint
             | "Array_char"      -> a Array_char
             | _ ->
-              raise (Location.Error (Location.error ~loc (Printf.sprintf
-                "[%%h5struct] invalid field %s, unrecognized type %s" id type_)))
+              Location.raise_errorf ~loc "[%%h5struct] invalid field %s, unrecognized type %s" id type_
             end
           | _ ->
-            raise (Location.Error (Location.error ~loc (Printf.sprintf
-              "[%%h5struct] invalid field %s, field type must be simple" id)))
+            Location.raise_errorf ~loc "[%%h5struct] invalid field %s, field type must be simple" id
           end
         | _ ->
-          raise (Location.Error (Location.error ~loc:type_.pexp_loc (Printf.sprintf
-            "[%%h5struct] invalid field %s, field type must be a construct" id)))
+          Location.raise_errorf ~loc:type_.pexp_loc
+            "[%%h5struct] invalid field %s, field type must be a construct" id
       in
       let seek = ref false in
       let default = ref None in
@@ -163,23 +156,22 @@ let rec extract_fields expression =
             | Pexp_constant (Pconst_string (s, _)) -> Longident.Lident s
             | Pexp_ident c -> c.txt
             | _ ->
-              raise (Location.Error (Location.error ~loc:expression.pexp_loc
-                (Format.asprintf
-                  "[%%h5struct] invalid field %s, unexpected type" id))))
+              Location.raise_errorf ~loc:expression.pexp_loc
+                "[%%h5struct] invalid field %s, unexpected type" id)
         | _ ->
-          raise (Location.Error (Location.error ~loc:expression.pexp_loc (Format.asprintf
-            "[%%h5struct] invalid field %s, unexpected modifiers" id)))) expressions;
+          Location.raise_errorf ~loc:expression.pexp_loc
+            "[%%h5struct] invalid field %s, unexpected modifiers" id) expressions;
       [ { Field.id; name; type_; ocaml_type = !ocaml_type; seek = !seek;
           default = !default } ]
     | _ ->
-      raise (Location.Error (Location.error ~loc:pexp_loc (Printf.sprintf
+      Location.raise_errorf ~loc:pexp_loc
         "[%%h5struct] invalid field %s, exactly two arguments expected: name and type"
-          id)))
+        id
     end
   | _ ->
-    raise (Location.Error (Location.error ~loc:expression.pexp_loc
-      "[%h5struct] accepts a list of fields, \
-        e.g. [%h5struct time \"Time\" Int; price \"Price\" Float64]"))
+    Location.raise_errorf ~loc:expression.pexp_loc
+      "[%%h5struct] accepts a list of fields, \
+        e.g. [%%h5struct time \"Time\" Int; price \"Price\" Float64]"
 
 let rec construct_fields_list fields loc =
   match fields with
@@ -369,12 +361,12 @@ let construct_set_all_fields fields loc =
       Vb.mk ~loc (Pat.var ~loc { txt = "_"; loc })
         (Exp.ident ~loc { txt = Longident.Lident "set"; loc }) ] ]
 
-let construct_size_dependent_fun name ~bsize ~index loc =
+let construct_size_dependent_fun cname ~bsize ~index loc =
   let call =
     Exp.apply ~loc
       (Exp.ident ~loc
         { loc; txt =
-            Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"), name)) })
+            Longident.(Ldot (Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Ptr"), cname)) })
       (* It is hidden that [t] is of type [Struct.Ptr.t] so it's necessary to use
          [Obj.magic] to access it. *)
       ( [ Nolabel, obj_magic ~loc (Exp.ident ~loc { txt = Longident.Lident "t"; loc }) ]
@@ -390,7 +382,7 @@ let construct_size_dependent_fun name ~bsize ~index loc =
 #endif
   in
   [ Str.value ~loc Nonrecursive [
-      Vb.mk ~loc (Pat.var ~loc { txt = name; loc })
+      Vb.mk ~loc (Pat.var ~loc { txt = cname; loc })
         (Exp.fun_ ~loc Nolabel None
           (Pat.constraint_ ~loc
             (Pat.var ~loc { txt = "t"; loc })
@@ -400,37 +392,27 @@ let construct_size_dependent_fun name ~bsize ~index loc =
             else call )) ];
     Str.value ~loc Nonrecursive [
       Vb.mk ~loc (Pat.var ~loc { txt = "_"; loc })
-        (Exp.ident ~loc { txt = Longident.Lident name; loc }) ] ]
+        (Exp.ident ~loc { txt = Longident.Lident cname; loc }) ] ]
 
-let map_structure_item mapper structure_item =
-  match structure_item with
-  | { pstr_desc = Pstr_extension (({txt = "h5struct"; _}, payload), attrs);
-      pstr_loc = loc } ->
-    let fields =
-      match payload with
-      | PStr [{ pstr_desc = Pstr_eval (expression, _); _ }] ->
-        extract_fields expression
-      | _ ->
-        raise (Location.Error (Location.error ~loc
-          "[%h5struct] accepts a list of fields, \
-            e.g. [%h5struct time \"Time\" Int; price \"Price\" Float64]"))
-    in
-    let include_ =
-      Str.include_ ~loc (
-        Incl.mk ~loc
-          (Mod.apply ~loc
-            (Mod.ident ~loc { loc; txt = Longident.(
-              Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Make")) })
-            (Mod.structure ~loc [
-              Str.value ~loc Nonrecursive [
-                Vb.mk ~loc (Pat.var ~loc { txt = "fields"; loc })
-                  (construct_fields_list fields loc)]])))
-    in
-    let bsize = 8 *
-      List.fold_left (fun sum field -> sum + Type.wsize field.Field.type_) 0 fields in
-    let pos = ref 0 in
-    let functions =
-      List.mapi (fun column field ->
+let h5struct_rewriter ~ctxt expression =
+  let loc = Expansion_context.Extension.extension_point_loc ctxt in
+  let fields = extract_fields expression in
+  let include_ =
+    Str.include_ ~loc (
+      Incl.mk ~loc
+        (Mod.apply ~loc
+           (Mod.ident ~loc { loc; txt = Longident.(
+                Ldot (Ldot (Lident "Hdf5_caml", "Struct"), "Make")) })
+           (Mod.structure ~loc [
+               Str.value ~loc Nonrecursive [
+                 Vb.mk ~loc (Pat.var ~loc { txt = "fields"; loc })
+                   (construct_fields_list fields loc)]])))
+  in
+  let bsize = 8 *
+              List.fold_left (fun sum field -> sum + Type.wsize field.Field.type_) 0 fields in
+  let pos = ref 0 in
+  let functions =
+    List.mapi (fun column field ->
         let functions =
           [ construct_field_get field column !pos loc;
             construct_field_set field column !pos loc ]
@@ -455,17 +437,21 @@ let map_structure_item mapper structure_item =
         functions) fields
       |> List.concat
     in
-    Str.include_ ~loc (Incl.mk ~loc ~attrs (Mod.structure ~loc (
-      include_ :: functions
-      @ (construct_set_all_fields fields loc)
-      @ (construct_size_dependent_fun "unsafe_next" ~bsize ~index:false loc)
-      @ (construct_size_dependent_fun "unsafe_prev" ~bsize ~index:false loc)
-      @ (construct_size_dependent_fun "unsafe_move" ~bsize ~index:true  loc)
-      @ (construct_size_dependent_fun "next"        ~bsize ~index:false loc)
-      @ (construct_size_dependent_fun "prev"        ~bsize ~index:false loc)
-      @ (construct_size_dependent_fun "move"        ~bsize ~index:true  loc))))
-  | s -> default_mapper.structure_item mapper s
+    Str.include_ ~loc (Incl.mk ~loc (Mod.structure ~loc (
+        include_ :: functions
+        @ (construct_set_all_fields fields loc)
+        @ (construct_size_dependent_fun "unsafe_next" ~bsize ~index:false loc)
+        @ (construct_size_dependent_fun "unsafe_prev" ~bsize ~index:false loc)
+        @ (construct_size_dependent_fun "unsafe_move" ~bsize ~index:true  loc)
+        @ (construct_size_dependent_fun "next"        ~bsize ~index:false loc)
+        @ (construct_size_dependent_fun "prev"        ~bsize ~index:false loc)
+        @ (construct_size_dependent_fun "move"        ~bsize ~index:true  loc))))
 
-let h5struct_mapper _config _cookies = { default_mapper with structure_item = map_structure_item }
+let extension =
+  Extension.V3.declare
+    "h5struct"
+    Extension.Context.Structure_item
+    Ast_pattern.(single_expr_payload __)
+    h5struct_rewriter
 
-let () = Driver.register ~name:"h5struct" Versions.ocaml_406 h5struct_mapper
+let () = Driver.register_transformation ~extensions:[ extension ] "h5struct"
