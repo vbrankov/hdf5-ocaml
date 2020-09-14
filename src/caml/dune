@@ -2,7 +2,7 @@
  (name hdf5_caml)
  (public_name hdf5.caml)
  (c_names struct_stubs)
- (c_flags (:standard -Wall -pedantic -Wextra -Wunused -Werror -Wno-long-long))
+ (c_flags ((:standard -Wall -pedantic -Wextra -Wunused -Werror -Wno-long-long) (:include ../raw/c_flags.sexp)))
  (libraries bigarray hdf5_raw)
  (inline_tests)
  (preprocess (pps ppx_inline_test)))
