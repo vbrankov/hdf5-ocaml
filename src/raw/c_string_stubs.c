@@ -5,6 +5,11 @@
 #include <caml/memory.h>
 #include "hdf5_caml.h"
 
+value hdf5_c_string_free(value s_v) {
+  free((char*) s_v);
+  return(Val_unit);
+}
+
 value hdf5_c_string_of_string(value s_v)
 {
   CAMLparam1(s_v);
