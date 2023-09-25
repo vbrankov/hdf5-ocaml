@@ -24,7 +24,6 @@ H5I_type_t H5I_type_val(value v)
     case  3: return H5I_DATASPACE;
     case  4: return H5I_DATASET;
     case  5: return H5I_ATTR;
-    case  6: return H5I_REFERENCE;
     case  7: return H5I_VFL;
     case  8: return H5I_GENPROP_CLS;
     case  9: return H5I_GENPROP_LST;
@@ -48,7 +47,6 @@ value Val_h5i_type(H5I_type_t v)
     case H5I_DATASPACE   : return Val_int( 3);
     case H5I_DATASET     : return Val_int( 4);
     case H5I_ATTR        : return Val_int( 5);
-    case H5I_REFERENCE   : return Val_int( 6);
     case H5I_VFL         : return Val_int( 7);
     case H5I_GENPROP_CLS : return Val_int( 8);
     case H5I_GENPROP_LST : return Val_int( 9);
